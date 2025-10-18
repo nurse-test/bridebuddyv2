@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Bride Buddy</title>
+    <title>Bride Buddy - Login</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         *{margin:0;padding:0;box-sizing:border-box;}
@@ -10,7 +10,10 @@
         h1{text-align:center;margin-bottom:20px;background:linear-gradient(135deg,#ec407a,#ab47bc);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
         input{width:100%;padding:12px;margin:10px 0;border:2px solid #fce4ec;border-radius:12px;}
         button{width:100%;padding:14px;background:linear-gradient(135deg,#ec407a,#ab47bc);color:white;border:none;border-radius:12px;margin-top:10px;cursor:pointer;}
-        .msg{padding:10px;margin:10px 0;border-radius:8px;text-align:center;}
+        button:disabled{opacity:0.5;}
+        .toggle{text-align:center;margin-top:15px;color:#666;font-size:14px;}
+        .toggle a{color:#ec407a;cursor:pointer;font-weight:600;text-decoration:none;}
+        .msg{padding:10px;margin:10px 0;border-radius:8px;text-align:center;font-size:14px;}
         .error{background:#ffebee;color:#c62828;}
         .hidden{display:none;}
     </style>
@@ -19,43 +22,88 @@
     <div class="box">
         <h1>Bride Buddy 💍</h1>
         <div id="msg"></div>
-        <form id="form" onsubmit="return false;">
-            <input type="email" id="email" placeholder="Email" required>
-            <input type="password" id="pass" placeholder="Password (min 6 chars)" required minlength="6">
-            <div id="wFields" class="hidden">
-                <input type="text" id="names" placeholder="Couple Names (e.g. Sarah & John)">
-                <input type="date" id="date">
-            </div>
-            <button onclick="submit()">Sign In</button>
-            <button type="button" onclick="toggle()" style="background:white;color:#ec407a;border:2px solid #ec407a;">Sign Up</button>
-        </form>
+        <div id="signInForm">
+            <input type="email" id="signInEmail" placeholder="Email">
+            <input type="password" id="signInPass" placeholder="Password">
+            <button onclick="signIn()">Sign In</button>
+            <div class="toggle">Don't have an account? <a onclick="showSignUp()">Sign Up</a></div>
+        </div>
+        <div id="signUpForm" class="hidden">
+            <input type="email" id="signUpEmail" placeholder="Email">
+            <input type="password" id="signUpPass" placeholder="Password (min 6 chars)" minlength="6">
+            <input type="text" id="coupleNames" placeholder="Couple Names (e.g. Sarah & John)">
+            <input type="date" id="weddingDate">
+            <button onclick="signUp()">Create Wedding Profile</button>
+            <div class="toggle">Already have an account? <a onclick="showSignIn()">Sign In</a></div>
+        </div>
     </div>
     <script>
 const supabase=window.supabase.createClient('https://nluvnjydydotsrpluhey.supabase.co','eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5sdXZuanlkeWRvdHNycGx1aGV5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA3NjE5MjAsImV4cCI6MjA3NjMzNzkyMH0.p5S8vYtZeYqp24avigifhjEDRaKv8TxJTaTkeLoE5mY');
-let isSignUp=false;
-function toggle(){isSignUp=!isSignUp;document.getElementById('wFields').classList.toggle('hidden',!isSignUp);}
-async function submit(){
-    const email=document.getElementById('email').value;
-    const pass=document.getElementById('pass').value;
+
+// Check if already logged in
+supabase.auth.getSession().then(({data:{session}})=>{
+    if(session)window.location.href='/';
+});
+
+function showSignUp(){
+    document.getElementById('signInForm').classList.add('hidden');
+    document.getElementById('signUpForm').classList.remove('hidden');
     document.getElementById('msg').innerHTML='';
+}
+
+function showSignIn(){
+    document.getElementById('signUpForm').classList.add('hidden');
+    document.getElementById('signInForm').classList.remove('hidden');
+    document.getElementById('msg').innerHTML='';
+}
+
+async function signIn(){
+    const email=document.getElementById('signInEmail').value;
+    const pass=document.getElementById('signInPass').value;
+    if(!email||!pass){
+        document.getElementById('msg').innerHTML='<div class="msg error">Please enter email and password</div>';
+        return;
+    }
     try{
-        if(isSignUp){
-            const names=document.getElementById('names').value||'My Wedding';
-            const date=document.getElementById('date').value||null;
-            const {data,error}=await supabase.auth.signUp({email,password:pass,options:{data:{couple_names:names,wedding_date:date}}});
-            if(error)throw error;
-            // Now create wedding
-            const session=await supabase.auth.getSession();
-            if(session.data.session){
-                await fetch('/api/create-wedding',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({userToken:session.data.session.access_token,coupleNames:names,weddingDate:date})});
-                window.location.href='/';
-            }
-        }else{
-            const {data,error}=await supabase.auth.signInWithPassword({email,password:pass});
-            if(error)throw error;
-            // Check if wedding exists, create if not
-            const session=await supabase.auth.getSession();
-            await fetch('/api/create-wedding',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({userToken:session.data.session.access_token,coupleNames:'My Wedding',weddingDate:null})});
+        const {data,error}=await supabase.auth.signInWithPassword({email,password:pass});
+        if(error)throw error;
+        window.location.href='/';
+    }catch(e){
+        document.getElementById('msg').innerHTML=`<div class="msg error">${e.message}</div>`;
+    }
+}
+
+async function signUp(){
+    const email=document.getElementById('signUpEmail').value;
+    const pass=document.getElementById('signUpPass').value;
+    const names=document.getElementById('coupleNames').value;
+    const date=document.getElementById('weddingDate').value;
+    
+    if(!email||!pass){
+        document.getElementById('msg').innerHTML='<div class="msg error">Please enter email and password</div>';
+        return;
+    }
+    if(!names){
+        document.getElementById('msg').innerHTML='<div class="msg error">Please enter couple names</div>';
+        return;
+    }
+    
+    try{
+        const {data,error}=await supabase.auth.signUp({email,password:pass});
+        if(error)throw error;
+        
+        if(data.session){
+            // Create wedding profile
+            const res=await fetch('/api/create-wedding',{
+                method:'POST',
+                headers:{'Content-Type':'application/json'},
+                body:JSON.stringify({
+                    userToken:data.session.access_token,
+                    coupleNames:names,
+                    weddingDate:date||null
+                })
+            });
+            await res.json();
             window.location.href='/';
         }
     }catch(e){
