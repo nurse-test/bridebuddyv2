@@ -1,186 +1,110 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bride Buddy - Login</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { 
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; 
-            background: linear-gradient(135deg, #fce4ec 0%, #f3e5f5 100%); 
-            height: 100vh; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center;
-        }
-        .auth-container {
-            background: white;
-            padding: 40px;
-            border-radius: 20px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
-            width: 100%;
-            max-width: 400px;
-        }
-        h1 {
-            background: linear-gradient(135deg, #ec407a 0%, #ab47bc 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            font-size: 32px;
-            text-align: center;
-            margin-bottom: 10px;
-        }
-        p { text-align: center; color: #666; margin-bottom: 30px; }
-        .form-group { margin-bottom: 20px; }
-        label { display: block; margin-bottom: 8px; color: #333; font-weight: 500; }
-        input {
-            width: 100%;
-            padding: 12px 16px;
-            border: 2px solid #fce4ec;
-            border-radius: 12px;
-            font-size: 14px;
-            outline: none;
-            transition: border-color 0.3s;
-        }
-        input:focus { border-color: #ec407a; }
-        button {
-            width: 100%;
-            padding: 14px;
-            background: linear-gradient(135deg, #ec407a 0%, #ab47bc 100%);
-            color: white;
-            border: none;
-            border-radius: 12px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: transform 0.2s;
-            margin-bottom: 10px;
-        }
-        button:hover { transform: scale(1.02); }
-        button:disabled { opacity: 0.5; cursor: not-allowed; }
-        .toggle-auth {
-            text-align: center;
-            margin-top: 20px;
-            color: #666;
-        }
-        .toggle-auth a {
-            color: #ec407a;
-            text-decoration: none;
-            font-weight: 600;
-        }
-        .error {
-            background: #ffebee;
-            color: #c62828;
-            padding: 12px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            text-align: center;
-        }
-        .success {
-            background: #e8f5e9;
-            color: #2e7d32;
-            padding: 12px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            text-align: center;
-        }
+        *{margin:0;padding:0;box-sizing:border-box;}
+        body{font-family:sans-serif;background:linear-gradient(135deg,#fce4ec,#f3e5f5);height:100vh;display:flex;align-items:center;justify-content:center;}
+        .container{background:white;padding:40px;border-radius:20px;box-shadow:0 8px 32px rgba(0,0,0,0.1);width:100%;max-width:450px;}
+        h1{background:linear-gradient(135deg,#ec407a,#ab47bc);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-size:32px;text-align:center;margin-bottom:30px;}
+        .form-group{margin-bottom:20px;}
+        label{display:block;margin-bottom:8px;color:#333;font-weight:500;}
+        input{width:100%;padding:12px;border:2px solid #fce4ec;border-radius:12px;font-size:14px;}
+        input:focus{border-color:#ec407a;outline:none;}
+        button{width:100%;padding:14px;background:linear-gradient(135deg,#ec407a,#ab47bc);color:white;border:none;border-radius:12px;font-size:16px;font-weight:600;cursor:pointer;margin-top:10px;}
+        button:disabled{opacity:0.5;}
+        .toggle{text-align:center;margin-top:20px;color:#666;}
+        .toggle a{color:#ec407a;cursor:pointer;font-weight:600;}
+        .msg{padding:12px;border-radius:8px;margin-bottom:20px;text-align:center;}
+        .error{background:#ffebee;color:#c62828;}
+        .success{background:#e8f5e9;color:#2e7d32;}
+        .wedding-fields{display:none;}
+        .show{display:block!important;}
     </style>
 </head>
 <body>
-    <div class="auth-container">
+    <div class="container">
         <h1>Bride Buddy 💍</h1>
-        <p id="subtitle">Sign in to plan your dream wedding</p>
-        
-        <div id="message"></div>
-        
-        <form id="authForm">
+        <div id="msg"></div>
+        <form id="form">
             <div class="form-group">
-                <label for="email">Email</label>
+                <label>Email</label>
                 <input type="email" id="email" required>
             </div>
             <div class="form-group">
-                <label for="password">Password</label>
-                <input type="password" id="password" required>
+                <label>Password</label>
+                <input type="password" id="pass" required minlength="6">
             </div>
-            <button type="submit" id="submitBtn">Sign In</button>
+            <div class="wedding-fields" id="wFields">
+                <div class="form-group">
+                    <label>Couple Names (e.g. "Sarah & John")</label>
+                    <input type="text" id="names">
+                </div>
+                <div class="form-group">
+                    <label>Wedding Date (optional)</label>
+                    <input type="date" id="date">
+                </div>
+            </div>
+            <button type="submit" id="btn">Sign In</button>
         </form>
-        
-        <div class="toggle-auth">
-            <span id="toggleText">Don't have an account?</span>
-            <a href="#" id="toggleLink">Sign Up</a>
+        <div class="toggle">
+            <span id="txt">Don't have an account?</span>
+            <a id="link">Sign Up</a>
         </div>
     </div>
-
     <script>
-        const SUPABASE_URL = 'https://nluvnjydydotsrpluhey.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5sdXZuanlkeWRvdHNycGx1aGV5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA3NjE5MjAsImV4cCI6MjA3NjMzNzkyMH0.p5S8vYtZeYqp24avigifhjEDRaKv8TxJTaTkeLoE5mY';
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        
-        let isSignUp = false;
-        const form = document.getElementById('authForm');
-        const submitBtn = document.getElementById('submitBtn');
-        const toggleLink = document.getElementById('toggleLink');
-        const toggleText = document.getElementById('toggleText');
-        const subtitle = document.getElementById('subtitle');
-        const messageDiv = document.getElementById('message');
-
-        // Check if user is already logged in
-        supabase.auth.getSession().then(({ data: { session } }) => {
-            if (session) {
-                window.location.href = '/';
-            }
-        });
-
-        toggleLink.addEventListener('click', (e) => {
-            e.preventDefault();
-            isSignUp = !isSignUp;
-            
-            if (isSignUp) {
-                submitBtn.textContent = 'Sign Up';
-                toggleText.textContent = 'Already have an account?';
-                toggleLink.textContent = 'Sign In';
-                subtitle.textContent = 'Create your account';
-            } else {
-                submitBtn.textContent = 'Sign In';
-                toggleText.textContent = "Don't have an account?";
-                toggleLink.textContent = 'Sign Up';
-                subtitle.textContent = 'Sign in to plan your dream wedding';
-            }
-            messageDiv.innerHTML = '';
-        });
-
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-            
-            submitBtn.disabled = true;
-            submitBtn.textContent = isSignUp ? 'Creating Account...' : 'Signing In...';
-            messageDiv.innerHTML = '';
-            
-            try {
-                if (isSignUp) {
-                    const { data, error } = await supabase.auth.signUp({ email, password });
-                    if (error) throw error;
-                    messageDiv.innerHTML = '<div class="success">Account created! Check your email to confirm.</div>';
-                    setTimeout(() => {
-                        isSignUp = false;
-                        toggleLink.click();
-                    }, 2000);
-                } else {
-                    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-                    if (error) throw error;
-                    window.location.href = '/';
-                }
-            } catch (error) {
-                messageDiv.innerHTML = `<div class="error">${error.message}</div>`;
-            } finally {
-                submitBtn.disabled = false;
-                submitBtn.textContent = isSignUp ? 'Sign Up' : 'Sign In';
-            }
-        });
+const supabase=window.supabase.createClient('https://nluvnjydydotsrpluhey.supabase.co','eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5sdXZuanlkeWRvdHNycGx1aGV5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA3NjE5MjAsImV4cCI6MjA3NjMzNzkyMH0.p5S8vYtZeYqp24avigifhjEDRaKv8TxJTaTkeLoE5mY');
+let isSignUp=false;
+supabase.auth.getSession().then(({data:{session}})=>{if(session)checkWedding(session);});
+document.getElementById('link').onclick=()=>{
+    isSignUp=!isSignUp;
+    document.getElementById('btn').textContent=isSignUp?'Create Wedding Profile':'Sign In';
+    document.getElementById('txt').textContent=isSignUp?'Already have an account?':"Don't have an account?";
+    document.getElementById('link').textContent=isSignUp?'Sign In':'Sign Up';
+    document.getElementById('wFields').classList.toggle('show',isSignUp);
+    document.getElementById('msg').innerHTML='';
+};
+document.getElementById('form').onsubmit=async(e)=>{
+    e.preventDefault();
+    const email=document.getElementById('email').value;
+    const pass=document.getElementById('pass').value;
+    const btn=document.getElementById('btn');
+    btn.disabled=true;
+    btn.textContent=isSignUp?'Creating...':'Signing In...';
+    document.getElementById('msg').innerHTML='';
+    try{
+        if(isSignUp){
+            const names=document.getElementById('names').value;
+            if(!names)throw new Error('Please enter couple names');
+            const {error}=await supabase.auth.signUp({email,password:pass,options:{data:{couple_names:names,wedding_date:document.getElementById('date').value}}});
+            if(error)throw error;
+            document.getElementById('msg').innerHTML='<div class="msg success">Check your email to confirm!</div>';
+            setTimeout(()=>document.getElementById('link').click(),2000);
+        }else{
+            const {data,error}=await supabase.auth.signInWithPassword({email,password:pass});
+            if(error)throw error;
+            await checkWedding(data.session);
+        }
+    }catch(error){
+        document.getElementById('msg').innerHTML=`<div class="msg error">${error.message}</div>`;
+    }finally{
+        btn.disabled=false;
+        btn.textContent=isSignUp?'Create Wedding Profile':'Sign In';
+    }
+};
+async function checkWedding(session){
+    const res=await fetch('/api/create-wedding',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({
+            userToken:session.access_token,
+            coupleNames:session.user.user_metadata.couple_names||'My Wedding',
+            weddingDate:session.user.user_metadata.wedding_date||null
+        })
+    });
+    if(res.ok)window.location.href='/';
+}
     </script>
 </body>
 </html>
