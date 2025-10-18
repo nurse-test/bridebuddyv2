@@ -1,139 +1,45 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bride Buddy</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: linear-gradient(135deg, #fce4ec 0%, #f3e5f5 100%); height: 100vh; display: flex; flex-direction: column; }
-        .header { background: white; padding: 20px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1); position: relative; }
-        .header h1 { background: linear-gradient(135deg, #ec407a 0%, #ab47bc 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 28px; }
-        .header p { color: #666; font-size: 14px; margin-top: 5px; }
-        .logout-btn { position: absolute; right: 20px; top: 50%; transform: translateY(-50%); padding: 8px 16px; background: white; border: 2px solid #ec407a; color: #ec407a; border-radius: 20px; cursor: pointer; font-weight: 600; transition: all 0.3s; }
-        .logout-btn:hover { background: #ec407a; color: white; }
-        .chat-container { flex: 1; overflow-y: auto; padding: 20px; }
-        .message { margin-bottom: 16px; display: flex; }
-        .message.user { justify-content: flex-end; }
-        .message-content { max-width: 70%; padding: 12px 16px; border-radius: 18px; word-wrap: break-word; }
-        .message.user .message-content { background: linear-gradient(135deg, #ec407a 0%, #ab47bc 100%); color: white; }
-        .message.assistant .message-content { background: white; color: #333; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
-        .loading { display: none; padding: 12px 16px; background: white; border-radius: 18px; width: fit-content; }
-        .loading.show { display: block; }
-        .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #ec407a; margin: 0 3px; animation: bounce 1.4s infinite ease-in-out both; }
-        .dot:nth-child(1) { animation-delay: -0.32s; }
-        .dot:nth-child(2) { animation-delay: -0.16s; }
-        @keyframes bounce { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1); } }
-        .input-container { background: white; padding: 16px; border-top: 1px solid #fce4ec; }
-        .input-wrapper { display: flex; gap: 8px; max-width: 800px; margin: 0 auto; }
-        #userInput { flex: 1; padding: 12px 16px; border: 2px solid #fce4ec; border-radius: 24px; font-size: 14px; outline: none; }
-        #userInput:focus { border-color: #ec407a; }
-        #sendBtn { padding: 12px 24px; background: linear-gradient(135deg, #ec407a 0%, #ab47bc 100%); color: white; border: none; border-radius: 24px; cursor: pointer; font-weight: 600; transition: transform 0.2s; }
-        #sendBtn:hover:not(:disabled) { transform: scale(1.05); }
-        #sendBtn:disabled { opacity: 0.5; cursor: not-allowed; }
-    </style>
 </head>
-<body>
-    <div class="header">
-        <h1>Bride Buddy 💍</h1>
-        <p>Your AI Wedding Planning Assistant</p>
-        <button class="logout-btn" onclick="logout()">Logout</button>
+<body style="margin:0;font-family:sans-serif;background:linear-gradient(135deg,#fce4ec,#f3e5f5);height:100vh;display:flex;flex-direction:column;">
+    <div style="background:white;padding:20px;text-align:center;box-shadow:0 2px 4px rgba(0,0,0,0.1);position:relative;">
+        <h1 style="background:linear-gradient(135deg,#ec407a,#ab47bc);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin:0;">Bride Buddy 💍</h1>
+        <button onclick="logout()" style="position:absolute;right:20px;top:20px;padding:8px 16px;background:white;border:2px solid #ec407a;color:#ec407a;border-radius:20px;cursor:pointer;">Logout</button>
     </div>
-    <div class="chat-container" id="chatContainer">
-        <div class="message assistant"><div class="message-content">Hi! I'm your Bride Buddy 💍 Ask me anything about wedding planning!</div></div>
-        <div class="loading" id="loading"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
-    </div>
-    <div class="input-container">
-        <div class="input-wrapper">
-            <input type="text" id="userInput" placeholder="Ask about venues, budgets, timelines..." onkeypress="if(event.key === 'Enter') sendMessage()">
-            <button id="sendBtn" onclick="sendMessage()">Send</button>
+    <div id="chat" style="flex:1;overflow-y:auto;padding:20px;"></div>
+    <div style="background:white;padding:16px;">
+        <div style="display:flex;gap:8px;max-width:800px;margin:0 auto;">
+            <input id="input" type="text" placeholder="Ask about weddings..." style="flex:1;padding:12px;border:2px solid #fce4ec;border-radius:24px;" onkeypress="if(event.key==='Enter')send()">
+            <button onclick="send()" style="padding:12px 24px;background:linear-gradient(135deg,#ec407a,#ab47bc);color:white;border:none;border-radius:24px;cursor:pointer;">Send</button>
         </div>
     </div>
-
     <script>
-        const SUPABASE_URL = 'https://nluvnjydydotsrpluhey.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5sdXZuanlkeWRvdHNycGx1aGV5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA3NjE5MjAsImV4cCI6MjA3NjMzNzkyMH0.p5S8vYtZeYqp24avigifhjEDRaKv8TxJTaTkeLoE5mY';
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        
-        let currentUser = null;
-        let currentConversationId = null;
-
-        // Check authentication
-        supabase.auth.getSession().then(({ data: { session } }) => {
-            if (!session) {
-                window.location.href = '/auth.html';
-            } else {
-                currentUser = session.user;
-            }
-        });
-
-        async function logout() {
-            await supabase.auth.signOut();
-            window.location.href = '/auth.html';
-        }
-
-        async function sendMessage() {
-            const input = document.getElementById('userInput');
-            const message = input.value.trim();
-            if (!message || !currentUser) return;
-            
-            input.value = '';
-            input.disabled = true;
-            document.getElementById('sendBtn').disabled = true;
-            addMessage(message, 'user');
-            document.getElementById('loading').classList.add('show');
-            scrollToBottom();
-            
-            try {
-                const response = await fetch('/api/chat', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        message: message,
-                        userId: currentUser.id,
-                        conversationId: currentConversationId
-                    })
-                });
-                
-                const data = await response.json();
-                document.getElementById('loading').classList.remove('show');
-                
-                if (data.response) {
-                    addMessage(data.response, 'assistant');
-                    if (data.conversationId) {
-                        currentConversationId = data.conversationId;
-                    }
-                } else {
-                    addMessage('Sorry, I had trouble understanding that. Can you try again?', 'assistant');
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                document.getElementById('loading').classList.remove('show');
-                addMessage('Oops! Something went wrong. Please try again.', 'assistant');
-            }
-            
-            input.disabled = false;
-            document.getElementById('sendBtn').disabled = false;
-            input.focus();
-        }
-        
-        function addMessage(text, role) {
-            const chatContainer = document.getElementById('chatContainer');
-            const messageDiv = document.createElement('div');
-            messageDiv.className = 'message ' + role;
-            const contentDiv = document.createElement('div');
-            contentDiv.className = 'message-content';
-            contentDiv.textContent = text;
-            messageDiv.appendChild(contentDiv);
-            chatContainer.insertBefore(messageDiv, document.getElementById('loading'));
-            scrollToBottom();
-        }
-        
-        function scrollToBottom() {
-            const chatContainer = document.getElementById('chatContainer');
-            chatContainer.scrollTop = chatContainer.scrollHeight;
-        }
+const supabase = window.supabase.createClient('https://nluvnjydydotsrpluhey.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5sdXZuanlkeWRvdHNycGx1aGV5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA3NjE5MjAsImV4cCI6MjA3NjMzNzkyMH0.p5S8vYtZeYqp24avigifhjEDRaKv8TxJTaTkeLoE5mY');
+let user, convId;
+supabase.auth.getSession().then(({data:{session}})=>{if(!session)window.location.href='/auth.html';else user=session.user;});
+function logout(){supabase.auth.signOut();window.location.href='/auth.html';}
+async function send(){
+    const inp=document.getElementById('input'),msg=inp.value.trim();
+    if(!msg||!user)return;
+    inp.value='';inp.disabled=true;
+    add(msg,'user');
+    const session=await supabase.auth.getSession();
+    const res=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:msg,userToken:session.data.session.access_token,conversationId:convId})});
+    const data=await res.json();
+    if(data.response){add(data.response,'assistant');if(data.conversationId)convId=data.conversationId;}
+    inp.disabled=false;inp.focus();
+}
+function add(txt,role){
+    const d=document.createElement('div');
+    d.style.cssText=role==='user'?'display:flex;justify-content:flex-end;margin-bottom:16px;':'display:flex;margin-bottom:16px;';
+    d.innerHTML=`<div style="max-width:70%;padding:12px 16px;border-radius:18px;${role==='user'?'background:linear-gradient(135deg,#ec407a,#ab47bc);color:white;':'background:white;color:#333;box-shadow:0 1px 2px rgba(0,0,0,0.1);'}">${txt}</div>`;
+    document.getElementById('chat').appendChild(d);
+    document.getElementById('chat').scrollTop=999999;
+}
+add("Hi! I'm your Bride Buddy 💍 Ask me anything about wedding planning!",'assistant');
     </script>
 </body>
 </html>

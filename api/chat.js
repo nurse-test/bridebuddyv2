@@ -5,25 +5,33 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { message, conversationId, userId } = req.body;
+  const { message, conversationId, userToken } = req.body;
 
-  if (!message) {
-    return res.status(400).json({ error: 'Message is required' });
+  if (!message || !userToken) {
+    return res.status(400).json({ error: 'Message and user token required' });
   }
 
-  // Initialize Supabase
   const supabase = createClient(
     process.env.SUPABASE_URL,
-    process.env.SUPABASE_ANON_KEY
+    process.env.SUPABASE_ANON_KEY,
+    {
+      global: {
+        headers: {
+          Authorization: `Bearer ${userToken}`
+        }
+      }
+    }
   );
 
   try {
-    // If no conversationId, create a new conversation
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    if (userError || !user) throw new Error('Invalid user token');
+
     let currentConversationId = conversationId;
-    if (!currentConversationId && userId) {
+    if (!currentConversationId) {
       const { data: newConversation, error: convError } = await supabase
         .from('conversations')
-        .insert({ user_id: userId, title: message.substring(0, 50) })
+        .insert({ user_id: user.id, title: message.substring(0, 50) })
         .select()
         .single();
       
@@ -31,16 +39,12 @@ export default async function handler(req, res) {
       currentConversationId = newConversation.id;
     }
 
-    // Save user message to database if we have a conversation
-    if (currentConversationId) {
-      await supabase.from('messages').insert({
-        conversation_id: currentConversationId,
-        role: 'user',
-        content: message
-      });
-    }
+    await supabase.from('messages').insert({
+      conversation_id: currentConversationId,
+      role: 'user',
+      content: message
+    });
 
-    // Call Claude API
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
@@ -63,14 +67,11 @@ export default async function handler(req, res) {
     if (data.content && data.content[0]) {
       const assistantMessage = data.content[0].text;
       
-      // Save assistant message to database if we have a conversation
-      if (currentConversationId) {
-        await supabase.from('messages').insert({
-          conversation_id: currentConversationId,
-          role: 'assistant',
-          content: assistantMessage
-        });
-      }
+      await supabase.from('messages').insert({
+        conversation_id: currentConversationId,
+        role: 'assistant',
+        content: assistantMessage
+      });
 
       return res.status(200).json({ 
         response: assistantMessage,
@@ -81,6 +82,6 @@ export default async function handler(req, res) {
     }
   } catch (error) {
     console.error('Error:', error);
-    return res.status(500).json({ error: 'Failed to get response' });
+    return res.status(500).json({ error: error.message || 'Failed to get response' });
   }
 }
