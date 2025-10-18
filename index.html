@@ -4,12 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bride Buddy</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: linear-gradient(135deg, #fce4ec 0%, #f3e5f5 100%); height: 100vh; display: flex; flex-direction: column; }
-        .header { background: white; padding: 20px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .header { background: white; padding: 20px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1); position: relative; }
         .header h1 { background: linear-gradient(135deg, #ec407a 0%, #ab47bc 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 28px; }
         .header p { color: #666; font-size: 14px; margin-top: 5px; }
+        .logout-btn { position: absolute; right: 20px; top: 50%; transform: translateY(-50%); padding: 8px 16px; background: white; border: 2px solid #ec407a; color: #ec407a; border-radius: 20px; cursor: pointer; font-weight: 600; transition: all 0.3s; }
+        .logout-btn:hover { background: #ec407a; color: white; }
         .chat-container { flex: 1; overflow-y: auto; padding: 20px; }
         .message { margin-bottom: 16px; display: flex; }
         .message.user { justify-content: flex-end; }
@@ -32,35 +35,75 @@
     </style>
 </head>
 <body>
-    <div class="header"><h1>Bride Buddy 💍</h1><p>Your AI Wedding Planning Assistant</p></div>
+    <div class="header">
+        <h1>Bride Buddy 💍</h1>
+        <p>Your AI Wedding Planning Assistant</p>
+        <button class="logout-btn" onclick="logout()">Logout</button>
+    </div>
     <div class="chat-container" id="chatContainer">
         <div class="message assistant"><div class="message-content">Hi! I'm your Bride Buddy 💍 Ask me anything about wedding planning!</div></div>
         <div class="loading" id="loading"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
     </div>
-    <div class="input-container"><div class="input-wrapper"><input type="text" id="userInput" placeholder="Ask about venues, budgets, timelines..." onkeypress="if(event.key === 'Enter') sendMessage()"><button id="sendBtn" onclick="sendMessage()">Send</button></div></div>
+    <div class="input-container">
+        <div class="input-wrapper">
+            <input type="text" id="userInput" placeholder="Ask about venues, budgets, timelines..." onkeypress="if(event.key === 'Enter') sendMessage()">
+            <button id="sendBtn" onclick="sendMessage()">Send</button>
+        </div>
+    </div>
+
     <script>
+        const SUPABASE_URL = 'https://nluvnjydydotsrpluhey.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5sdXZuanlkeWRvdHNycGx1aGV5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA3NjE5MjAsImV4cCI6MjA3NjMzNzkyMH0.p5S8vYtZeYqp24avigifhjEDRaKv8TxJTaTkeLoE5mY';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        let currentUser = null;
+        let currentConversationId = null;
+
+        // Check authentication
+        supabase.auth.getSession().then(({ data: { session } }) => {
+            if (!session) {
+                window.location.href = '/auth.html';
+            } else {
+                currentUser = session.user;
+            }
+        });
+
+        async function logout() {
+            await supabase.auth.signOut();
+            window.location.href = '/auth.html';
+        }
+
         async function sendMessage() {
             const input = document.getElementById('userInput');
             const message = input.value.trim();
-            if (!message) return;
+            if (!message || !currentUser) return;
+            
             input.value = '';
             input.disabled = true;
             document.getElementById('sendBtn').disabled = true;
             addMessage(message, 'user');
             document.getElementById('loading').classList.add('show');
             scrollToBottom();
+            
             try {
                 const response = await fetch('/api/chat', {
-    method: 'POST',
-    headers: {
-        'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({ message: message })
-});
-const data = await response.json();
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        message: message,
+                        userId: currentUser.id,
+                        conversationId: currentConversationId
+                    })
+                });
+                
+                const data = await response.json();
                 document.getElementById('loading').classList.remove('show');
+                
                 if (data.response) {
-    addMessage(data.response, 'assistant');
+                    addMessage(data.response, 'assistant');
+                    if (data.conversationId) {
+                        currentConversationId = data.conversationId;
+                    }
                 } else {
                     addMessage('Sorry, I had trouble understanding that. Can you try again?', 'assistant');
                 }
@@ -69,10 +112,12 @@ const data = await response.json();
                 document.getElementById('loading').classList.remove('show');
                 addMessage('Oops! Something went wrong. Please try again.', 'assistant');
             }
+            
             input.disabled = false;
             document.getElementById('sendBtn').disabled = false;
             input.focus();
         }
+        
         function addMessage(text, role) {
             const chatContainer = document.getElementById('chatContainer');
             const messageDiv = document.createElement('div');
@@ -84,6 +129,7 @@ const data = await response.json();
             chatContainer.insertBefore(messageDiv, document.getElementById('loading'));
             scrollToBottom();
         }
+        
         function scrollToBottom() {
             const chatContainer = document.getElementById('chatContainer');
             chatContainer.scrollTop = chatContainer.scrollHeight;
