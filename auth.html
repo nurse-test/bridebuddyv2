@@ -1,109 +1,66 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Bride Buddy - Login</title>
+    <title>Bride Buddy</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         *{margin:0;padding:0;box-sizing:border-box;}
         body{font-family:sans-serif;background:linear-gradient(135deg,#fce4ec,#f3e5f5);height:100vh;display:flex;align-items:center;justify-content:center;}
-        .container{background:white;padding:40px;border-radius:20px;box-shadow:0 8px 32px rgba(0,0,0,0.1);width:100%;max-width:450px;}
-        h1{background:linear-gradient(135deg,#ec407a,#ab47bc);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-size:32px;text-align:center;margin-bottom:30px;}
-        .form-group{margin-bottom:20px;}
-        label{display:block;margin-bottom:8px;color:#333;font-weight:500;}
-        input{width:100%;padding:12px;border:2px solid #fce4ec;border-radius:12px;font-size:14px;}
-        input:focus{border-color:#ec407a;outline:none;}
-        button{width:100%;padding:14px;background:linear-gradient(135deg,#ec407a,#ab47bc);color:white;border:none;border-radius:12px;font-size:16px;font-weight:600;cursor:pointer;margin-top:10px;}
-        button:disabled{opacity:0.5;}
-        .toggle{text-align:center;margin-top:20px;color:#666;}
-        .toggle a{color:#ec407a;cursor:pointer;font-weight:600;}
-        .msg{padding:12px;border-radius:8px;margin-bottom:20px;text-align:center;}
+        .box{background:white;padding:40px;border-radius:20px;width:100%;max-width:400px;}
+        h1{text-align:center;margin-bottom:20px;background:linear-gradient(135deg,#ec407a,#ab47bc);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+        input{width:100%;padding:12px;margin:10px 0;border:2px solid #fce4ec;border-radius:12px;}
+        button{width:100%;padding:14px;background:linear-gradient(135deg,#ec407a,#ab47bc);color:white;border:none;border-radius:12px;margin-top:10px;cursor:pointer;}
+        .msg{padding:10px;margin:10px 0;border-radius:8px;text-align:center;}
         .error{background:#ffebee;color:#c62828;}
-        .success{background:#e8f5e9;color:#2e7d32;}
-        .wedding-fields{display:none;}
-        .show{display:block!important;}
+        .hidden{display:none;}
     </style>
 </head>
 <body>
-    <div class="container">
+    <div class="box">
         <h1>Bride Buddy 💍</h1>
         <div id="msg"></div>
-        <form id="form">
-            <div class="form-group">
-                <label>Email</label>
-                <input type="email" id="email" required>
+        <form id="form" onsubmit="return false;">
+            <input type="email" id="email" placeholder="Email" required>
+            <input type="password" id="pass" placeholder="Password (min 6 chars)" required minlength="6">
+            <div id="wFields" class="hidden">
+                <input type="text" id="names" placeholder="Couple Names (e.g. Sarah & John)">
+                <input type="date" id="date">
             </div>
-            <div class="form-group">
-                <label>Password</label>
-                <input type="password" id="pass" required minlength="6">
-            </div>
-            <div class="wedding-fields" id="wFields">
-                <div class="form-group">
-                    <label>Couple Names (e.g. "Sarah & John")</label>
-                    <input type="text" id="names">
-                </div>
-                <div class="form-group">
-                    <label>Wedding Date (optional)</label>
-                    <input type="date" id="date">
-                </div>
-            </div>
-            <button type="submit" id="btn">Sign In</button>
+            <button onclick="submit()">Sign In</button>
+            <button type="button" onclick="toggle()" style="background:white;color:#ec407a;border:2px solid #ec407a;">Sign Up</button>
         </form>
-        <div class="toggle">
-            <span id="txt">Don't have an account?</span>
-            <a id="link">Sign Up</a>
-        </div>
     </div>
     <script>
 const supabase=window.supabase.createClient('https://nluvnjydydotsrpluhey.supabase.co','eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5sdXZuanlkeWRvdHNycGx1aGV5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA3NjE5MjAsImV4cCI6MjA3NjMzNzkyMH0.p5S8vYtZeYqp24avigifhjEDRaKv8TxJTaTkeLoE5mY');
 let isSignUp=false;
-supabase.auth.getSession().then(({data:{session}})=>{if(session)checkWedding(session);});
-document.getElementById('link').onclick=()=>{
-    isSignUp=!isSignUp;
-    document.getElementById('btn').textContent=isSignUp?'Create Wedding Profile':'Sign In';
-    document.getElementById('txt').textContent=isSignUp?'Already have an account?':"Don't have an account?";
-    document.getElementById('link').textContent=isSignUp?'Sign In':'Sign Up';
-    document.getElementById('wFields').classList.toggle('show',isSignUp);
-    document.getElementById('msg').innerHTML='';
-};
-document.getElementById('form').onsubmit=async(e)=>{
-    e.preventDefault();
+function toggle(){isSignUp=!isSignUp;document.getElementById('wFields').classList.toggle('hidden',!isSignUp);}
+async function submit(){
     const email=document.getElementById('email').value;
     const pass=document.getElementById('pass').value;
-    const btn=document.getElementById('btn');
-    btn.disabled=true;
-    btn.textContent=isSignUp?'Creating...':'Signing In...';
     document.getElementById('msg').innerHTML='';
     try{
         if(isSignUp){
-            const names=document.getElementById('names').value;
-            if(!names)throw new Error('Please enter couple names');
-            const {error}=await supabase.auth.signUp({email,password:pass,options:{data:{couple_names:names,wedding_date:document.getElementById('date').value}}});
+            const names=document.getElementById('names').value||'My Wedding';
+            const date=document.getElementById('date').value||null;
+            const {data,error}=await supabase.auth.signUp({email,password:pass,options:{data:{couple_names:names,wedding_date:date}}});
             if(error)throw error;
-            document.getElementById('msg').innerHTML='<div class="msg success">Check your email to confirm!</div>';
-            setTimeout(()=>document.getElementById('link').click(),2000);
+            // Now create wedding
+            const session=await supabase.auth.getSession();
+            if(session.data.session){
+                await fetch('/api/create-wedding',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({userToken:session.data.session.access_token,coupleNames:names,weddingDate:date})});
+                window.location.href='/';
+            }
         }else{
             const {data,error}=await supabase.auth.signInWithPassword({email,password:pass});
             if(error)throw error;
-            await checkWedding(data.session);
+            // Check if wedding exists, create if not
+            const session=await supabase.auth.getSession();
+            await fetch('/api/create-wedding',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({userToken:session.data.session.access_token,coupleNames:'My Wedding',weddingDate:null})});
+            window.location.href='/';
         }
-    }catch(error){
-        document.getElementById('msg').innerHTML=`<div class="msg error">${error.message}</div>`;
-    }finally{
-        btn.disabled=false;
-        btn.textContent=isSignUp?'Create Wedding Profile':'Sign In';
+    }catch(e){
+        document.getElementById('msg').innerHTML=`<div class="msg error">${e.message}</div>`;
     }
-};
-async function checkWedding(session){
-    const res=await fetch('/api/create-wedding',{
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({
-            userToken:session.access_token,
-            coupleNames:session.user.user_metadata.couple_names||'My Wedding',
-            weddingDate:session.user.user_metadata.wedding_date||null
-        })
-    });
-    if(res.ok)window.location.href='/';
 }
     </script>
 </body>
