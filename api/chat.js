@@ -1,16 +1,46 @@
+import { createClient } from '@supabase/supabase-js';
+
 export default async function handler(req, res) {
-  // Only allow POST requests
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { message } = req.body;
+  const { message, conversationId, userId } = req.body;
 
   if (!message) {
     return res.status(400).json({ error: 'Message is required' });
   }
 
+  // Initialize Supabase
+  const supabase = createClient(
+    process.env.SUPABASE_URL,
+    process.env.SUPABASE_ANON_KEY
+  );
+
   try {
+    // If no conversationId, create a new conversation
+    let currentConversationId = conversationId;
+    if (!currentConversationId && userId) {
+      const { data: newConversation, error: convError } = await supabase
+        .from('conversations')
+        .insert({ user_id: userId, title: message.substring(0, 50) })
+        .select()
+        .single();
+      
+      if (convError) throw convError;
+      currentConversationId = newConversation.id;
+    }
+
+    // Save user message to database if we have a conversation
+    if (currentConversationId) {
+      await supabase.from('messages').insert({
+        conversation_id: currentConversationId,
+        role: 'user',
+        content: message
+      });
+    }
+
+    // Call Claude API
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
@@ -31,7 +61,21 @@ export default async function handler(req, res) {
     const data = await response.json();
 
     if (data.content && data.content[0]) {
-      return res.status(200).json({ response: data.content[0].text });
+      const assistantMessage = data.content[0].text;
+      
+      // Save assistant message to database if we have a conversation
+      if (currentConversationId) {
+        await supabase.from('messages').insert({
+          conversation_id: currentConversationId,
+          role: 'assistant',
+          content: assistantMessage
+        });
+      }
+
+      return res.status(200).json({ 
+        response: assistantMessage,
+        conversationId: currentConversationId
+      });
     } else {
       return res.status(500).json({ error: 'Invalid response from Claude' });
     }
