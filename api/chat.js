@@ -27,11 +27,27 @@ export default async function handler(req, res) {
     const { data: { user }, error: userError } = await supabase.auth.getUser();
     if (userError || !user) throw new Error('Invalid user token');
 
+    // Get user's wedding
+    const { data: membership, error: memberError } = await supabase
+      .from('wedding_members')
+      .select('wedding_id, wedding_profiles(*)')
+      .eq('user_id', user.id)
+      .single();
+
+    if (memberError || !membership) throw new Error('No wedding profile found');
+
+    const weddingId = membership.wedding_id;
+    const weddingData = membership.wedding_profiles;
+
+    // If no conversationId, create a new conversation
     let currentConversationId = conversationId;
     if (!currentConversationId) {
       const { data: newConversation, error: convError } = await supabase
         .from('conversations')
-        .insert({ user_id: user.id, title: message.substring(0, 50) })
+        .insert({ 
+          wedding_id: weddingId, 
+          title: message.substring(0, 50) 
+        })
         .select()
         .single();
       
@@ -39,12 +55,22 @@ export default async function handler(req, res) {
       currentConversationId = newConversation.id;
     }
 
+    // Save user message
     await supabase.from('messages').insert({
       conversation_id: currentConversationId,
       role: 'user',
       content: message
     });
 
+    // Build context about the wedding
+    let weddingContext = `You are Bride Buddy, helping plan a wedding.`;
+    if (weddingData.couple_names) weddingContext += `\nCouple: ${weddingData.couple_names}`;
+    if (weddingData.wedding_date) weddingContext += `\nWedding Date: ${weddingData.wedding_date}`;
+    if (weddingData.guest_count) weddingContext += `\nGuest Count: ${weddingData.guest_count}`;
+    if (weddingData.budget) weddingContext += `\nBudget: $${weddingData.budget}`;
+    if (weddingData.venue) weddingContext += `\nVenue: ${weddingData.venue}`;
+
+    // Call Claude API
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
@@ -57,7 +83,7 @@ export default async function handler(req, res) {
         max_tokens: 1024,
         messages: [{
           role: 'user',
-          content: `You are Bride Buddy, a helpful wedding planning assistant. Be warm, enthusiastic, and practical. Keep responses concise but helpful.\n\nUser question: ${message}`
+          content: `${weddingContext}\n\nBe warm, enthusiastic, and practical. Keep responses concise but helpful.\n\nUser question: ${message}`
         }]
       })
     });
@@ -67,6 +93,7 @@ export default async function handler(req, res) {
     if (data.content && data.content[0]) {
       const assistantMessage = data.content[0].text;
       
+      // Save assistant message
       await supabase.from('messages').insert({
         conversation_id: currentConversationId,
         role: 'assistant',
@@ -82,6 +109,6 @@ export default async function handler(req, res) {
     }
   } catch (error) {
     console.error('Error:', error);
-    return res.status(500).json({ error: error.message || 'Failed to get response' });
+    return res.status(500).json({ error: error.message });
   }
 }
