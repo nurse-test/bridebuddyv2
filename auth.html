@@ -40,7 +40,6 @@
     <script>
 const supabase=window.supabase.createClient('https://nluvnjydydotsrpluhey.supabase.co','eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5sdXZuanlkeWRvdHNycGx1aGV5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA3NjE5MjAsImV4cCI6MjA3NjMzNzkyMH0.p5S8vYtZeYqp24avigifhjEDRaKv8TxJTaTkeLoE5mY');
 
-// Check if already logged in
 supabase.auth.getSession().then(({data:{session}})=>{
     if(session)window.location.href='/';
 });
@@ -89,21 +88,30 @@ async function signUp(){
     }
     
     try{
-        const {data,error}=await supabase.auth.signUp({email,password:pass});
-        if(error)throw error;
+        // Sign up
+        const {data:signupData,error:signupError}=await supabase.auth.signUp({email,password:pass});
+        if(signupError)throw signupError;
         
-        if(data.session){
+        // Sign in to get session
+        const {data:signinData,error:signinError}=await supabase.auth.signInWithPassword({email,password:pass});
+        if(signinError)throw signinError;
+        
+        if(signinData.session){
             // Create wedding profile
             const res=await fetch('/api/create-wedding',{
                 method:'POST',
                 headers:{'Content-Type':'application/json'},
                 body:JSON.stringify({
-                    userToken:data.session.access_token,
+                    userToken:signinData.session.access_token,
                     coupleNames:names,
                     weddingDate:date||null
                 })
             });
-            await res.json();
+            const result=await res.json();
+            console.log('Create wedding result:',result);
+            if(!res.ok){
+                throw new Error(result.error||'Failed to create wedding');
+            }
             window.location.href='/';
         }
     }catch(e){
