@@ -24,21 +24,21 @@ supabase.auth.getSession().then(async({data:{session}})=>{
     if(!session)window.location.href='/auth.html';
     else{
         user=session.user;
-        // Get wedding invite code
-const {data: weddingData} = await supabase
-        .from('wedding_profiles')
-        .select('invite_code')
-        .eq('owner_id', user.id)
-        .single();
-    
-    if (weddingData) inviteCode = weddingData.invite_code;
-    }
-});
+ 
 function logout(){supabase.auth.signOut();window.location.href='/auth.html';}
-function showInvite(){
-    if(inviteCode){
-        const link=`${window.location.origin}/join.html?code=${inviteCode}`;
-        prompt('Share this link with co-planners:',link);
+async function showInvite(){
+    const session = await supabase.auth.getSession();
+    const res = await fetch('/api/create-invite', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({userToken: session.data.session.access_token})
+    });
+    const data = await res.json();
+    if(data.invite_code){
+        const link = `${window.location.origin}/join.html?code=${data.invite_code}`;
+        prompt('Share this ONE-TIME invite link:', link);
+    } else {
+        alert('Error: ' + (data.error || 'Failed to create invite'));
     }
 }
 async function send(){
