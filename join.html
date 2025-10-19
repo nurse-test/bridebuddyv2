@@ -71,7 +71,7 @@ async function signIn(){
 }
 
 async function addToWedding(token){
-    const res=await fetch('/api/join-wedding',{
+    const res=await fetch('https://nluvnjydydotsrpluhey.supabase.co/functions/v1/join-wedding',{
         method:'POST',
         headers:{'Content-Type':'application/json'},
         body:JSON.stringify({inviteCode,userToken:token})
