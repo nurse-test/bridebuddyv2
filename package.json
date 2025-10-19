@@ -2,6 +2,23 @@
   "name": "bridebuddyv2",
   "version": "1.0.0",
   "dependencies": {
-    "@supabase/supabase-js": "^2.39.0"
-  }
+    "@supabase/supabase-js": "^2.39.0",
+    "stripe": "^19.1.0"
+  },
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://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@github.com/nurse-test/bridebuddyv2.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/nurse-test/bridebuddyv2/issues"
+  },
+  "homepage": "https://github.com/nurse-test/bridebuddyv2#readme"
 }
