@@ -57,13 +57,12 @@ async function join() {
         if (authError) throw authError;
         
         // Add to wedding
-        const res = await fetch('https://nluvnjydydotsrpluhey.supabase.co/functions/v1/join-wedding', {
+        const res = await fetch('/api/join-wedding', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': 'Bearer ' + authData.session.access_token,
-                'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5sdXZuanlkeWRvdHNycGx1aGV5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA3NjE5MjAsImV4cCI6MjA3NjMzNzkyMH0.p5S8vYtZeYqp24avigifhjEDRaKv8TxJTaTkeLoE5mY'
-            },
+                'Authorization': `Bearer ${authData.session.access_token}`
+                },
             body: JSON.stringify({
                 inviteCode: inviteCode,
                 userToken: authData.session.access_token
