@@ -69,14 +69,7 @@ async function signIn(){
         document.getElementById('msg').innerHTML=`<div class="msg error">${e.message}</div>`;
     }
 }
-
-async function addToWedding(token){
-    const res=await fetch('https://nluvnjydydotsrpluhey.supabase.co/functions/v1/join-wedding',{
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({inviteCode,userToken:token})
-    });
-    async function addToWedding(token){
+ async function addToWedding(token){
     const res=await fetch('https://nluvnjydydotsrpluhey.supabase.co/functions/v1/join-wedding',{
         method:'POST',
         headers:{
