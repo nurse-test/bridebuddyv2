@@ -40,7 +40,7 @@ if (memberData) {
     
     if (weddingData) inviteCode = weddingData.invite_code;
 }
-});
+};
 function logout(){supabase.auth.signOut();window.location.href='/auth.html';}
 function showInvite(){
     if(inviteCode){
