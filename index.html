@@ -24,6 +24,8 @@ supabase.auth.getSession().then(async({data:{session}})=>{
     if(!session)window.location.href='/auth.html';
     else{
         user=session.user;
+    }
+});
  
 function logout(){supabase.auth.signOut();window.location.href='/auth.html';}
 async function showInvite(){
