@@ -25,9 +25,21 @@ supabase.auth.getSession().then(async({data:{session}})=>{
     else{
         user=session.user;
         // Get wedding invite code
-        const {data}=await supabase.from('wedding_members').select('wedding_profiles(invite_code)').eq('user_id',user.id).single();
-        if(data)inviteCode=data.wedding_profiles.invite_code;
-    }
+const {data: memberData} = await supabase
+    .from('wedding_members')
+    .select('wedding_id')
+    .eq('user_id', user.id)
+    .single();
+
+if (memberData) {
+    const {data: weddingData} = await supabase
+        .from('wedding_profiles')
+        .select('invite_code')
+        .eq('id', memberData.wedding_id)
+        .single();
+    
+    if (weddingData) inviteCode = weddingData.invite_code;
+}
 });
 function logout(){supabase.auth.signOut();window.location.href='/auth.html';}
 function showInvite(){
