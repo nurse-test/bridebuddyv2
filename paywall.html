@@ -79,7 +79,6 @@
     <script>
 const supabase=window.supabase.createClient('https://nluvnjydydotsrpluhey.supabase.co','eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5sdXZuanlkeWRvdHNycGx1aGV5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA3NjE5MjAsImV4cCI6MjA3NjMzNzkyMH0.p5S8vYtZeYqp24avigifhjEDRaKv8TxJTaTkeLoE5mY');
 
-// Check if user has wedding date set
 supabase.auth.getSession().then(async({data:{session}})=>{
     if(!session){
         window.location.href='/auth.html';
@@ -110,19 +109,60 @@ function logout(){
     window.location.href='/auth.html';
 }
 
-function chooseFree(){
-    // TODO: Set up free tier mode
-    alert('Free tier selected! This will be implemented next.');
+async function chooseFree(){
+    alert('Free tier will be implemented next!');
 }
 
-function chooseMonthly(){
-    // TODO: Stripe integration for monthly
-    alert('Monthly VIP selected! Payment integration coming next.');
+async function chooseMonthly(){
+    const session = await supabase.auth.getSession();
+    const membership = await supabase
+        .from('wedding_members')
+        .select('wedding_id')
+        .eq('user_id', session.data.session.user.id)
+        .single();
+    
+    const res = await fetch('/api/create-checkout', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+            priceId: 'price_1SI3KoRjwBUM0ZBtUskqXPiY',
+            userId: session.data.session.user.id,
+            weddingId: membership.data.wedding_id
+        })
+    });
+    
+    const data = await res.json();
+    if(data.url){
+        window.location.href = data.url;
+    } else {
+        alert('Error: ' + (data.error || 'Failed to create checkout'));
+    }
 }
 
-function chooseUntilIDo(){
-    // TODO: Stripe integration for one-time
-    alert('Until I Do selected! Payment integration coming next.');
+async function chooseUntilIDo(){
+    const session = await supabase.auth.getSession();
+    const membership = await supabase
+        .from('wedding_members')
+        .select('wedding_id')
+        .eq('user_id', session.data.session.user.id)
+        .single();
+    
+    const res = await fetch('/api/create-checkout', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+            priceId: 'price_1SI3OoRjwBUM0ZBtVaxRCLxP',
+            userId: session.data.session.user.id,
+            weddingId: membership.data.wedding_id
+        })
+    });
+    
+    const data = await res.json();
+    if(data.url){
+        window.location.href = data.url;
+    } else {
+        alert('Error: ' + (data.error || 'Failed to create checkout'));
+    }
 }
     </script>
 </body>
