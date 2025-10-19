@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Choose Your Plan - Bride Buddy</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box;}
+        body{font-family:sans-serif;background:linear-gradient(135deg,#fce4ec,#f3e5f5);min-height:100vh;padding:40px 20px;}
+        .container{max-width:1200px;margin:0 auto;}
+        h1{text-align:center;background:linear-gradient(135deg,#ec407a,#ab47bc);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-size:48px;margin-bottom:20px;}
+        .subtitle{text-align:center;color:#666;font-size:20px;margin-bottom:60px;}
+        .plans{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:30px;margin-bottom:40px;}
+        .plan{background:white;border-radius:20px;padding:40px;text-align:center;box-shadow:0 4px 20px rgba(0,0,0,0.1);position:relative;}
+        .plan.popular{border:3px solid #ec407a;transform:scale(1.05);}
+        .popular-badge{position:absolute;top:-15px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,#ec407a,#ab47bc);color:white;padding:8px 24px;border-radius:20px;font-size:14px;font-weight:600;}
+        .plan-name{font-size:24px;font-weight:600;color:#333;margin-bottom:20px;}
+        .plan-price{font-size:48px;font-weight:700;background:linear-gradient(135deg,#ec407a,#ab47bc);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:10px;}
+        .plan-period{color:#999;font-size:16px;margin-bottom:30px;}
+        .plan-features{text-align:left;margin-bottom:30px;}
+        .feature{padding:12px 0;color:#666;border-bottom:1px solid #fce4ec;}
+        .feature:last-child{border:none;}
+        .feature::before{content:"✓ ";color:#ec407a;font-weight:bold;margin-right:8px;}
+        .plan-button{width:100%;padding:16px;background:linear-gradient(135deg,#ec407a,#ab47bc);color:white;border:none;border-radius:12px;font-size:18px;font-weight:600;cursor:pointer;transition:transform 0.2s;}
+        .plan-button:hover{transform:translateY(-2px);}
+        .plan-button.free{background:#e0e0e0;color:#666;}
+        .logout-btn{position:fixed;top:20px;right:20px;padding:10px 20px;background:white;border:2px solid #ec407a;color:#ec407a;border-radius:20px;cursor:pointer;}
+    </style>
+</head>
+<body>
+    <button class="logout-btn" onclick="logout()">Logout</button>
+    <div class="container">
+        <h1>Your Trial Has Ended 💍</h1>
+        <p class="subtitle">Choose a plan to continue planning your perfect wedding</p>
+        
+        <div class="plans">
+            <div class="plan">
+                <div class="plan-name">Free</div>
+                <div class="plan-price">$0</div>
+                <div class="plan-period">Forever</div>
+                <div class="plan-features">
+                    <div class="feature">20 messages per day</div>
+                    <div class="feature">Basic wedding advice</div>
+                    <div class="feature">No data storage</div>
+                    <div class="feature">Fresh chat each session</div>
+                </div>
+                <button class="plan-button free" onclick="chooseFree()">Continue Free</button>
+            </div>
+            
+            <div class="plan popular">
+                <div class="popular-badge">Most Popular</div>
+                <div class="plan-name">Monthly VIP</div>
+                <div class="plan-price">$29.99</div>
+                <div class="plan-period">per month</div>
+                <div class="plan-features">
+                    <div class="feature">Unlimited messages</div>
+                    <div class="feature">Full wedding profile</div>
+                    <div class="feature">Invite co-planners</div>
+                    <div class="feature">Conversation history</div>
+                    <div class="feature">Cancel anytime</div>
+                </div>
+                <button class="plan-button" onclick="chooseMonthly()">Start Monthly VIP</button>
+            </div>
+            
+            <div class="plan" id="untilIDo" style="display:none;">
+                <div class="plan-name">Until I Do</div>
+                <div class="plan-price">$349</div>
+                <div class="plan-period">one-time payment</div>
+                <div class="plan-features">
+                    <div class="feature">Everything in Monthly VIP</div>
+                    <div class="feature">Valid until your wedding day</div>
+                    <div class="feature">Best value for set dates</div>
+                    <div class="feature">One payment, done!</div>
+                </div>
+                <button class="plan-button" onclick="chooseUntilIDo()">Get Until I Do</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+const supabase=window.supabase.createClient('https://nluvnjydydotsrpluhey.supabase.co','eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5sdXZuanlkeWRvdHNycGx1aGV5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA3NjE5MjAsImV4cCI6MjA3NjMzNzkyMH0.p5S8vYtZeYqp24avigifhjEDRaKv8TxJTaTkeLoE5mY');
+
+// Check if user has wedding date set
+supabase.auth.getSession().then(async({data:{session}})=>{
+    if(!session){
+        window.location.href='/auth.html';
+        return;
+    }
+    
+    const {data:membership} = await supabase
+        .from('wedding_members')
+        .select('wedding_id')
+        .eq('user_id', session.user.id)
+        .single();
+    
+    if(membership){
+        const {data:wedding} = await supabase
+            .from('wedding_profiles')
+            .select('wedding_date')
+            .eq('id', membership.wedding_id)
+            .single();
+        
+        if(wedding && wedding.wedding_date){
+            document.getElementById('untilIDo').style.display='block';
+        }
+    }
+});
+
+function logout(){
+    supabase.auth.signOut();
+    window.location.href='/auth.html';
+}
+
+function chooseFree(){
+    // TODO: Set up free tier mode
+    alert('Free tier selected! This will be implemented next.');
+}
+
+function chooseMonthly(){
+    // TODO: Stripe integration for monthly
+    alert('Monthly VIP selected! Payment integration coming next.');
+}
+
+function chooseUntilIDo(){
+    // TODO: Stripe integration for one-time
+    alert('Until I Do selected! Payment integration coming next.');
+}
+    </script>
+</body>
+</html>
