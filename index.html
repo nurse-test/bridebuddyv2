@@ -19,15 +19,43 @@
     </div>
     <script>
 const supabase=window.supabase.createClient('https://nluvnjydydotsrpluhey.supabase.co','eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5sdXZuanlkeWRvdHNycGx1aGV5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA3NjE5MjAsImV4cCI6MjA3NjMzNzkyMH0.p5S8vYtZeYqp24avigifhjEDRaKv8TxJTaTkeLoE5mY');
-let user,convId,inviteCode;
+let user,convId;
+
 supabase.auth.getSession().then(async({data:{session}})=>{
     if(!session)window.location.href='/auth.html';
     else{
         user=session.user;
+        
+        // Check VIP/trial status
+        const {data:membership} = await supabase
+            .from('wedding_members')
+            .select('wedding_id')
+            .eq('user_id', user.id)
+            .single();
+        
+        if(membership){
+            const {data:wedding} = await supabase
+                .from('wedding_profiles')
+                .select('trial_ends_at, is_vip, vip_expires_at, deleted_at')
+                .eq('id', membership.wedding_id)
+                .single();
+            
+            if(wedding){
+                const now = new Date();
+                const trialActive = wedding.trial_ends_at && new Date(wedding.trial_ends_at) > now;
+                const vipActive = wedding.is_vip && (!wedding.vip_expires_at || new Date(wedding.vip_expires_at) > now);
+                
+                if(!trialActive && !vipActive){
+                    window.location.href='/paywall.html';
+                    return;
+                }
+            }
+        }
     }
 });
- 
+
 function logout(){supabase.auth.signOut();window.location.href='/auth.html';}
+
 async function showInvite(){
     const session = await supabase.auth.getSession();
     const res = await fetch('/api/create-invite', {
@@ -43,6 +71,7 @@ async function showInvite(){
         alert('Error: ' + (data.error || 'Failed to create invite'));
     }
 }
+
 async function send(){
     const inp=document.getElementById('input'),msg=inp.value.trim();
     if(!msg||!user)return;
@@ -54,6 +83,7 @@ async function send(){
     if(data.response){add(data.response,'assistant');if(data.conversationId)convId=data.conversationId;}
     inp.disabled=false;inp.focus();
 }
+
 function add(txt,role){
     const d=document.createElement('div');
     d.style.cssText=role==='user'?'display:flex;justify-content:flex-end;margin-bottom:16px;':'display:flex;margin-bottom:16px;';
@@ -61,6 +91,7 @@ function add(txt,role){
     document.getElementById('chat').appendChild(d);
     document.getElementById('chat').scrollTop=999999;
 }
+
 add("Hi! I'm your Bride Buddy 💍 Ask me anything about wedding planning!",'assistant');
     </script>
 </body>
