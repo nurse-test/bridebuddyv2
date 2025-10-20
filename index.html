@@ -26,7 +26,7 @@ supabase.auth.getSession().then(async({data:{session}})=>{
     else{
         user=session.user;
         
-        // Check VIP/trial status
+        // Check VIP/trial status with NEW database fields
         const {data:membership} = await supabase
             .from('wedding_members')
             .select('wedding_id')
@@ -36,14 +36,14 @@ supabase.auth.getSession().then(async({data:{session}})=>{
         if(membership){
             const {data:wedding} = await supabase
                 .from('wedding_profiles')
-                .select('trial_ends_at, is_vip, vip_expires_at, deleted_at')
+                .select('trial_end_date, is_vip, subscription_end_date')
                 .eq('id', membership.wedding_id)
                 .single();
             
             if(wedding){
                 const now = new Date();
-                const trialActive = wedding.trial_ends_at && new Date(wedding.trial_ends_at) > now;
-                const vipActive = wedding.is_vip && (!wedding.vip_expires_at || new Date(wedding.vip_expires_at) > now);
+                const trialActive = wedding.trial_end_date && new Date(wedding.trial_end_date) > now;
+                const vipActive = wedding.is_vip && (!wedding.subscription_end_date || new Date(wedding.subscription_end_date) > now);
                 
                 if(!trialActive && !vipActive){
                     window.location.href='/paywall.html';
