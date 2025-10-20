@@ -23,8 +23,9 @@ export default async function handler(req, res) {
           quantity: 1,
         },
       ],
-	success_url: `https://${process.env.VERCEL_URL || 'bridebuddyv2.vercel.app'}/success?session_id={CHECKOUT_SESSION_ID}`,
-	cancel_url: `https://${process.env.VERCEL_URL || 'bridebuddyv2.vercel.app'}/paywall.html`,      metadata: {
+      success_url: `https://${process.env.VERCEL_URL || 'bridebuddyv2.vercel.app'}/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `https://${process.env.VERCEL_URL || 'bridebuddyv2.vercel.app'}/paywall.html`,
+      metadata: {
         userId,
         weddingId,
         planType: priceId === 'price_1SI3KoRjwBUM0ZBtUskqXPiY' ? 'monthly' : 'until_i_do'
@@ -37,4 +38,3 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: error.message });
   }
 }
-// Force redeploy
