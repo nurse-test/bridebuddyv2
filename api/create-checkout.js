@@ -23,8 +23,8 @@ export default async function handler(req, res) {
           quantity: 1,
         },
       ],
-      success_url: `https://${process.env.VERCEL_URL || 'bridebuddyv2.vercel.app'}/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `https://${process.env.VERCEL_URL || 'bridebuddyv2.vercel.app'}/paywall.html`,
+      success_url: 'https://bridebuddyv2.vercel.app/success?session_id={CHECKOUT_SESSION_ID}',
+      cancel_url: 'https://bridebuddyv2.vercel.app/paywall.html',
       metadata: {
         userId,
         weddingId,
