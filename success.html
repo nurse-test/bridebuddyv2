@@ -5,38 +5,148 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         *{margin:0;padding:0;box-sizing:border-box;}
-        body{font-family:sans-serif;background:linear-gradient(135deg,#fce4ec,#f3e5f5);height:100vh;display:flex;align-items:center;justify-content:center;}
-        .container{text-align:center;background:white;padding:60px;border-radius:20px;max-width:600px;}
+        body{font-family:sans-serif;background:linear-gradient(135deg,#fce4ec,#f3e5f5);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;}
+        .container{text-align:center;background:white;padding:60px 40px;border-radius:20px;max-width:600px;box-shadow:0 4px 20px rgba(0,0,0,0.1);}
         h1{background:linear-gradient(135deg,#ec407a,#ab47bc);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-size:48px;margin-bottom:20px;}
-        .checkmark{font-size:80px;color:#4caf50;margin-bottom:20px;}
+        .checkmark{font-size:80px;margin-bottom:20px;}
+        .success{color:#4caf50;}
+        .error{color:#f44336;}
         p{color:#666;font-size:18px;margin-bottom:30px;line-height:1.6;}
-        button{padding:16px 40px;background:linear-gradient(135deg,#ec407a,#ab47bc);color:white;border:none;border-radius:12px;font-size:18px;font-weight:600;cursor:pointer;}
+        .features{text-align:left;background:#f9f9f9;padding:20px;border-radius:12px;margin:20px 0;}
+        .features h3{color:#333;font-size:20px;margin-bottom:15px;}
+        .features ul{list-style:none;}
+        .features li{padding:8px 0;color:#666;padding-left:25px;position:relative;}
+        .features li:before{content:"✓";position:absolute;left:0;color:#4caf50;font-weight:bold;}
+        button{padding:16px 40px;background:linear-gradient(135deg,#ec407a,#ab47bc);color:white;border:none;border-radius:12px;font-size:18px;font-weight:600;cursor:pointer;transition:all 0.3s;}
         button:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(236,64,122,0.3);}
-        .loading{color:#999;}
+        .loading{color:#999;font-style:italic;}
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="checkmark">✓</div>
-        <h1>Welcome to VIP! 💍</h1>
-        <p class="loading">Activating your account...</p>
-        <p id="message" style="display:none;">You now have full access to all premium features! Start planning your perfect wedding.</p>
-        <button id="continueBtn" style="display:none;" onclick="goToApp()">Continue to Bride Buddy</button>
+        <div id="loadingState">
+            <div class="checkmark">⏳</div>
+            <h1>Processing...</h1>
+            <p class="loading">Confirming your payment and activating VIP access...</p>
+        </div>
+        
+        <div id="successState" style="display:none;">
+            <div class="checkmark success">✓</div>
+            <h1>Welcome to VIP! 💍</h1>
+            <p>Your payment was successful! You now have full access to all premium features.</p>
+            
+            <div class="features">
+                <h3>What You Get as VIP:</h3>
+                <ul>
+                    <li>Unlimited co-planners (add your whole wedding party!)</li>
+                    <li>Advanced budget tracking with vendor breakdown</li>
+                    <li>Complete wedding profile with every detail</li>
+                    <li>Guest list management and RSVP tracking</li>
+                    <li>Timeline and milestone management</li>
+                    <li>Priority support</li>
+                </ul>
+            </div>
+            
+            <button onclick="goToApp()">Start Planning Your Perfect Wedding</button>
+        </div>
+        
+        <div id="errorState" style="display:none;">
+            <div class="checkmark error">✗</div>
+            <h1>Oops!</h1>
+            <p id="errorMessage">Something went wrong. Please contact support.</p>
+            <button onclick="goToApp()">Return to Bride Buddy</button>
+        </div>
     </div>
     
     <script>
-const supabase=window.supabase.createClient('https://nluvnjydydotsrpluhey.supabase.co','eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5sdXZuanlkeWRvdHNycGx1aGV5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA3NjE5MjAsImV4cCI6MjA3NjMzNzkyMH0.p5S8vYtZeYqp24avigifhjEDRaKv8TxJTaTkeLoE5mY');
+// NOTE: These will be updated with NEW Supabase credentials once project is ready
+const supabase = window.supabase.createClient(
+    'YOUR_NEW_SUPABASE_URL',
+    'YOUR_NEW_SUPABASE_ANON_KEY'
+);
 
-// Give webhook a few seconds to process payment
-setTimeout(() => {
-    document.querySelector('.loading').style.display='none';
-    document.getElementById('message').style.display='block';
-    document.getElementById('continueBtn').style.display='inline-block';
-}, 3000);
-
-function goToApp(){
-    window.location.href='/';
+async function verifyPayment() {
+    try {
+        // Get session_id from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const sessionId = urlParams.get('session_id');
+        
+        if (!sessionId) {
+            throw new Error('No session ID found');
+        }
+        
+        // Wait a few seconds for webhook to process
+        await new Promise(resolve => setTimeout(resolve, 4000));
+        
+        // Check if user is now VIP
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (!session) {
+            throw new Error('Not logged in');
+        }
+        
+        // Check wedding_members to get wedding_id
+        const { data: membership } = await supabase
+            .from('wedding_members')
+            .select('wedding_id')
+            .eq('user_id', session.user.id)
+            .single();
+        
+        if (!membership) {
+            throw new Error('No wedding found');
+        }
+        
+        // Check if wedding is now VIP
+        const { data: wedding } = await supabase
+            .from('wedding_profiles')
+            .select('is_vip, plan_type')
+            .eq('id', membership.wedding_id)
+            .single();
+        
+        if (wedding && wedding.is_vip) {
+            // Success!
+            showSuccess();
+        } else {
+            // Payment processed but VIP not activated yet - give it more time
+            await new Promise(resolve => setTimeout(resolve, 3000));
+            
+            // Check one more time
+            const { data: wedding2 } = await supabase
+                .from('wedding_profiles')
+                .select('is_vip')
+                .eq('id', membership.wedding_id)
+                .single();
+            
+            if (wedding2 && wedding2.is_vip) {
+                showSuccess();
+            } else {
+                showError('Payment received but VIP activation is taking longer than expected. Please refresh in a few moments.');
+            }
+        }
+        
+    } catch (error) {
+        console.error('Verification error:', error);
+        showError('Unable to verify payment status. Please contact support if your account is not activated within 5 minutes.');
+    }
 }
+
+function showSuccess() {
+    document.getElementById('loadingState').style.display = 'none';
+    document.getElementById('successState').style.display = 'block';
+}
+
+function showError(message) {
+    document.getElementById('loadingState').style.display = 'none';
+    document.getElementById('errorState').style.display = 'block';
+    document.getElementById('errorMessage').textContent = message;
+}
+
+function goToApp() {
+    window.location.href = '/';
+}
+
+// Start verification when page loads
+verifyPayment();
     </script>
 </body>
 </html>
