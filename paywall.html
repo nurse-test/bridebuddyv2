@@ -114,54 +114,72 @@ async function chooseFree(){
 }
 
 async function chooseMonthly(){
-    const session = await supabase.auth.getSession();
-    const membership = await supabase
-        .from('wedding_members')
-        .select('wedding_id')
-        .eq('user_id', session.data.session.user.id)
-        .single();
-    
-    const res = await fetch('/api/create-checkout', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({
-            priceId: 'price_1SI3KoRjwBUM0ZBtUskqXPiY',
-            userId: session.data.session.user.id,
-            weddingId: membership.data.wedding_id
-        })
-    });
-    
-    const data = await res.json();
-    if(data.url){
-        window.location.href = data.url;
-    } else {
-        alert('Error: ' + (data.error || 'Failed to create checkout'));
+    try {
+        const session = await supabase.auth.getSession();
+        const membership = await supabase
+            .from('wedding_members')
+            .select('wedding_id')
+            .eq('user_id', session.data.session.user.id)
+            .single();
+        
+        const res = await fetch('/api/create-checkout', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                priceId: 'price_1SI3KoRjwBUM0ZBtUskqXPiY',
+                userId: session.data.session.user.id,
+                weddingId: membership.data.wedding_id
+            })
+        });
+        
+        console.log('Response status:', res.status);
+        const text = await res.text();
+        console.log('Response text:', text);
+        
+        const data = JSON.parse(text);
+        if(data.url){
+            window.location.href = data.url;
+        } else {
+            alert('Error: ' + (data.error || 'Failed to create checkout'));
+        }
+    } catch(e) {
+        console.error('Full error:', e);
+        alert('Error: ' + e.message);
     }
 }
 
 async function chooseUntilIDo(){
-    const session = await supabase.auth.getSession();
-    const membership = await supabase
-        .from('wedding_members')
-        .select('wedding_id')
-        .eq('user_id', session.data.session.user.id)
-        .single();
-    
-    const res = await fetch('/api/create-checkout', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({
-            priceId: 'price_1SI3OoRjwBUM0ZBtVaxRCLxP',
-            userId: session.data.session.user.id,
-            weddingId: membership.data.wedding_id
-        })
-    });
-    
-    const data = await res.json();
-    if(data.url){
-        window.location.href = data.url;
-    } else {
-        alert('Error: ' + (data.error || 'Failed to create checkout'));
+    try {
+        const session = await supabase.auth.getSession();
+        const membership = await supabase
+            .from('wedding_members')
+            .select('wedding_id')
+            .eq('user_id', session.data.session.user.id)
+            .single();
+        
+        const res = await fetch('/api/create-checkout', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                priceId: 'price_1SI3OoRjwBUM0ZBtVaxRCLxP',
+                userId: session.data.session.user.id,
+                weddingId: membership.data.wedding_id
+            })
+        });
+        
+        console.log('Response status:', res.status);
+        const text = await res.text();
+        console.log('Response text:', text);
+        
+        const data = JSON.parse(text);
+        if(data.url){
+            window.location.href = data.url;
+        } else {
+            alert('Error: ' + (data.error || 'Failed to create checkout'));
+        }
+    } catch(e) {
+        console.error('Full error:', e);
+        alert('Error: ' + e.message);
     }
 }
     </script>
