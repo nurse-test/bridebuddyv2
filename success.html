@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Welcome to VIP - Bride Buddy</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box;}
+        body{font-family:sans-serif;background:linear-gradient(135deg,#fce4ec,#f3e5f5);height:100vh;display:flex;align-items:center;justify-content:center;}
+        .container{text-align:center;background:white;padding:60px;border-radius:20px;max-width:600px;}
+        h1{background:linear-gradient(135deg,#ec407a,#ab47bc);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-size:48px;margin-bottom:20px;}
+        .checkmark{font-size:80px;color:#4caf50;margin-bottom:20px;}
+        p{color:#666;font-size:18px;margin-bottom:30px;line-height:1.6;}
+        button{padding:16px 40px;background:linear-gradient(135deg,#ec407a,#ab47bc);color:white;border:none;border-radius:12px;font-size:18px;font-weight:600;cursor:pointer;}
+        button:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(236,64,122,0.3);}
+        .loading{color:#999;}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="checkmark">✓</div>
+        <h1>Welcome to VIP! 💍</h1>
+        <p class="loading">Activating your account...</p>
+        <p id="message" style="display:none;">You now have full access to all premium features! Start planning your perfect wedding.</p>
+        <button id="continueBtn" style="display:none;" onclick="goToApp()">Continue to Bride Buddy</button>
+    </div>
+    
+    <script>
+const supabase=window.supabase.createClient('https://nluvnjydydotsrpluhey.supabase.co','eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5sdXZuanlkeWRvdHNycGx1aGV5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA3NjE5MjAsImV4cCI6MjA3NjMzNzkyMH0.p5S8vYtZeYqp24avigifhjEDRaKv8TxJTaTkeLoE5mY');
+
+// Give webhook a few seconds to process payment
+setTimeout(() => {
+    document.querySelector('.loading').style.display='none';
+    document.getElementById('message').style.display='block';
+    document.getElementById('continueBtn').style.display='inline-block';
+}, 3000);
+
+function goToApp(){
+    window.location.href='/';
+}
+    </script>
+</body>
+</html>
