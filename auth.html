@@ -2,122 +2,416 @@
 <html>
 <head>
     <title>Bride Buddy - Login</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Cormorant+Garamond:wght@300;400;500;600&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
     <style>
-        *{margin:0;padding:0;box-sizing:border-box;}
-        body{font-family:sans-serif;background:linear-gradient(135deg,#fce4ec,#f3e5f5);height:100vh;display:flex;align-items:center;justify-content:center;}
-        .box{background:white;padding:40px;border-radius:20px;width:100%;max-width:400px;}
-        h1{text-align:center;margin-bottom:20px;background:linear-gradient(135deg,#ec407a,#ab47bc);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
-        input{width:100%;padding:12px;margin:10px 0;border:2px solid #fce4ec;border-radius:12px;}
-        button{width:100%;padding:14px;background:linear-gradient(135deg,#ec407a,#ab47bc);color:white;border:none;border-radius:12px;margin-top:10px;cursor:pointer;}
-        button:disabled{opacity:0.5;}
-        .toggle{text-align:center;margin-top:15px;color:#666;font-size:14px;}
-        .toggle a{color:#ec407a;cursor:pointer;font-weight:600;text-decoration:none;}
-        .msg{padding:10px;margin:10px 0;border-radius:8px;text-align:center;font-size:14px;}
-        .error{background:#ffebee;color:#c62828;}
-        .hidden{display:none;}
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            --cream: #F5F1E8;
+            --navy: #1A1D2E;
+            --gold: #D4AF37;
+            --dark-purple: #3D3354;
+            --light-gold: #E8D5A8;
+            --text-dark: #1A1D2E;
+            --text-medium: #4A4A4A;
+            --text-light: #7A7A7A;
+            --success: #4A7C59;
+            --error: #C74440;
+        }
+        
+        body {
+            font-family: 'Cormorant Garamond', serif;
+            background-color: var(--navy);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        /* Floral SVG Background */
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('assets/floral-pattern.svg');
+            background-size: cover;
+            background-position: center;
+            opacity: 0.6;
+            z-index: 0;
+        }
+        
+        .container {
+            position: relative;
+            z-index: 1;
+            background: var(--cream);
+            border-radius: 24px;
+            padding: 60px 40px;
+            width: 100%;
+            max-width: 480px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+        
+        .logo {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .logo h1 {
+            font-family: 'Great Vibes', cursive;
+            font-size: 64px;
+            color: var(--text-dark);
+            font-weight: 400;
+            margin-bottom: 0;
+            line-height: 1;
+        }
+        
+        .logo .flower {
+            display: inline-block;
+            margin-left: 8px;
+            color: var(--gold);
+            font-size: 32px;
+        }
+        
+        .logo h2 {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 24px;
+            font-weight: 400;
+            letter-spacing: 8px;
+            text-transform: uppercase;
+            color: var(--text-dark);
+            margin-top: -8px;
+        }
+        
+        .tagline {
+            text-align: center;
+            font-size: 18px;
+            color: var(--text-medium);
+            margin-bottom: 40px;
+            font-weight: 300;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        input {
+            width: 100%;
+            padding: 16px 20px;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 16px;
+            border: 1px solid #D4C5B0;
+            border-radius: 12px;
+            background: white;
+            color: var(--text-dark);
+            transition: all 0.3s;
+        }
+        
+        input::placeholder {
+            color: var(--text-light);
+            font-weight: 300;
+        }
+        
+        input:focus {
+            outline: none;
+            border-color: var(--gold);
+            box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.1);
+        }
+        
+        button {
+            width: 100%;
+            padding: 18px;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 16px;
+            font-weight: 500;
+            background: var(--dark-purple);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        button:hover {
+            background: var(--navy);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        }
+        
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        button.secondary {
+            background: transparent;
+            border: 2px solid var(--dark-purple);
+            color: var(--dark-purple);
+            margin-top: 12px;
+        }
+        
+        button.secondary:hover {
+            background: var(--dark-purple);
+            color: white;
+        }
+        
+        .divider {
+            text-align: center;
+            margin: 30px 0;
+            color: var(--text-light);
+            font-size: 14px;
+            font-family: 'Montserrat', sans-serif;
+        }
+        
+        .link-text {
+            text-align: center;
+            margin-top: 20px;
+            color: var(--text-medium);
+            font-size: 15px;
+            font-family: 'Montserrat', sans-serif;
+        }
+        
+        .link-text a {
+            color: var(--dark-purple);
+            text-decoration: none;
+            font-weight: 500;
+            cursor: pointer;
+            transition: color 0.3s;
+        }
+        
+        .link-text a:hover {
+            color: var(--gold);
+        }
+        
+        .msg {
+            padding: 14px 16px;
+            margin-bottom: 20px;
+            border-radius: 10px;
+            text-align: center;
+            font-size: 14px;
+            font-family: 'Montserrat', sans-serif;
+        }
+        
+        .error {
+            background: #FFF4F4;
+            color: var(--error);
+            border: 1px solid var(--error);
+        }
+        
+        .success {
+            background: #F4FFF8;
+            color: var(--success);
+            border: 1px solid var(--success);
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        @media (max-width: 600px) {
+            .container {
+                padding: 40px 24px;
+            }
+            
+            .logo h1 {
+                font-size: 48px;
+            }
+            
+            .logo h2 {
+                font-size: 18px;
+                letter-spacing: 6px;
+            }
+        }
     </style>
 </head>
 <body>
-    <div class="box">
-        <h1>Bride Buddy 💍</h1>
-        <div id="msg"></div>
-        <div id="signInForm">
-            <input type="email" id="signInEmail" placeholder="Email">
-            <input type="password" id="signInPass" placeholder="Password">
-            <button onclick="signIn()">Sign In</button>
-            <div class="toggle">Don't have an account? <a onclick="showSignUp()">Sign Up</a></div>
+    <div class="container">
+        <div class="logo">
+            <h1>Bride<span class="flower">✿</span></h1>
+            <h2>BUDDY</h2>
         </div>
+        
+        <p class="tagline">Your wedding's smartest companion awaits</p>
+        
+        <div id="msg"></div>
+        
+        <div id="signInForm">
+            <div class="form-group">
+                <input type="email" id="signInEmail" placeholder="Email" autocomplete="email">
+            </div>
+            <div class="form-group">
+                <input type="password" id="signInPass" placeholder="Password" autocomplete="current-password">
+            </div>
+            <button onclick="signIn()">Log in</button>
+            <button class="secondary" onclick="showSignUp()">Sign up</button>
+            <div class="link-text">
+                <a onclick="showForgotPassword()">Forgot password?</a>
+            </div>
+        </div>
+        
         <div id="signUpForm" class="hidden">
-            <input type="email" id="signUpEmail" placeholder="Email">
-            <input type="password" id="signUpPass" placeholder="Password (min 6 chars)" minlength="6">
-            <input type="text" id="coupleNames" placeholder="Couple Names (e.g. Sarah & John)">
-            <input type="date" id="weddingDate">
-            <button onclick="signUp()">Create Wedding Profile</button>
-            <div class="toggle">Already have an account? <a onclick="showSignIn()">Sign In</a></div>
+            <div class="form-group">
+                <input type="text" id="signUpName" placeholder="Full Name" autocomplete="name">
+            </div>
+            <div class="form-group">
+                <input type="email" id="signUpEmail" placeholder="Email" autocomplete="email">
+            </div>
+            <div class="form-group">
+                <input type="password" id="signUpPass" placeholder="Password" autocomplete="new-password">
+            </div>
+            <button onclick="signUp()">Create Account</button>
+            <div class="link-text">
+                Already have an account? <a onclick="showSignIn()">Log in</a>
+            </div>
+        </div>
+        
+        <div id="forgotPassForm" class="hidden">
+            <div class="form-group">
+                <input type="email" id="forgotEmail" placeholder="Email" autocomplete="email">
+            </div>
+            <button onclick="resetPassword()">Send Reset Link</button>
+            <div class="link-text">
+                <a onclick="showSignIn()">Back to login</a>
+            </div>
         </div>
     </div>
+    
     <script>
-const supabase=window.supabase.createClient('https://nluvnjydydotsrpluhey.supabase.co','eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5sdXZuanlkeWRvdHNycGx1aGV5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA3NjE5MjAsImV4cCI6MjA3NjMzNzkyMH0.p5S8vYtZeYqp24avigifhjEDRaKv8TxJTaTkeLoE5mY');
+// NOTE: Update these with NEW Supabase credentials when ready
+const supabase = window.supabase.createClient(
+    'https://nluvnjydydotsrpluhey.supabase.co',
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5sdXZuanlkeWRvdHNycGx1aGV5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA3NjE5MjAsImV4cCI6MjA3NjMzNzkyMH0.p5S8vYtZeYqp24avigifhjEDRaKv8TxJTaTkeLoE5mY'
+);
 
-supabase.auth.getSession().then(({data:{session}})=>{
-    if(session)window.location.href='/';
-});
+function showMsg(txt, isError = false) {
+    const m = document.getElementById('msg');
+    m.className = 'msg ' + (isError ? 'error' : 'success');
+    m.textContent = txt;
+    m.classList.remove('hidden');
+    setTimeout(() => m.classList.add('hidden'), 5000);
+}
 
-function showSignUp(){
+function showSignIn() {
+    document.getElementById('signInForm').classList.remove('hidden');
+    document.getElementById('signUpForm').classList.add('hidden');
+    document.getElementById('forgotPassForm').classList.add('hidden');
+    document.getElementById('msg').classList.add('hidden');
+}
+
+function showSignUp() {
     document.getElementById('signInForm').classList.add('hidden');
     document.getElementById('signUpForm').classList.remove('hidden');
-    document.getElementById('msg').innerHTML='';
+    document.getElementById('forgotPassForm').classList.add('hidden');
+    document.getElementById('msg').classList.add('hidden');
 }
 
-function showSignIn(){
+function showForgotPassword() {
+    document.getElementById('signInForm').classList.add('hidden');
     document.getElementById('signUpForm').classList.add('hidden');
-    document.getElementById('signInForm').classList.remove('hidden');
-    document.getElementById('msg').innerHTML='';
+    document.getElementById('forgotPassForm').classList.remove('hidden');
+    document.getElementById('msg').classList.add('hidden');
 }
 
-async function signIn(){
-    const email=document.getElementById('signInEmail').value;
-    const pass=document.getElementById('signInPass').value;
-    if(!email||!pass){
-        document.getElementById('msg').innerHTML='<div class="msg error">Please enter email and password</div>';
-        return;
-    }
-    try{
-        const {data,error}=await supabase.auth.signInWithPassword({email,password:pass});
-        if(error)throw error;
-        window.location.href='/';
-    }catch(e){
-        document.getElementById('msg').innerHTML=`<div class="msg error">${e.message}</div>`;
-    }
-}
-
-async function signUp(){
-    const email=document.getElementById('signUpEmail').value;
-    const pass=document.getElementById('signUpPass').value;
-    const names=document.getElementById('coupleNames').value;
-    const date=document.getElementById('weddingDate').value;
+async function signIn() {
+    const email = document.getElementById('signInEmail').value.trim();
+    const pass = document.getElementById('signInPass').value;
     
-    if(!email||!pass){
-        document.getElementById('msg').innerHTML='<div class="msg error">Please enter email and password</div>';
-        return;
-    }
-    if(!names){
-        document.getElementById('msg').innerHTML='<div class="msg error">Please enter couple names</div>';
+    if (!email || !pass) {
+        showMsg('Please enter email and password', true);
         return;
     }
     
-    try{
-        // Sign up
-        const {data:signupData,error:signupError}=await supabase.auth.signUp({email,password:pass});
-        if(signupError)throw signupError;
-        
-        // Sign in to get session
-        const {data:signinData,error:signinError}=await supabase.auth.signInWithPassword({email,password:pass});
-        if(signinError)throw signinError;
-        
-        if(signinData.session){
-            // Create wedding profile
-            const res=await fetch('/api/create-wedding',{
-                method:'POST',
-                headers:{'Content-Type':'application/json'},
-                body:JSON.stringify({
-                    userToken:signinData.session.access_token,
-                    coupleNames:names,
-                    weddingDate:date||null
-                })
-            });
-            const result=await res.json();
-            console.log('Create wedding result:',result);
-            if(!res.ok){
-                throw new Error(result.error||'Failed to create wedding');
+    try {
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password: pass });
+        if (error) throw error;
+        window.location.href = '/';
+    } catch (e) {
+        showMsg(e.message, true);
+    }
+}
+
+async function signUp() {
+    const name = document.getElementById('signUpName').value.trim();
+    const email = document.getElementById('signUpEmail').value.trim();
+    const pass = document.getElementById('signUpPass').value;
+    
+    if (!name || !email || !pass) {
+        showMsg('Please fill in all fields', true);
+        return;
+    }
+    
+    if (pass.length < 6) {
+        showMsg('Password must be at least 6 characters', true);
+        return;
+    }
+    
+    try {
+        const { data, error } = await supabase.auth.signUp({
+            email,
+            password: pass,
+            options: {
+                data: { full_name: name }
             }
-            window.location.href='/';
-        }
-    }catch(e){
-        document.getElementById('msg').innerHTML=`<div class="msg error">${e.message}</div>`;
+        });
+        
+        if (error) throw error;
+        
+        // Create profile
+        await supabase.from('profiles').insert({
+            id: data.user.id,
+            email: email,
+            full_name: name,
+            is_owner: true
+        });
+        
+        showMsg('Account created! Redirecting...');
+        setTimeout(() => window.location.href = '/', 2000);
+    } catch (e) {
+        showMsg(e.message, true);
     }
 }
+
+async function resetPassword() {
+    const email = document.getElementById('forgotEmail').value.trim();
+    
+    if (!email) {
+        showMsg('Please enter your email', true);
+        return;
+    }
+    
+    try {
+        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+            redirectTo: window.location.origin + '/reset-password'
+        });
+        
+        if (error) throw error;
+        showMsg('Password reset link sent! Check your email.');
+        setTimeout(showSignIn, 3000);
+    } catch (e) {
+        showMsg(e.message, true);
+    }
+}
+
+// Check if already logged in
+supabase.auth.getSession().then(({ data: { session } }) => {
+    if (session) window.location.href = '/';
+});
     </script>
 </body>
 </html>
