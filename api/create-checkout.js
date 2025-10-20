@@ -15,7 +15,7 @@ export default async function handler(req, res) {
 
   try {
     const session = await stripe.checkout.sessions.create({
-      mode: priceId === 'price_1SHYkGDn8y3nIH6VnJNyAsE1' ? 'subscription' : 'payment',
+      mode: priceId === 'price_1SKK42RjwBUM0ZBt4QxVEkv6' ? 'subscription' : 'payment',
       payment_method_types: ['card'],
       line_items: [
         {
@@ -28,8 +28,7 @@ export default async function handler(req, res) {
       metadata: {
         userId,
         weddingId,
-        planType: priceId === 'price_1SHYkGDn8y3nIH6VnJNyAsE1' ? 'monthly' : 'until_i_do'
-      }
+	planType: priceId === 'price_1SKK42RjwBUM0ZBt4QxVEkv6' ? 'monthly' : (priceId === 'price_1SI3OoRjwBUM0ZBtVaxRCLxP' ? 'until_i_do' : 'unknown')      }
     });
 
     return res.status(200).json({ sessionId: session.id, url: session.url });
