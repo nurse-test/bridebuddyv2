@@ -42,42 +42,72 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: `Webhook Error: ${err.message}` });
   }
 
-  // Handle the event
+  // Handle checkout.session.completed
   if (event.type === 'checkout.session.completed') {
     const session = event.data.object;
     const { userId, weddingId, planType } = session.metadata;
 
-    console.log('Payment succeeded for user:', userId);
+    console.log('Payment succeeded for wedding:', weddingId);
 
-    // Update wedding to VIP
-    const updates = {
-      is_vip: true,
-    };
+    try {
+      // Update wedding to VIP
+      const updates = {
+        is_vip: true,
+        plan_type: planType,
+        subscription_start_date: new Date().toISOString(),
+        stripe_customer_id: session.customer,
+        stripe_subscription_id: session.subscription || null
+      };
 
-    // If "Until I Do" plan, set expiration to wedding date
-    if (planType === 'until_i_do') {
-      const { data: wedding } = await supabase
-        .from('wedding_profiles')
-        .select('wedding_date')
-        .eq('id', weddingId)
-        .single();
+      // If "Until I Do" plan, set expiration to wedding date
+      if (planType === 'until_i_do') {
+        const { data: wedding } = await supabase
+          .from('wedding_profiles')
+          .select('wedding_date')
+          .eq('id', weddingId)
+          .single();
 
-      if (wedding && wedding.wedding_date) {
-        updates.vip_expires_at = wedding.wedding_date;
+        if (wedding && wedding.wedding_date) {
+          updates.subscription_end_date = wedding.wedding_date;
+        }
       }
+
+      const { error } = await supabase
+        .from('wedding_profiles')
+        .update(updates)
+        .eq('id', weddingId);
+
+      if (error) {
+        console.error('Failed to update wedding:', error);
+        return res.status(500).json({ error: 'Database update failed' });
+      }
+
+      console.log('Successfully activated VIP for wedding:', weddingId);
+    } catch (err) {
+      console.error('Error processing payment:', err);
+      return res.status(500).json({ error: 'Payment processing failed' });
     }
+  }
 
-    const { error } = await supabase
-      .from('wedding_profiles')
-      .update(updates)
-      .eq('id', weddingId);
+  // Handle subscription cancellation
+  if (event.type === 'customer.subscription.deleted') {
+    const subscription = event.data.object;
+    
+    try {
+      const { error } = await supabase
+        .from('wedding_profiles')
+        .update({ 
+          is_vip: false,
+          subscription_end_date: new Date().toISOString()
+        })
+        .eq('stripe_subscription_id', subscription.id);
 
-    if (error) {
-      console.error('Failed to update wedding:', error);
-      return res.status(500).json({ error: 'Database update failed' });
+      if (error) {
+        console.error('Failed to cancel subscription:', error);
+      }
+    } catch (err) {
+      console.error('Error canceling subscription:', err);
     }
-
-    console.log('Successfully activated VIP for wedding:', weddingId);
   }
 
   res.status(200).json({ received: true });

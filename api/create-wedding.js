@@ -1,27 +1,73 @@
+import { createClient } from '@supabase/supabase-js';
+
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY
+);
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { userToken, coupleNames, weddingDate } = req.body;
+  const { userId, coupleNames, weddingDate } = req.body;
+
+  if (!userId) {
+    return res.status(400).json({ error: 'User ID required' });
+  }
 
   try {
-    const response = await fetch(
-      'https://nluvnjydydotsrpluhey.supabase.co/functions/v1/create-wedding',
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${userToken}`,
-          'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5sdXZuanlkeWRvdHNycGx1aGV5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA3NjE5MjAsImV4cCI6MjA3NjMzNzkyMH0.p5S8vYtZeYqp24avigifhjEDRaKv8TxJTaTkeLoE5mY'
-        },
-        body: JSON.stringify({ userToken, coupleNames, weddingDate })
-      }
-    );
+    // Check if user already has a wedding
+    const { data: existingMembership } = await supabase
+      .from('wedding_members')
+      .select('wedding_id')
+      .eq('user_id', userId)
+      .eq('role', 'owner')
+      .single();
 
-    const data = await response.json();
-    return res.status(response.status).json(data);
+    if (existingMembership) {
+      return res.status(400).json({ error: 'User already has a wedding' });
+    }
+
+    // Create wedding profile
+    const { data: wedding, error: weddingError } = await supabase
+      .from('wedding_profiles')
+      .insert({
+        owner_id: userId,
+        wedding_name: coupleNames,
+        wedding_date: weddingDate,
+        trial_start_date: new Date().toISOString(),
+        trial_end_date: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(), // 14 day trial
+        plan_type: 'trial'
+      })
+      .select()
+      .single();
+
+    if (weddingError) {
+      console.error('Wedding creation error:', weddingError);
+      return res.status(500).json({ error: weddingError.message });
+    }
+
+    // Add owner to wedding_members
+    const { error: memberError } = await supabase
+      .from('wedding_members')
+      .insert({
+        wedding_id: wedding.id,
+        user_id: userId,
+        role: 'owner'
+      });
+
+    if (memberError) {
+      console.error('Member creation error:', memberError);
+      return res.status(500).json({ error: memberError.message });
+    }
+
+    return res.status(200).json({ 
+      success: true, 
+      weddingId: wedding.id 
+    });
   } catch (error) {
+    console.error('Unexpected error:', error);
     return res.status(500).json({ error: error.message });
   }
 }
