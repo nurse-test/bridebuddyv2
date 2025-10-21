@@ -39,7 +39,6 @@
             overflow: hidden;
         }
         
-        /* Floral SVG Background */
         body::before {
             content: '';
             position: absolute;
@@ -47,7 +46,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-	    background-image: url('assets/bride_buddy_login.svg');
+            background-image: url('assets/bride_buddy_login.svg');
             background-size: cover;
             background-position: center;
             opacity: 0.6;
@@ -171,14 +170,6 @@
             color: white;
         }
         
-        .divider {
-            text-align: center;
-            margin: 30px 0;
-            color: var(--text-light);
-            font-size: 14px;
-            font-family: 'Montserrat', sans-serif;
-        }
-        
         .link-text {
             text-align: center;
             margin-top: 20px;
@@ -293,7 +284,6 @@
     </div>
     
     <script>
-// NOTE: Update these with NEW Supabase credentials when ready
 const supabase = window.supabase.createClient(
     'https://nluvnjydydotsrpluhey.supabase.co',
     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5sdXZuanlkeWRvdHNycGx1aGV5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA3NjE5MjAsImV4cCI6MjA3NjMzNzkyMH0.p5S8vYtZeYqp24avigifhjEDRaKv8TxJTaTkeLoE5mY'
@@ -338,7 +328,10 @@ async function signIn() {
     }
     
     try {
-        const { data, error } = await supabase.auth.signInWithPassword({ email, password: pass });
+        const { data, error } = await supabase.auth.signInWithPassword({ 
+            email, 
+            password: pass 
+        });
         if (error) throw error;
         window.location.href = '/';
     } catch (e) {
@@ -366,22 +359,17 @@ async function signUp() {
             email,
             password: pass,
             options: {
-                data: { full_name: name }
+                data: { 
+                    full_name: name,
+                    email: email
+                }
             }
         });
         
         if (error) throw error;
         
-        // Create profile
-        await supabase.from('profiles').insert({
-            id: data.user.id,
-            email: email,
-            full_name: name,
-            is_owner: true
-        });
-        
-        showMsg('Account created! Redirecting...');
-        setTimeout(() => window.location.href = '/', 2000);
+        showMsg('Account created! Check your email to verify.');
+        setTimeout(showSignIn, 3000);
     } catch (e) {
         showMsg(e.message, true);
     }
