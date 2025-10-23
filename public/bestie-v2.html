@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bestie Chat - Bride Buddy</title>
+    <link rel="stylesheet" href="/css/styles-v2.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <!-- Gradient Background -->
+    <div class="bg-gradient"></div>
+
+    <!-- Chat Container -->
+    <div class="chat-container">
+        <!-- Header -->
+        <div class="chat-header">
+            <div>
+                <h2 style="margin: 0; background: var(--gradient-accent); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+                    Bestie Chat 💕
+                </h2>
+                <p style="margin: 0; color: #666; font-size: 0.9rem;">
+                    Your wedding BFF for real talk and honest advice
+                </p>
+            </div>
+            <div style="display: flex; gap: 12px;">
+                <button onclick="window.location.href='/dashboard-v2.html'" class="btn btn-secondary" style="padding: 8px 16px;">
+                    Back to Planner
+                </button>
+                <button onclick="logout()" class="btn btn-secondary" style="padding: 8px 16px;">
+                    Logout
+                </button>
+            </div>
+        </div>
+
+        <!-- Messages -->
+        <div class="chat-messages" id="chatMessages">
+            <div class="message message-assistant">
+                <div class="message-bubble">
+                    Hey bestie! 💕 This is our safe space for real talk. Ask me anything - wedding stress, family drama, budget worries, cold feet, or just need to vent! I'm here for you!
+                </div>
+            </div>
+        </div>
+
+        <!-- Input Area -->
+        <div class="chat-input-container">
+            <div class="chat-input-wrapper">
+                <input
+                    type="text"
+                    id="chatInput"
+                    placeholder="What's on your mind, bestie?"
+                    onkeypress="if(event.key==='Enter') sendMessage()"
+                >
+                <button onclick="sendMessage()" class="btn btn-primary">Send</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const supabase = window.supabase.createClient(
+            'https://nluvnjydydotsrpluhey.supabase.co',
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5sdXZuanlkeWRvdHNycGx1aGV5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA3NjE5MjAsImV4cCI6MjA3NjMzNzkyMH0.p5S8vYtZeYqp24avigifhjEDRaKv8TxJTaTkeLoE5mY'
+        );
+
+        let user = null;
+        let conversationId = null;
+
+        // Initialize
+        supabase.auth.getSession().then(async ({ data: { session } }) => {
+            if (!session) {
+                window.location.href = '/login-v2.html';
+                return;
+            }
+
+            user = session.user;
+
+            // Check VIP status (bestie chat requires VIP)
+            const { data: membership } = await supabase
+                .from('wedding_members')
+                .select('wedding_id')
+                .eq('user_id', user.id)
+                .single();
+
+            if (membership) {
+                const { data: wedding } = await supabase
+                    .from('wedding_profiles')
+                    .select('is_vip, trial_end_date')
+                    .eq('id', membership.wedding_id)
+                    .single();
+
+                if (wedding) {
+                    const now = new Date();
+                    const trialActive = wedding.trial_end_date && new Date(wedding.trial_end_date) > now;
+
+                    if (!wedding.is_vip && !trialActive) {
+                        alert('Bestie Chat is a VIP feature! Upgrade to unlock.');
+                        window.location.href = '/subscribe-v2.html';
+                        return;
+                    }
+                }
+            }
+        });
+
+        function logout() {
+            supabase.auth.signOut();
+            window.location.href = '/login-v2.html';
+        }
+
+        async function sendMessage() {
+            const input = document.getElementById('chatInput');
+            const message = input.value.trim();
+
+            if (!message || !user) return;
+
+            input.value = '';
+            input.disabled = true;
+
+            // Add user message to chat
+            addMessage(message, 'user');
+
+            try {
+                const session = await supabase.auth.getSession();
+                const response = await fetch('/api/bestie-chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        message: message,
+                        userToken: session.data.session.access_token,
+                        conversationId: conversationId
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.response) {
+                    addMessage(data.response, 'assistant');
+                    if (data.conversationId) {
+                        conversationId = data.conversationId;
+                    }
+                } else {
+                    addMessage('Sorry bestie, I encountered an error. Try again?', 'assistant');
+                }
+
+            } catch (error) {
+                console.error('Error:', error);
+                addMessage('Sorry bestie, something went wrong. Let me know if you want to try again!', 'assistant');
+            }
+
+            input.disabled = false;
+            input.focus();
+        }
+
+        function addMessage(text, role) {
+            const messagesContainer = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message message-${role}`;
+
+            const bubble = document.createElement('div');
+            bubble.className = 'message-bubble';
+            bubble.textContent = text;
+
+            messageDiv.appendChild(bubble);
+            messagesContainer.appendChild(messageDiv);
+
+            // Scroll to bottom
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Choose Your Plan - Bride Buddy</title>
+    <link rel="stylesheet" href="/css/styles-v2.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://js.stripe.com/v3/"></script>
+</head>
+<body>
+    <!-- Gradient Background -->
+    <div class="bg-gradient"></div>
+
+    <!-- Main Content -->
+    <div class="container" style="padding: 60px 20px;">
+        <div class="text-center" style="margin-bottom: 50px;">
+            <h1>Choose Your Plan</h1>
+            <p style="font-size: 1.3rem; color: white; margin-top: 20px;">
+                Upgrade to VIP and unlock unlimited wedding planning power!
+            </p>
+        </div>
+
+        <div class="pricing-grid">
+            <!-- Monthly Plan -->
+            <div class="pricing-card">
+                <h3 style="color: var(--purple);">Monthly VIP</h3>
+                <div class="price">$19.99<span class="price-period">/month</span></div>
+                <ul>
+                    <li>Unlimited AI chat messages</li>
+                    <li>Full wedding database</li>
+                    <li>Budget & vendor tracking</li>
+                    <li>Timeline management</li>
+                    <li>Co-planner collaboration</li>
+                    <li>Email support</li>
+                    <li>Cancel anytime</li>
+                </ul>
+                <button class="btn btn-primary" onclick="subscribe('monthly')" style="width: 100%; margin-top: 20px;">
+                    Select Monthly
+                </button>
+            </div>
+
+            <!-- Until I Do Plan (Featured) -->
+            <div class="pricing-card featured">
+                <div style="background: var(--gold); color: var(--navy); padding: 8px; margin: -32px -32px 20px; border-radius: 20px 20px 0 0; font-weight: 700;">
+                    BEST VALUE
+                </div>
+                <h3 style="color: var(--navy);">Until I Do</h3>
+                <div class="price">$199<span class="price-period">one-time</span></div>
+                <p style="color: var(--gold); font-weight: 600; margin: 10px 0;">
+                    Save over 50% vs monthly!
+                </p>
+                <ul>
+                    <li>Everything in Monthly VIP</li>
+                    <li>Access until your wedding day</li>
+                    <li>Priority email support</li>
+                    <li>Lifetime access to your data</li>
+                    <li>Export all wedding details</li>
+                    <li>No recurring charges</li>
+                    <li>Best for engagements 1+ year out</li>
+                </ul>
+                <button class="btn btn-gold" onclick="subscribe('lifetime')" style="width: 100%; margin-top: 20px;">
+                    Select Until I Do
+                </button>
+            </div>
+
+            <!-- Trial (Free) -->
+            <div class="pricing-card">
+                <h3 style="color: var(--peach);">Free Trial</h3>
+                <div class="price">$0<span class="price-period">/14 days</span></div>
+                <ul>
+                    <li>Limited to 50 messages</li>
+                    <li>Basic wedding profile</li>
+                    <li>Budget tracking</li>
+                    <li>Vendor management</li>
+                    <li>Test all features</li>
+                    <li>No credit card required</li>
+                    <li>Upgrade anytime</li>
+                </ul>
+                <a href="/onboarding-v2.html" class="btn btn-secondary" style="width: 100%; margin-top: 20px; display: block; text-decoration: none;">
+                    Start Free Trial
+                </a>
+            </div>
+        </div>
+
+        <div class="text-center" style="margin-top: 50px;">
+            <p style="color: white; font-size: 1.1rem;">
+                Already have an account? <a href="/login-v2.html" style="color: var(--gold); text-decoration: underline;">Sign in</a>
+            </p>
+        </div>
+    </div>
+
+    <script>
+        const supabase = window.supabase.createClient(
+            'https://nluvnjydydotsrpluhey.supabase.co',
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5sdXZuanlkeWRvdHNycGx1aGV5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA3NjE5MjAsImV4cCI6MjA3NjMzNzkyMH0.p5S8vYtZeYqp24avigifhjEDRaKv8TxJTaTkeLoE5mY'
+        );
+
+        async function subscribe(plan) {
+            try {
+                const { data: { session } } = await supabase.auth.getSession();
+
+                if (!session) {
+                    alert('Please sign in first');
+                    window.location.href = '/login-v2.html';
+                    return;
+                }
+
+                const response = await fetch('/api/create-checkout', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        userToken: session.access_token,
+                        plan: plan
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.checkoutUrl) {
+                    window.location.href = data.checkoutUrl;
+                } else {
+                    alert('Error creating checkout session');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error: ' + error.message);
+            }
+        }
+    </script>
+</body>
+</html>
