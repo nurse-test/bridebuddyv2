@@ -176,8 +176,8 @@
                         document.getElementById('trialBadge').classList.add('badge-warning');
                     }
 
-                    // Show pay modal on day 5 (when 10 or fewer days remain)
-                    if (daysLeft <= 10 && !sessionStorage.getItem('modalShownForDay5')) {
+                    // Show pay modal on day 5 of 7-day trial (when 3 or fewer days remain)
+                    if (daysLeft <= 3 && !sessionStorage.getItem('modalShownForDay5')) {
                         sessionStorage.setItem('modalShownForDay5', 'true');
                         setTimeout(() => showSubscribeModal(), 1000); // Show after 1 second delay
                     }
