@@ -31,7 +31,12 @@ export default async function handler(req, res) {
 
   try {
     const { data: { user }, error: userError } = await supabase.auth.getUser();
-    if (userError || !user) throw new Error('Invalid user token');
+    if (userError || !user) {
+      console.error('User authentication error:', userError);
+      throw new Error('Invalid user token');
+    }
+
+    console.log('Authenticated user:', user.id);
 
     // Get user's wedding
     const { data: membership, error: memberError } = await supabase
@@ -40,7 +45,13 @@ export default async function handler(req, res) {
       .eq('user_id', user.id)
       .single();
 
-    if (memberError || !membership) throw new Error('No wedding profile found');
+    console.log('Wedding membership query result:', { membership, memberError });
+
+    if (memberError || !membership) {
+      console.error('No wedding membership found for user:', user.id);
+      console.error('Member error:', memberError);
+      throw new Error('No wedding profile found');
+    }
 
     const { data: weddingData, error: weddingError } = await supabase
       .from('wedding_profiles')
