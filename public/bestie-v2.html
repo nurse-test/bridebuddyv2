@@ -100,19 +100,54 @@
 
         // Get wedding_id from URL
         const urlParams = new URLSearchParams(window.location.search);
-        const weddingId = urlParams.get('wedding_id');
-        
+        let weddingId = urlParams.get('wedding_id');
+
         let conversationHistory = [];
 
         // Load wedding data and verify bestie access
         async function loadWeddingData() {
             try {
                 const { data: { user } } = await supabase.auth.getUser();
-                
+
                 if (!user) {
                     window.location.href = 'welcome-v2.html';
                     return;
                 }
+
+                // If no wedding_id in URL, get it from user's membership
+                if (!weddingId) {
+                    const { data: membership, error: memberError } = await supabase
+                        .from('wedding_members')
+                        .select('wedding_id')
+                        .eq('user_id', user.id)
+                        .single();
+
+                    console.log('Membership query result:', { membership, memberError, userId: user.id });
+
+                    if (memberError || !membership) {
+                        console.error('No wedding membership found for user:', user.id);
+                        console.error('Member error:', memberError);
+                        alert('You need to create or join a wedding first.');
+                        window.location.href = 'welcome-v2.html';
+                        return;
+                    }
+
+                    weddingId = membership.wedding_id;
+                    console.log('Set weddingId to:', weddingId);
+
+                    // Update URL with wedding_id
+                    window.history.replaceState({}, '', `?wedding_id=${weddingId}`);
+                }
+
+                // Extra safety check before querying
+                if (!weddingId || weddingId === 'undefined' || weddingId === 'null') {
+                    console.error('Invalid wedding_id:', weddingId);
+                    alert('Unable to load wedding. Please create or join a wedding.');
+                    window.location.href = 'welcome-v2.html';
+                    return;
+                }
+
+                console.log('Querying wedding_profiles with id:', weddingId);
 
                 // Get wedding profile
                 const { data: wedding, error } = await supabase
