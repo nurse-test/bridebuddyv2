@@ -225,7 +225,7 @@ ONLY include fields that were mentioned in the message. If nothing was mentioned
           wedding_id: membership.wedding_id,
           user_id: user.id,
           role: 'user',
-          content: message,
+          message: message,
           message_type: 'main'
         });
 
@@ -240,7 +240,7 @@ ONLY include fields that were mentioned in the message. If nothing was mentioned
           wedding_id: membership.wedding_id,
           user_id: user.id,
           role: 'assistant',
-          content: assistantMessage,
+          message: assistantMessage,
           message_type: 'main'
         });
 

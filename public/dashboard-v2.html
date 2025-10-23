@@ -206,11 +206,11 @@
                 if (error) throw error;
 
                 conversationHistory = messages || [];
-                
+
                 // Display messages
                 messages.forEach(msg => {
                     if (msg.role === 'user' || msg.role === 'assistant') {
-                        displayMessage(msg.content, msg.role);
+                        displayMessage(msg.message, msg.role);
                     }
                 });
             } catch (error) {
