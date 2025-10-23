@@ -168,12 +168,18 @@
                     const trialEndDate = new Date(wedding.trial_end_date);
                     const now = new Date();
                     const daysLeft = Math.ceil((trialEndDate - now) / (1000 * 60 * 60 * 24));
-                    
+
                     document.getElementById('trialBadge').textContent = `VIP Trial • ${daysLeft} days left`;
-                    
+
                     if (daysLeft <= 2) {
                         document.getElementById('trialBadge').classList.remove('badge-trial');
                         document.getElementById('trialBadge').classList.add('badge-warning');
+                    }
+
+                    // Show pay modal on day 5 (when 10 or fewer days remain)
+                    if (daysLeft <= 10 && !sessionStorage.getItem('modalShownForDay5')) {
+                        sessionStorage.setItem('modalShownForDay5', 'true');
+                        setTimeout(() => showSubscribeModal(), 1000); // Show after 1 second delay
                     }
                 }
 
