@@ -3,203 +3,282 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bride Buddy - Wedding Planner</title>
-    <link rel="stylesheet" href="/css/styles-v2.css">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <title>Bride Buddy - Wedding Planning</title>
+    <link rel="stylesheet" href="styles-v2.css">
 </head>
-<body>
-    <!-- Ivory/Bridal Background -->
-    <div class="bg-bridal"></div>
-
-    <!-- Chat Container -->
+<body class="bg-bridal">
     <div class="chat-container">
-        <!-- Header -->
+        <!-- Chat Header -->
         <div class="chat-header">
-            <div>
-                <h2 style="margin: 0; background: var(--gradient-primary); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
-                    Bride Buddy
-                </h2>
-                <p style="margin: 0; color: #666; font-size: 0.9rem;" id="trialStatus"></p>
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <h3 class="logo" style="font-size: 1.5rem; margin: 0;">Bride Buddy</h3>
             </div>
-            <div style="display: flex; gap: 12px; align-items: center;">
-                <button onclick="window.location.href='/bestie-v2.html'" class="btn btn-secondary" style="padding: 8px 16px;">
-                    Bestie Chat
-                </button>
-                <button onclick="showInvite()" class="btn btn-secondary" style="padding: 8px 16px;">
-                    Invite Co-Planner
-                </button>
-                <button onclick="logout()" class="btn btn-secondary" style="padding: 8px 16px;">
-                    Logout
+            
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <!-- Trial Badge -->
+                <span class="badge badge-trial" id="trialBadge" onclick="showSubscribeModal()" style="cursor: pointer;">
+                    VIP Trial • 7 days
+                </span>
+                
+                <!-- Menu Button -->
+                <button class="nav-arrow" onclick="toggleMenu()" style="position: relative; background: rgba(212, 175, 55, 0.2); border-color: var(--gold);">
+                    ☰
+                    <span class="badge badge-warning" id="notificationBadge" style="position: absolute; top: -4px; right: -4px; width: 20px; height: 20px; padding: 0; display: none; font-size: 0.75rem;">
+                        3
+                    </span>
                 </button>
             </div>
         </div>
 
-        <!-- Messages -->
+        <!-- Chat Messages -->
         <div class="chat-messages" id="chatMessages">
-            <div class="message message-assistant">
-                <div class="message-bubble">
-                    Hi! I'm your Bride Buddy 💍 Ask me anything about wedding planning! I can help you with vendors, budgets, timelines, etiquette, and more!
+            <!-- Welcome message -->
+            <div class="chat-message assistant">
+                <div class="chat-bubble">
+                    <p>Hey! 👋 I'm so excited to help you plan your wedding! I've set up your profile and I'm ready to assist with anything you need.</p>
+                    <p style="margin-top: 8px;">What would you like to work on first? I can help you with:</p>
+                    <ul style="margin-top: 8px; padding-left: 20px;">
+                        <li>Creating a wedding timeline</li>
+                        <li>Setting up your budget</li>
+                        <li>Finding vendors</li>
+                        <li>Managing your guest list</li>
+                        <li>Planning tasks and reminders</li>
+                    </ul>
                 </div>
             </div>
         </div>
 
-        <!-- Input Area -->
+        <!-- Chat Input -->
         <div class="chat-input-container">
-            <div class="chat-input-wrapper">
-                <input
-                    type="text"
-                    id="chatInput"
-                    placeholder="Ask about weddings, vendors, budget..."
-                    onkeypress="if(event.key==='Enter') sendMessage()"
+            <form class="chat-input-form" id="chatForm" onsubmit="sendMessage(event)">
+                <input 
+                    type="text" 
+                    class="chat-input" 
+                    id="messageInput" 
+                    placeholder="Type your message..." 
+                    autocomplete="off"
+                    required
                 >
-                <button onclick="sendMessage()" class="btn btn-primary">Send</button>
+                <button type="submit" class="chat-send-btn" id="sendBtn">
+                    ➤
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Menu Overlay -->
+    <div id="menuOverlay" class="hidden" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(60, 0, 157, 0.95); z-index: 1000; display: flex; flex-direction: column; justify-content: flex-end;">
+        <div style="background: rgba(255, 251, 246, 0.98); backdrop-filter: blur(20px); padding: 24px; border-radius: 24px 24px 0 0; max-height: 70vh; overflow-y: auto;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                <h2 style="color: var(--navy); font-family: var(--font-heading); margin: 0;">Menu</h2>
+                <button class="nav-arrow" onclick="toggleMenu()" style="background: rgba(212, 175, 55, 0.2); border-color: var(--gold); color: var(--navy);">✕</button>
+            </div>
+            
+            <div style="display: flex; flex-direction: column; gap: 16px;">
+                <button class="btn btn-secondary btn-full" onclick="navigateTo('invite-v2.html')">
+                    Invite Collaborators
+                </button>
+                <button class="btn btn-secondary btn-full" onclick="navigateTo('notifications-v2.html')">
+                    Pending Approvals
+                    <span class="badge badge-warning" style="margin-left: 8px;">3</span>
+                </button>
+                <button class="btn btn-secondary btn-full" onclick="navigateTo('bestie-v2.html')" id="bestieBtn" style="display: none;">
+                    Bestie Planning
+                </button>
+                <button class="btn btn-primary btn-full" onclick="showSubscribeModal()">
+                    Upgrade Plan
+                </button>
+                <button class="btn btn-ghost btn-full" onclick="logout()" style="border-color: var(--navy); color: var(--navy);">
+                    Sign Out
+                </button>
             </div>
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
+        // Supabase client
         const supabase = window.supabase.createClient(
             'https://nluvnjydydotsrpluhey.supabase.co',
             'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5sdXZuanlkeWRvdHNycGx1aGV5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA3NjE5MjAsImV4cCI6MjA3NjMzNzkyMH0.p5S8vYtZeYqp24avigifhjEDRaKv8TxJTaTkeLoE5mY'
         );
 
-        let user = null;
-        let conversationId = null;
+        // Get wedding_id from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const weddingId = urlParams.get('wedding_id');
+        
+        let conversationHistory = [];
 
-        // Initialize
-        supabase.auth.getSession().then(async ({ data: { session } }) => {
-            if (!session) {
-                window.location.href = '/login-v2.html';
-                return;
-            }
+        // Load wedding data and check subscription
+        async function loadWeddingData() {
+            try {
+                const { data: { user } } = await supabase.auth.getUser();
+                
+                if (!user) {
+                    window.location.href = 'welcome-v2.html';
+                    return;
+                }
 
-            user = session.user;
-
-            // Check trial/VIP status
-            const { data: membership } = await supabase
-                .from('wedding_members')
-                .select('wedding_id')
-                .eq('user_id', user.id)
-                .single();
-
-            if (membership) {
-                const { data: wedding } = await supabase
+                // Get wedding profile
+                const { data: wedding, error } = await supabase
                     .from('wedding_profiles')
-                    .select('trial_end_date, is_vip, subscription_end_date, wedding_name')
-                    .eq('id', membership.wedding_id)
+                    .select('*')
+                    .eq('id', weddingId)
                     .single();
 
-                if (wedding) {
+                if (error) throw error;
+
+                // Update trial badge
+                if (wedding.subscription_status === 'trialing') {
+                    const trialEndDate = new Date(wedding.trial_end_date);
                     const now = new Date();
-                    const trialActive = wedding.trial_end_date && new Date(wedding.trial_end_date) > now;
-                    const vipActive = wedding.is_vip && (!wedding.subscription_end_date || new Date(wedding.subscription_end_date) > now);
-
-                    // Update header with wedding name
-                    if (wedding.wedding_name) {
-                        document.querySelector('h2').textContent = wedding.wedding_name;
-                    }
-
-                    // Show trial status
-                    if (trialActive && !vipActive) {
-                        const daysLeft = Math.ceil((new Date(wedding.trial_end_date) - now) / (1000 * 60 * 60 * 24));
-                        document.getElementById('trialStatus').textContent = `Trial: ${daysLeft} days left`;
-                    } else if (vipActive) {
-                        document.getElementById('trialStatus').innerHTML = '<span class="gold-text">VIP Member ✨</span>';
-                    }
-
-                    if (!trialActive && !vipActive) {
-                        window.location.href = '/subscribe-v2.html';
-                        return;
+                    const daysLeft = Math.ceil((trialEndDate - now) / (1000 * 60 * 60 * 24));
+                    
+                    document.getElementById('trialBadge').textContent = `VIP Trial • ${daysLeft} days left`;
+                    
+                    if (daysLeft <= 2) {
+                        document.getElementById('trialBadge').classList.remove('badge-trial');
+                        document.getElementById('trialBadge').classList.add('badge-warning');
                     }
                 }
-            }
-        });
 
-        function logout() {
-            supabase.auth.signOut();
-            window.location.href = '/login-v2.html';
-        }
-
-        async function showInvite() {
-            try {
-                const session = await supabase.auth.getSession();
-                const res = await fetch('/api/create-invite', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ userToken: session.data.session.access_token })
-                });
-                const data = await res.json();
-
-                if (data.invite_code) {
-                    const link = `${window.location.origin}/invite-v2.html?code=${data.invite_code}`;
-                    prompt('Share this ONE-TIME invite link with your co-planner:', link);
-                } else {
-                    alert('Error: ' + (data.error || 'Failed to create invite'));
+                // Show Bestie button if addon enabled
+                if (wedding.bestie_addon_enabled) {
+                    document.getElementById('bestieBtn').style.display = 'block';
                 }
+
+                // Load chat history
+                loadChatHistory();
             } catch (error) {
-                alert('Error creating invite: ' + error.message);
+                console.error('Error loading wedding data:', error);
             }
         }
 
-        async function sendMessage() {
-            const input = document.getElementById('chatInput');
-            const message = input.value.trim();
-
-            if (!message || !user) return;
-
-            input.value = '';
-            input.disabled = true;
-
-            // Add user message to chat
-            addMessage(message, 'user');
-
+        // Load chat history
+        async function loadChatHistory() {
             try {
-                const session = await supabase.auth.getSession();
+                const { data: { user } } = await supabase.auth.getUser();
+                
+                const { data: messages, error } = await supabase
+                    .from('chat_messages')
+                    .select('*')
+                    .eq('wedding_id', weddingId)
+                    .eq('user_id', user.id)
+                    .eq('message_type', 'main')
+                    .order('created_at', { ascending: true })
+                    .limit(20);
+
+                if (error) throw error;
+
+                conversationHistory = messages || [];
+                
+                // Display messages
+                messages.forEach(msg => {
+                    if (msg.role === 'user' || msg.role === 'assistant') {
+                        displayMessage(msg.content, msg.role);
+                    }
+                });
+            } catch (error) {
+                console.error('Error loading chat history:', error);
+            }
+        }
+
+        // Send message
+        async function sendMessage(event) {
+            event.preventDefault();
+            
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+            
+            if (!message) return;
+            
+            // Display user message
+            displayMessage(message, 'user');
+            input.value = '';
+            
+            // Disable input while processing
+            input.disabled = true;
+            document.getElementById('sendBtn').disabled = true;
+            
+            try {
+                // Call chat API
                 const response = await fetch('/api/chat', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
                     body: JSON.stringify({
                         message: message,
-                        userToken: session.data.session.access_token,
-                        conversationId: conversationId
+                        wedding_id: weddingId
                     })
                 });
-
+                
                 const data = await response.json();
-
+                
                 if (data.response) {
-                    addMessage(data.response, 'assistant');
-                    if (data.conversationId) {
-                        conversationId = data.conversationId;
-                    }
+                    displayMessage(data.response, 'assistant');
                 } else {
-                    addMessage('Sorry, I encountered an error. Please try again.', 'assistant');
+                    throw new Error('No response from AI');
                 }
-
             } catch (error) {
-                console.error('Error:', error);
-                addMessage('Sorry, I encountered an error. Please try again.', 'assistant');
+                console.error('Error sending message:', error);
+                displayMessage('Sorry, I had trouble processing that. Please try again!', 'assistant');
+            } finally {
+                input.disabled = false;
+                document.getElementById('sendBtn').disabled = false;
+                input.focus();
             }
-
-            input.disabled = false;
-            input.focus();
         }
 
-        function addMessage(text, role) {
+        // Display message in chat
+        function displayMessage(content, role) {
             const messagesContainer = document.getElementById('chatMessages');
+            
             const messageDiv = document.createElement('div');
-            messageDiv.className = `message message-${role}`;
-
-            const bubble = document.createElement('div');
-            bubble.className = 'message-bubble';
-            bubble.textContent = text;
-
-            messageDiv.appendChild(bubble);
+            messageDiv.className = `chat-message ${role}`;
+            
+            const bubbleDiv = document.createElement('div');
+            bubbleDiv.className = 'chat-bubble';
+            bubbleDiv.innerHTML = content.replace(/\n/g, '<br>');
+            
+            messageDiv.appendChild(bubbleDiv);
             messagesContainer.appendChild(messageDiv);
-
+            
             // Scroll to bottom
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
         }
+
+        // Toggle menu
+        function toggleMenu() {
+            const menu = document.getElementById('menuOverlay');
+            menu.classList.toggle('hidden');
+        }
+
+        // Navigate to page
+        function navigateTo(page) {
+            window.location.href = `${page}?wedding_id=${weddingId}`;
+        }
+
+        // Show subscribe modal
+        function showSubscribeModal() {
+            window.location.href = `subscribe-v2.html?wedding_id=${weddingId}`;
+        }
+
+        // Logout
+        async function logout() {
+            await supabase.auth.signOut();
+            window.location.href = 'welcome-v2.html';
+        }
+
+        // Close menu when clicking overlay
+        document.getElementById('menuOverlay').addEventListener('click', (e) => {
+            if (e.target.id === 'menuOverlay') {
+                toggleMenu();
+            }
+        });
+
+        // Initialize
+        loadWeddingData();
     </script>
 </body>
 </html>

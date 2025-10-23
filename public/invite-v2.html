@@ -3,207 +3,215 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Join Wedding - Bride Buddy</title>
-    <link rel="stylesheet" href="/css/styles-v2.css">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <title>Bride Buddy - Invite Collaborators</title>
+    <link rel="stylesheet" href="styles-v2.css">
 </head>
-<body>
-    <!-- Gradient Background -->
-    <div class="bg-gradient"></div>
-
-    <!-- Loading Overlay -->
-    <div id="loadingOverlay" class="loading-overlay hidden">
-        <div style="text-align: center;">
-            <div class="lazy-susan">
-                <div class="lazy-susan-item">🥂</div>
-                <div class="lazy-susan-item">💍</div>
-                <div class="lazy-susan-item">🎂</div>
-                <div class="lazy-susan-item">💕</div>
-                <div class="lazy-susan-item" style="top: 25%; left: 25%;">⚡</div>
+<body class="bg-bridal">
+    <div class="screen">
+        <div class="container">
+            <!-- Header -->
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px;">
+                <button class="nav-arrow" onclick="goBack()" style="background: rgba(212, 175, 55, 0.2); border-color: var(--gold); color: var(--navy);">
+                    ←
+                </button>
+                <h2 style="color: var(--navy); font-family: var(--font-heading); margin: 0;">Invite Collaborators</h2>
+                <div style="width: 48px;"></div>
             </div>
-            <div class="loading-text">Joining wedding profile...</div>
-        </div>
-    </div>
 
-    <!-- Main Content -->
-    <div class="container">
-        <div class="onboarding-container">
-            <div class="box box-ivory" style="max-width: 600px; margin: 0 auto;">
-                <div id="inviteContent">
-                    <h1 class="text-center">You're Invited! 💕</h1>
-                    <p class="text-center" style="font-size: 1.2rem; margin: 20px 0; color: #666;">
-                        You've been invited to be a co-planner for a wedding!
-                    </p>
-
-                    <div class="box box-lavender" style="margin: 30px 0;">
-                        <h3>What you'll get:</h3>
-                        <ul style="list-style: none; padding: 0;">
-                            <li style="margin: 10px 0;">✓ Full access to the wedding profile</li>
-                            <li style="margin: 10px 0;">✓ Chat with Bride Buddy AI</li>
-                            <li style="margin: 10px 0;">✓ Collaborate in real-time</li>
-                            <li style="margin: 10px 0;">✓ Manage vendors & budget together</li>
-                        </ul>
+            <!-- Invite Form -->
+            <div class="box-ivory fade-in">
+                <h3 class="text-navy mb-md">Who would you like to invite?</h3>
+                
+                <form id="inviteForm" onsubmit="sendInvite(event)">
+                    <div class="form-group">
+                        <label class="form-label">Name</label>
+                        <input type="text" class="form-input" id="inviteeName" placeholder="Jane Doe" required>
                     </div>
 
-                    <div id="authForm">
-                        <h3>Create your account to join:</h3>
-                        <form onsubmit="handleJoin(event)">
-                            <div class="form-group">
-                                <label>Email</label>
-                                <input type="email" id="email" placeholder="your@email.com" required>
-                            </div>
-                            <div class="form-group">
-                                <label>Password</label>
-                                <input type="password" id="password" placeholder="Choose a secure password" required>
-                            </div>
-                            <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 20px;">
-                                Join Wedding Profile
-                            </button>
-                        </form>
-
-                        <div class="text-center" style="margin-top: 20px;">
-                            <p style="color: #666;">
-                                Already have an account? <a href="#" onclick="showSignIn(); return false;" style="color: var(--purple); text-decoration: underline;">Sign in instead</a>
-                            </p>
-                        </div>
+                    <div class="form-group">
+                        <label class="form-label">Email</label>
+                        <input type="email" class="form-input" id="inviteeEmail" placeholder="jane@example.com" required>
                     </div>
 
-                    <div id="signInForm" class="hidden">
-                        <h3>Sign in to join:</h3>
-                        <form onsubmit="handleSignIn(event)">
-                            <div class="form-group">
-                                <label>Email</label>
-                                <input type="email" id="signInEmail" placeholder="your@email.com" required>
-                            </div>
-                            <div class="form-group">
-                                <label>Password</label>
-                                <input type="password" id="signInPassword" placeholder="Your password" required>
-                            </div>
-                            <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 20px;">
-                                Sign In & Join
-                            </button>
-                        </form>
-
-                        <div class="text-center" style="margin-top: 20px;">
-                            <p style="color: #666;">
-                                Need to create an account? <a href="#" onclick="showSignUp(); return false;" style="color: var(--purple); text-decoration: underline;">Sign up instead</a>
-                            </p>
-                        </div>
+                    <div class="form-group">
+                        <label class="form-label">Role</label>
+                        <select class="form-input" id="inviteeRole" required onchange="toggleEditPermission()">
+                            <option value="">Select a role...</option>
+                            <option value="partner">Partner (Full Edit Access)</option>
+                            <option value="co_planner">Co-planner (View + Request Changes)</option>
+                            <option value="bestie">Bestie (MOH/Best Man)</option>
+                        </select>
                     </div>
+
+                    <!-- Edit permission for co-planners -->
+                    <div class="form-group hidden" id="editPermissionGroup">
+                        <label class="checkbox-item" style="background: rgba(156, 118, 198, 0.1);">
+                            <input type="checkbox" id="canEdit">
+                            <span class="checkbox-label" style="color: var(--navy);">Allow edit requests (requires approval)</span>
+                        </label>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-full btn-lg" id="inviteBtn">
+                        Send Invite
+                    </button>
+                </form>
+            </div>
+
+            <!-- Pending Invites -->
+            <div class="box-light-blue mt-lg fade-in" style="animation-delay: 0.1s;">
+                <h3 class="text-white mb-md">Pending Invites</h3>
+                <div id="pendingInvites">
+                    <p class="text-white" style="opacity: 0.7; text-align: center;">No pending invites</p>
                 </div>
+            </div>
 
-                <div id="errorMessage" class="hidden" style="background: #ffebee; padding: 20px; border-radius: 12px; margin-top: 20px;">
-                    <p style="color: #c62828; margin: 0;" id="errorText"></p>
+            <!-- Current Members -->
+            <div class="box-lavender mt-lg fade-in" style="animation-delay: 0.2s;">
+                <h3 class="text-navy mb-md">Current Members</h3>
+                <div id="currentMembers">
+                    <p class="text-navy" style="opacity: 0.7; text-align: center;">Loading...</p>
                 </div>
             </div>
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
         const supabase = window.supabase.createClient(
             'https://nluvnjydydotsrpluhey.supabase.co',
             'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5sdXZuanlkeWRvdHNycGx1aGV5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA3NjE5MjAsImV4cCI6MjA3NjMzNzkyMH0.p5S8vYtZeYqp24avigifhjEDRaKv8TxJTaTkeLoE5mY'
         );
 
-        // Get invite code from URL
         const urlParams = new URLSearchParams(window.location.search);
-        const inviteCode = urlParams.get('code');
+        const weddingId = urlParams.get('wedding_id');
 
-        if (!inviteCode) {
-            showError('Invalid invite link. Please ask for a new invite.');
+        function goBack() {
+            window.location.href = `dashboard-v2.html?wedding_id=${weddingId}`;
         }
 
-        function showSignIn() {
-            document.getElementById('authForm').classList.add('hidden');
-            document.getElementById('signInForm').classList.remove('hidden');
-        }
-
-        function showSignUp() {
-            document.getElementById('signInForm').classList.add('hidden');
-            document.getElementById('authForm').classList.remove('hidden');
-        }
-
-        async function handleJoin(event) {
-            event.preventDefault();
-            document.getElementById('loadingOverlay').classList.remove('hidden');
-
-            try {
-                const email = document.getElementById('email').value;
-                const password = document.getElementById('password').value;
-
-                // Sign up
-                const { data: authData, error: authError } = await supabase.auth.signUp({
-                    email: email,
-                    password: password
-                });
-
-                if (authError) throw authError;
-
-                // Join wedding
-                await joinWedding(authData.session.access_token);
-
-            } catch (error) {
-                document.getElementById('loadingOverlay').classList.add('hidden');
-                showError(error.message);
+        function toggleEditPermission() {
+            const role = document.getElementById('inviteeRole').value;
+            const editGroup = document.getElementById('editPermissionGroup');
+            
+            if (role === 'co_planner') {
+                editGroup.classList.remove('hidden');
+            } else {
+                editGroup.classList.add('hidden');
             }
         }
 
-        async function handleSignIn(event) {
+        async function sendInvite(event) {
             event.preventDefault();
-            document.getElementById('loadingOverlay').classList.remove('hidden');
-
+            
+            const name = document.getElementById('inviteeName').value;
+            const email = document.getElementById('inviteeEmail').value;
+            const role = document.getElementById('inviteeRole').value;
+            const canEdit = role === 'co_planner' ? document.getElementById('canEdit').checked : false;
+            
+            const btn = document.getElementById('inviteBtn');
+            btn.disabled = true;
+            btn.textContent = 'Sending...';
+            
             try {
-                const email = document.getElementById('signInEmail').value;
-                const password = document.getElementById('signInPassword').value;
-
-                // Sign in
-                const { data, error } = await supabase.auth.signInWithPassword({
-                    email: email,
-                    password: password
-                });
-
-                if (error) throw error;
-
-                // Join wedding
-                await joinWedding(data.session.access_token);
-
-            } catch (error) {
-                document.getElementById('loadingOverlay').classList.add('hidden');
-                showError(error.message);
-            }
-        }
-
-        async function joinWedding(accessToken) {
-            try {
-                const response = await fetch('/api/join-wedding', {
+                const response = await fetch('/api/create-invite', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
                     body: JSON.stringify({
-                        userToken: accessToken,
-                        inviteCode: inviteCode
+                        wedding_id: weddingId,
+                        invitee_name: name,
+                        invitee_email: email,
+                        role: role,
+                        can_edit: canEdit
                     })
                 });
-
+                
                 const data = await response.json();
-
-                if (!response.ok) {
-                    throw new Error(data.error || 'Failed to join wedding');
+                
+                if (data.success) {
+                    alert(`Invite sent to ${name}! They'll receive an email with a link to join.`);
+                    document.getElementById('inviteForm').reset();
+                    loadPendingInvites();
+                } else {
+                    throw new Error(data.error);
                 }
-
-                // Success! Redirect to dashboard
-                setTimeout(() => {
-                    window.location.href = '/dashboard-v2.html';
-                }, 2000);
-
             } catch (error) {
-                throw error;
+                console.error('Error sending invite:', error);
+                alert('Error sending invite. Please try again.');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Send Invite';
             }
         }
 
-        function showError(message) {
-            document.getElementById('errorText').textContent = message;
-            document.getElementById('errorMessage').classList.remove('hidden');
+        async function loadPendingInvites() {
+            try {
+                const { data: invites, error } = await supabase
+                    .from('invite_codes')
+                    .select('*')
+                    .eq('wedding_id', weddingId)
+                    .eq('is_used', false)
+                    .order('created_at', { ascending: false });
+                
+                if (error) throw error;
+                
+                const container = document.getElementById('pendingInvites');
+                
+                if (!invites || invites.length === 0) {
+                    container.innerHTML = '<p class="text-white" style="opacity: 0.7; text-align: center;">No pending invites</p>';
+                    return;
+                }
+                
+                container.innerHTML = invites.map(invite => `
+                    <div style="background: rgba(255, 255, 255, 0.2); padding: 12px; border-radius: 8px; margin-bottom: 8px;">
+                        <div style="color: white; font-weight: 600;">${invite.invitee_name}</div>
+                        <div style="color: white; opacity: 0.8; font-size: 0.875rem;">${invite.invitee_email}</div>
+                        <div style="color: white; opacity: 0.7; font-size: 0.875rem; margin-top: 4px;">Role: ${invite.role}</div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Error loading invites:', error);
+            }
         }
+
+        async function loadCurrentMembers() {
+            try {
+                const { data: members, error } = await supabase
+                    .from('wedding_members')
+                    .select(`
+                        *,
+                        profiles (full_name, email)
+                    `)
+                    .eq('wedding_id', weddingId)
+                    .eq('status', 'active');
+                
+                if (error) throw error;
+                
+                const container = document.getElementById('currentMembers');
+                
+                if (!members || members.length === 0) {
+                    container.innerHTML = '<p class="text-navy" style="opacity: 0.7; text-align: center;">No members yet</p>';
+                    return;
+                }
+                
+                container.innerHTML = members.map(member => `
+                    <div style="background: rgba(60, 0, 157, 0.1); padding: 12px; border-radius: 8px; margin-bottom: 8px;">
+                        <div style="color: var(--navy); font-weight: 600;">${member.profiles.full_name || 'Unknown'}</div>
+                        <div style="color: var(--navy); opacity: 0.8; font-size: 0.875rem;">${member.profiles.email}</div>
+                        <div style="color: var(--navy); opacity: 0.7; font-size: 0.875rem; margin-top: 4px;">
+                            Role: ${member.role} ${member.can_edit ? '(Can edit)' : '(View only)'}
+                        </div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Error loading members:', error);
+            }
+        }
+
+        // Initialize
+        loadPendingInvites();
+        loadCurrentMembers();
     </script>
 </body>
 </html>

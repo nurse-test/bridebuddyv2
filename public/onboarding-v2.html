@@ -3,331 +3,420 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Welcome to Bride Buddy</title>
-    <link rel="stylesheet" href="/css/styles-v2.css">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <title>Bride Buddy - Getting Started</title>
+    <link rel="stylesheet" href="styles-v2.css">
 </head>
-<body>
-    <!-- Gradient Background -->
-    <div class="bg-gradient"></div>
-
-    <!-- Loading Overlay with Lazy Susan -->
-    <div id="loadingOverlay" class="loading-overlay hidden">
-        <div style="text-align: center;">
-            <div class="lazy-susan">
-                <div class="lazy-susan-item">🥂</div>
-                <div class="lazy-susan-item">💍</div>
-                <div class="lazy-susan-item">🎂</div>
-                <div class="lazy-susan-item">💕</div>
-                <div class="lazy-susan-item" style="top: 25%; left: 25%;">⚡</div>
+<body class="bg-gradient">
+    <div class="screen">
+        <div class="container">
+            <!-- Progress Dots -->
+            <div class="progress-dots" id="progressDots">
+                <div class="progress-dot active"></div>
+                <div class="progress-dot"></div>
+                <div class="progress-dot"></div>
+                <div class="progress-dot"></div>
+                <div class="progress-dot"></div>
+                <div class="progress-dot"></div>
+                <div class="progress-dot"></div>
             </div>
-            <div class="loading-text">Creating your wedding profile...</div>
+
+            <!-- SLIDE 1: Email & Password -->
+            <div class="slide active" id="slide1">
+                <div class="box-ivory slide-in-right">
+                    <h2 class="text-navy text-center mb-md">Create Your Account</h2>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Email</label>
+                        <input type="email" class="form-input" id="email" placeholder="you@example.com" required>
+                        <div class="form-error" id="emailError">Please enter a valid email</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Password</label>
+                        <input type="password" class="form-input" id="password" placeholder="Choose a secure password" required>
+                        <div class="form-error" id="passwordError">Password must be at least 6 characters</div>
+                    </div>
+
+                    <div class="nav-arrows">
+                        <button class="nav-arrow" disabled>‹</button>
+                        <button class="nav-arrow" onclick="nextSlide()">›</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SLIDE 2: Your Name -->
+            <div class="slide hidden" id="slide2">
+                <div class="box-light-blue">
+                    <h2 class="text-white text-center mb-md">What's your name?</h2>
+                    
+                    <div class="form-group">
+                        <label class="form-label text-white">Full Name</label>
+                        <input type="text" class="form-input" id="fullName" placeholder="Jane Smith" required>
+                        <div class="form-error" id="nameError">Please enter your name</div>
+                    </div>
+
+                    <div class="nav-arrows">
+                        <button class="nav-arrow" onclick="prevSlide()">‹</button>
+                        <button class="nav-arrow" onclick="nextSlide()">›</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SLIDE 3: About Us -->
+            <div class="slide hidden" id="slide3">
+                <div class="box-lavender">
+                    <h2 class="text-navy text-center mb-md">Tell me about who's getting married!</h2>
+                    
+                    <div class="form-group">
+                        <label class="form-label">About Us</label>
+                        <textarea class="form-input form-textarea" id="aboutUs" placeholder="My fiancé John and I are getting married..." required></textarea>
+                        <div class="form-error" id="aboutUsError">Please tell us about your wedding</div>
+                    </div>
+
+                    <div class="nav-arrows">
+                        <button class="nav-arrow" onclick="prevSlide()">‹</button>
+                        <button class="nav-arrow" onclick="nextSlide()">›</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SLIDE 4: Engagement Date -->
+            <div class="slide hidden" id="slide4">
+                <div class="box-light-peach">
+                    <h2 class="text-navy text-center mb-md">When did you get engaged?</h2>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Engagement Date</label>
+                        <input type="date" class="form-input" id="engagementDate" required>
+                        <div class="form-error" id="engagementError">Please select your engagement date</div>
+                    </div>
+
+                    <div class="nav-arrows">
+                        <button class="nav-arrow" onclick="prevSlide()">‹</button>
+                        <button class="nav-arrow" onclick="nextSlide()">›</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SLIDE 5: Planning Status -->
+            <div class="slide hidden" id="slide5">
+                <div class="box-ivory">
+                    <h2 class="text-navy text-center mb-lg">Have you started planning anything yet?</h2>
+                    
+                    <button class="btn btn-primary btn-full btn-lg mb-md" onclick="selectPlanningStatus(false)">
+                        Not Yet
+                    </button>
+                    
+                    <button class="btn btn-secondary btn-full btn-lg" onclick="selectPlanningStatus(true)">
+                        Yes, I've Started!
+                    </button>
+
+                    <div class="nav-arrows mt-lg">
+                        <button class="nav-arrow" onclick="prevSlide()">‹</button>
+                        <button class="nav-arrow" disabled>›</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SLIDE 6: Planning Checklist (only if "Yes") -->
+            <div class="slide hidden" id="slide6">
+                <div class="box-light-blue">
+                    <h2 class="text-white text-center mb-md">What have you completed?</h2>
+                    
+                    <div class="checkbox-group">
+                        <label class="checkbox-item">
+                            <input type="checkbox" name="planning" value="wedding_date">
+                            <span class="checkbox-label">Wedding Date</span>
+                        </label>
+                        <label class="checkbox-item">
+                            <input type="checkbox" name="planning" value="venue">
+                            <span class="checkbox-label">Venue</span>
+                        </label>
+                        <label class="checkbox-item">
+                            <input type="checkbox" name="planning" value="attire">
+                            <span class="checkbox-label">Attire</span>
+                        </label>
+                        <label class="checkbox-item">
+                            <input type="checkbox" name="planning" value="food">
+                            <span class="checkbox-label">Food</span>
+                        </label>
+                        <label class="checkbox-item">
+                            <input type="checkbox" name="planning" value="music">
+                            <span class="checkbox-label">Music</span>
+                        </label>
+                        <label class="checkbox-item">
+                            <input type="checkbox" name="planning" value="guests">
+                            <span class="checkbox-label">Guests</span>
+                        </label>
+                        <label class="checkbox-item">
+                            <input type="checkbox" name="planning" value="wedding_party">
+                            <span class="checkbox-label">Wedding Party</span>
+                        </label>
+                        <label class="checkbox-item">
+                            <input type="checkbox" name="planning" value="wedding_parties">
+                            <span class="checkbox-label">Wedding Parties (the fun kind!)</span>
+                        </label>
+                    </div>
+
+                    <div class="nav-arrows mt-lg">
+                        <button class="nav-arrow" onclick="prevSlide()">‹</button>
+                        <button class="nav-arrow" onclick="showLoading()">›</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SLIDE 7: Loading with Lazy Susan -->
+            <div class="slide hidden" id="slide7NotYet">
+                <div class="loading-screen">
+                    <!-- Lazy Susan with Wedding Icons + Circuit Nodes -->
+                    <div class="lazy-susan">
+                        <div class="lazy-susan-icon"></div>
+                        <div class="lazy-susan-icon"></div>
+                        <div class="lazy-susan-icon"></div>
+                        <div class="lazy-susan-icon"></div>
+                        <div class="circuit-node"></div>
+                        <div class="circuit-node"></div>
+                        <div class="circuit-node"></div>
+                        <div class="circuit-node"></div>
+                    </div>
+                    <p class="loading-message">
+                        No worries, you're in the right place. Give me a second to generate your Wedding Profile
+                    </p>
+                </div>
+            </div>
+
+            <!-- SLIDE 8: Loading (Yes) -->
+            <div class="slide hidden" id="slide7Yes">
+                <div class="loading-screen">
+                    <!-- Lazy Susan with Wedding Icons + Circuit Nodes -->
+                    <div class="lazy-susan">
+                        <div class="lazy-susan-icon"></div>
+                        <div class="lazy-susan-icon"></div>
+                        <div class="lazy-susan-icon"></div>
+                        <div class="lazy-susan-icon"></div>
+                        <div class="circuit-node"></div>
+                        <div class="circuit-node"></div>
+                        <div class="circuit-node"></div>
+                        <div class="circuit-node"></div>
+                    </div>
+                    <p class="loading-message">
+                        Great work already! Let me build your wedding profile so I can gather more details through the chat
+                    </p>
+                </div>
+            </div>
         </div>
     </div>
 
-    <!-- Main Content -->
-    <div class="container">
-        <div class="onboarding-container">
-
-            <!-- Slide 1: Welcome -->
-            <div class="slide active box box-ivory" data-slide="1">
-                <div class="progress-bar">
-                    <div class="progress-fill" style="width: 12.5%;"></div>
-                </div>
-                <h2>Welcome to Bride Buddy! 💍</h2>
-                <p style="font-size: 1.2rem; margin: 20px 0;">
-                    Let's create your perfect wedding profile in just a few steps.
-                </p>
-                <p>
-                    I'm your AI wedding planning assistant, here to help you plan every detail of your special day!
-                </p>
-                <div class="btn-nav">
-                    <button class="btn btn-primary" onclick="nextSlide()">Get Started</button>
-                </div>
-            </div>
-
-            <!-- Slide 2: Couple Names -->
-            <div class="slide box box-blue" data-slide="2">
-                <div class="progress-bar">
-                    <div class="progress-fill" style="width: 25%;"></div>
-                </div>
-                <h2>Who's getting married? 💑</h2>
-                <div class="form-group">
-                    <label>Partner 1 Name</label>
-                    <input type="text" id="partner1" placeholder="Enter first partner's name">
-                </div>
-                <div class="form-group">
-                    <label>Partner 2 Name</label>
-                    <input type="text" id="partner2" placeholder="Enter second partner's name">
-                </div>
-                <div class="btn-nav">
-                    <button class="btn btn-secondary" onclick="prevSlide()">Back</button>
-                    <button class="btn btn-primary" onclick="nextSlide()">Next</button>
-                </div>
-            </div>
-
-            <!-- Slide 3: Wedding Date -->
-            <div class="slide box box-lavender" data-slide="3">
-                <div class="progress-bar">
-                    <div class="progress-fill" style="width: 37.5%;"></div>
-                </div>
-                <h2>When's the big day? 📅</h2>
-                <div class="form-group">
-                    <label>Wedding Date</label>
-                    <input type="date" id="weddingDate">
-                </div>
-                <div class="form-group">
-                    <label>Wedding Time (Optional)</label>
-                    <input type="time" id="weddingTime">
-                </div>
-                <div class="btn-nav">
-                    <button class="btn btn-secondary" onclick="prevSlide()">Back</button>
-                    <button class="btn btn-primary" onclick="nextSlide()">Next</button>
-                </div>
-            </div>
-
-            <!-- Slide 4: Venue & Location -->
-            <div class="slide box box-peach" data-slide="4">
-                <div class="progress-bar">
-                    <div class="progress-fill" style="width: 50%;"></div>
-                </div>
-                <h2>Where will it happen? 🏛️</h2>
-                <div class="form-group">
-                    <label>Ceremony Location (Optional)</label>
-                    <input type="text" id="ceremonyLocation" placeholder="Church, park, beach...">
-                </div>
-                <div class="form-group">
-                    <label>Reception Venue (Optional)</label>
-                    <input type="text" id="receptionLocation" placeholder="Reception hall, restaurant...">
-                </div>
-                <div class="btn-nav">
-                    <button class="btn btn-secondary" onclick="prevSlide()">Back</button>
-                    <button class="btn btn-primary" onclick="nextSlide()">Next</button>
-                </div>
-            </div>
-
-            <!-- Slide 5: Guest Count & Budget -->
-            <div class="slide box box-ivory" data-slide="5">
-                <div class="progress-bar">
-                    <div class="progress-fill" style="width: 62.5%;"></div>
-                </div>
-                <h2>Let's talk numbers 📊</h2>
-                <div class="form-group">
-                    <label>Expected Guest Count (Optional)</label>
-                    <input type="number" id="guestCount" placeholder="50, 100, 150...">
-                </div>
-                <div class="form-group">
-                    <label>Total Budget (Optional)</label>
-                    <input type="number" id="totalBudget" placeholder="10000, 25000, 50000...">
-                </div>
-                <div class="btn-nav">
-                    <button class="btn btn-secondary" onclick="prevSlide()">Back</button>
-                    <button class="btn btn-primary" onclick="nextSlide()">Next</button>
-                </div>
-            </div>
-
-            <!-- Slide 6: Style & Colors -->
-            <div class="slide box box-blue" data-slide="6">
-                <div class="progress-bar">
-                    <div class="progress-fill" style="width: 75%;"></div>
-                </div>
-                <h2>What's your style? 🎨</h2>
-                <div class="form-group">
-                    <label>Wedding Style (Optional)</label>
-                    <select id="weddingStyle">
-                        <option value="">Choose a style...</option>
-                        <option value="Classic">Classic</option>
-                        <option value="Modern">Modern</option>
-                        <option value="Rustic">Rustic</option>
-                        <option value="Bohemian">Bohemian</option>
-                        <option value="Vintage">Vintage</option>
-                        <option value="Beach">Beach</option>
-                        <option value="Garden">Garden</option>
-                        <option value="Glamorous">Glamorous</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Primary Color (Optional)</label>
-                    <input type="text" id="primaryColor" placeholder="Navy, blush, gold...">
-                </div>
-                <div class="btn-nav">
-                    <button class="btn btn-secondary" onclick="prevSlide()">Back</button>
-                    <button class="btn btn-primary" onclick="nextSlide()">Next</button>
-                </div>
-            </div>
-
-            <!-- Slide 7: Email & Password -->
-            <div class="slide box box-lavender" data-slide="7">
-                <div class="progress-bar">
-                    <div class="progress-fill" style="width: 87.5%;"></div>
-                </div>
-                <h2>Create your account 🔐</h2>
-                <div class="form-group">
-                    <label>Email</label>
-                    <input type="email" id="email" placeholder="your@email.com" required>
-                </div>
-                <div class="form-group">
-                    <label>Password</label>
-                    <input type="password" id="password" placeholder="Choose a secure password" required>
-                </div>
-                <div class="btn-nav">
-                    <button class="btn btn-secondary" onclick="prevSlide()">Back</button>
-                    <button class="btn btn-primary" onclick="nextSlide()">Next</button>
-                </div>
-            </div>
-
-            <!-- Slide 8: Summary & Finish -->
-            <div class="slide box box-peach" data-slide="8">
-                <div class="progress-bar">
-                    <div class="progress-fill" style="width: 100%;"></div>
-                </div>
-                <h2>You're all set! ✨</h2>
-                <div id="summary" style="margin: 30px 0; text-align: left;">
-                    <!-- Summary will be inserted here -->
-                </div>
-                <p class="gold-text" style="text-align: center; font-size: 1.2rem; margin: 20px 0;">
-                    Start your 14-day free trial now!
-                </p>
-                <div class="btn-nav">
-                    <button class="btn btn-secondary" onclick="prevSlide()">Back</button>
-                    <button class="btn btn-gold" onclick="createAccount()">Create My Account</button>
-                </div>
-            </div>
-
-        </div>
-    </div>
-
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
+        // Supabase client
         const supabase = window.supabase.createClient(
             'https://nluvnjydydotsrpluhey.supabase.co',
             'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5sdXZuanlkeWRvdHNycGx1aGV5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA3NjE5MjAsImV4cCI6MjA3NjMzNzkyMH0.p5S8vYtZeYqp24avigifhjEDRaKv8TxJTaTkeLoE5mY'
         );
 
+        // Track current slide and collected data
         let currentSlide = 1;
-        const totalSlides = 8;
+        let onboardingData = {
+            email: '',
+            password: '',
+            fullName: '',
+            aboutUs: '',
+            engagementDate: '',
+            startedPlanning: false,
+            planningCompleted: []
+        };
 
+        // Update progress dots
+        function updateProgress() {
+            const dots = document.querySelectorAll('.progress-dot');
+            dots.forEach((dot, index) => {
+                if (index < currentSlide) {
+                    dot.classList.add('active');
+                } else {
+                    dot.classList.remove('active');
+                }
+            });
+        }
+
+        // Validate current slide
+        function validateSlide() {
+            if (currentSlide === 1) {
+                const email = document.getElementById('email').value;
+                const password = document.getElementById('password').value;
+                
+                if (!email || !email.includes('@')) {
+                    document.getElementById('emailError').style.display = 'block';
+                    return false;
+                }
+                if (!password || password.length < 6) {
+                    document.getElementById('passwordError').style.display = 'block';
+                    return false;
+                }
+                
+                onboardingData.email = email;
+                onboardingData.password = password;
+                return true;
+            }
+            
+            if (currentSlide === 2) {
+                const fullName = document.getElementById('fullName').value;
+                if (!fullName) {
+                    document.getElementById('nameError').style.display = 'block';
+                    return false;
+                }
+                onboardingData.fullName = fullName;
+                return true;
+            }
+            
+            if (currentSlide === 3) {
+                const aboutUs = document.getElementById('aboutUs').value;
+                if (!aboutUs || aboutUs.length < 10) {
+                    document.getElementById('aboutUsError').style.display = 'block';
+                    return false;
+                }
+                onboardingData.aboutUs = aboutUs;
+                return true;
+            }
+            
+            if (currentSlide === 4) {
+                const engagementDate = document.getElementById('engagementDate').value;
+                if (!engagementDate) {
+                    document.getElementById('engagementError').style.display = 'block';
+                    return false;
+                }
+                onboardingData.engagementDate = engagementDate;
+                return true;
+            }
+            
+            return true;
+        }
+
+        // Show next slide
         function nextSlide() {
-            // Validate current slide
-            if (currentSlide === 7) {
-                const email = document.getElementById('email').value;
-                const password = document.getElementById('password').value;
-                if (!email || !password) {
-                    alert('Please enter your email and password');
-                    return;
-                }
-                if (password.length < 6) {
-                    alert('Password must be at least 6 characters');
-                    return;
-                }
-            }
-
-            if (currentSlide === 8) return;
-
-            if (currentSlide === 7) {
-                showSummary();
-            }
-
-            document.querySelector(`[data-slide="${currentSlide}"]`).classList.remove('active');
+            if (!validateSlide()) return;
+            
+            // Hide current slide
+            document.getElementById(`slide${currentSlide}`).classList.add('hidden');
+            
+            // Show next slide
             currentSlide++;
-            document.querySelector(`[data-slide="${currentSlide}"]`).classList.add('active');
+            const nextElement = document.getElementById(`slide${currentSlide}`);
+            nextElement.classList.remove('hidden');
+            
+            const box = nextElement.querySelector('.box-ivory, .box-light-blue, .box-lavender, .box-light-peach');
+            if (box) box.classList.add('slide-in-right');
+            
+            updateProgress();
+            
+            // Create account on slide 1 completion
+            if (currentSlide === 2) {
+                createAccount();
+            }
         }
 
+        // Show previous slide
         function prevSlide() {
-            if (currentSlide === 1) return;
-            document.querySelector(`[data-slide="${currentSlide}"]`).classList.remove('active');
+            document.getElementById(`slide${currentSlide}`).classList.add('hidden');
             currentSlide--;
-            document.querySelector(`[data-slide="${currentSlide}"]`).classList.add('active');
+            const prevElement = document.getElementById(`slide${currentSlide}`);
+            prevElement.classList.remove('hidden');
+            
+            const box = prevElement.querySelector('.box-ivory, .box-light-blue, .box-lavender, .box-light-peach');
+            if (box) box.classList.add('slide-in-left');
+            
+            updateProgress();
         }
 
-        function showSummary() {
-            const partner1 = document.getElementById('partner1').value || 'Not specified';
-            const partner2 = document.getElementById('partner2').value || 'Not specified';
-            const weddingDate = document.getElementById('weddingDate').value || 'Not specified';
-            const ceremonyLocation = document.getElementById('ceremonyLocation').value || 'Not specified';
-            const receptionLocation = document.getElementById('receptionLocation').value || 'Not specified';
-            const guestCount = document.getElementById('guestCount').value || 'Not specified';
-            const totalBudget = document.getElementById('totalBudget').value;
-            const weddingStyle = document.getElementById('weddingStyle').value || 'Not specified';
-
-            const summary = `
-                <div class="box box-ivory">
-                    <h3>Your Wedding Profile</h3>
-                    <p><strong>Couple:</strong> ${partner1} & ${partner2}</p>
-                    <p><strong>Date:</strong> ${weddingDate}</p>
-                    <p><strong>Ceremony:</strong> ${ceremonyLocation}</p>
-                    <p><strong>Reception:</strong> ${receptionLocation}</p>
-                    <p><strong>Guests:</strong> ${guestCount}</p>
-                    <p><strong>Budget:</strong> ${totalBudget ? '$' + totalBudget : 'Not specified'}</p>
-                    <p><strong>Style:</strong> ${weddingStyle}</p>
-                </div>
-            `;
-            document.getElementById('summary').innerHTML = summary;
+        // Handle planning status selection
+        function selectPlanningStatus(started) {
+            onboardingData.startedPlanning = started;
+            
+            document.getElementById('slide5').classList.add('hidden');
+            
+            if (started) {
+                currentSlide = 6;
+                document.getElementById('slide6').classList.remove('hidden');
+                document.getElementById('slide6').querySelector('.box-light-blue').classList.add('slide-in-right');
+            } else {
+                currentSlide = 7;
+                document.getElementById('slide7NotYet').classList.remove('hidden');
+                setTimeout(createWedding, 3000);
+            }
+            
+            updateProgress();
         }
 
+        // Show loading screen
+        function showLoading() {
+            // Collect checked planning items
+            const checkboxes = document.querySelectorAll('input[name="planning"]:checked');
+            onboardingData.planningCompleted = Array.from(checkboxes).map(cb => cb.value);
+            
+            document.getElementById('slide6').classList.add('hidden');
+            currentSlide = 7;
+            document.getElementById('slide7Yes').classList.remove('hidden');
+            updateProgress();
+            
+            setTimeout(createWedding, 3000);
+        }
+
+        // Create Supabase account
         async function createAccount() {
-            const loadingOverlay = document.getElementById('loadingOverlay');
-            loadingOverlay.classList.remove('hidden');
-
             try {
-                const email = document.getElementById('email').value;
-                const password = document.getElementById('password').value;
-
-                // Sign up user
-                const { data: authData, error: authError } = await supabase.auth.signUp({
-                    email: email,
-                    password: password
+                const { data, error } = await supabase.auth.signUp({
+                    email: onboardingData.email,
+                    password: onboardingData.password,
+                    options: {
+                        data: {
+                            full_name: onboardingData.fullName
+                        }
+                    }
                 });
+                
+                if (error) throw error;
+                
+                console.log('Account created:', data);
+            } catch (error) {
+                console.error('Error creating account:', error);
+                alert('Error creating account. Please try again.');
+            }
+        }
 
-                if (authError) throw authError;
-
-                // Create wedding profile
-                const partner1 = document.getElementById('partner1').value;
-                const partner2 = document.getElementById('partner2').value;
-                const coupleNames = partner1 && partner2 ? `${partner1} & ${partner2}` : '';
-                const weddingDate = document.getElementById('weddingDate').value || null;
-                const weddingTime = document.getElementById('weddingTime').value || null;
-                const ceremonyLocation = document.getElementById('ceremonyLocation').value || null;
-                const receptionLocation = document.getElementById('receptionLocation').value || null;
-                const guestCount = document.getElementById('guestCount').value || null;
-                const totalBudget = document.getElementById('totalBudget').value || null;
-                const weddingStyle = document.getElementById('weddingStyle').value || null;
-                const primaryColor = document.getElementById('primaryColor').value || null;
-
+        // Create wedding profile
+        async function createWedding() {
+            try {
                 const response = await fetch('/api/create-wedding', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        userId: authData.user.id,
-                        coupleNames: coupleNames,
-                        weddingDate: weddingDate,
-                        partner1Name: partner1 || null,
-                        partner2Name: partner2 || null,
-                        weddingTime: weddingTime,
-                        ceremonyLocation: ceremonyLocation,
-                        receptionLocation: receptionLocation,
-                        expectedGuestCount: guestCount ? parseInt(guestCount) : null,
-                        totalBudget: totalBudget ? parseFloat(totalBudget) : null,
-                        weddingStyle: weddingStyle,
-                        colorSchemePrimary: primaryColor
-                    })
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(onboardingData)
                 });
-
+                
                 const data = await response.json();
-
-                if (!response.ok) {
-                    throw new Error(data.error || 'Failed to create wedding profile');
+                
+                if (data.success) {
+                    // Redirect to subscription page
+                    window.location.href = 'subscribe-v2.html?wedding_id=' + data.wedding_id;
+                } else {
+                    throw new Error(data.error);
                 }
-
-                // Redirect to dashboard
-                setTimeout(() => {
-                    window.location.href = '/dashboard-v2.html';
-                }, 2000);
-
             } catch (error) {
-                loadingOverlay.classList.add('hidden');
-                alert('Error creating account: ' + error.message);
+                console.error('Error creating wedding:', error);
+                alert('Error creating wedding profile. Please try again.');
             }
         }
+
+        // Clear error messages on input
+        document.querySelectorAll('.form-input').forEach(input => {
+            input.addEventListener('input', () => {
+                const errorElement = input.parentElement.querySelector('.form-error');
+                if (errorElement) {
+                    errorElement.style.display = 'none';
+                }
+            });
+        });
     </script>
 </body>
 </html>

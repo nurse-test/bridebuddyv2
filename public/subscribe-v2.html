@@ -3,128 +3,128 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Choose Your Plan - Bride Buddy</title>
-    <link rel="stylesheet" href="/css/styles-v2.css">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="https://js.stripe.com/v3/"></script>
+    <title>Bride Buddy - Choose Your Plan</title>
+    <link rel="stylesheet" href="styles-v2.css">
 </head>
-<body>
-    <!-- Gradient Background -->
-    <div class="bg-gradient"></div>
-
-    <!-- Main Content -->
-    <div class="container" style="padding: 60px 20px;">
-        <div class="text-center" style="margin-bottom: 50px;">
-            <h1>Choose Your Plan</h1>
-            <p style="font-size: 1.3rem; color: white; margin-top: 20px;">
-                Upgrade to VIP and unlock unlimited wedding planning power!
-            </p>
-        </div>
-
-        <div class="pricing-grid">
-            <!-- Monthly Plan -->
-            <div class="pricing-card">
-                <h3 style="color: var(--purple);">Monthly VIP</h3>
-                <div class="price">$19.99<span class="price-period">/month</span></div>
-                <ul>
-                    <li>Unlimited AI chat messages</li>
-                    <li>Full wedding database</li>
-                    <li>Budget & vendor tracking</li>
-                    <li>Timeline management</li>
-                    <li>Co-planner collaboration</li>
-                    <li>Email support</li>
-                    <li>Cancel anytime</li>
-                </ul>
-                <button class="btn btn-primary" onclick="subscribe('monthly')" style="width: 100%; margin-top: 20px;">
-                    Select Monthly
-                </button>
-            </div>
-
-            <!-- Until I Do Plan (Featured) -->
-            <div class="pricing-card featured">
-                <div style="background: var(--gold); color: var(--navy); padding: 8px; margin: -32px -32px 20px; border-radius: 20px 20px 0 0; font-weight: 700;">
-                    BEST VALUE
+<body class="bg-gradient">
+    <div class="screen">
+        <div class="container">
+            <h1 class="logo text-center mb-md">Bride Buddy</h1>
+            <h2 class="text-white text-center mb-lg">Choose Your Plan</h2>
+            <p class="text-white text-center mb-lg" style="opacity: 0.9;">Start your 7-day free trial. No credit card required!</p>
+            
+            <div class="pricing-container">
+                <!-- VIP Plan -->
+                <div class="pricing-card fade-in">
+                    <h3 class="pricing-title">VIP</h3>
+                    
+                    <div class="pricing-price">
+                        $12.99<span class="pricing-price-period">/month</span>
+                    </div>
+                    <div class="pricing-divider">or</div>
+                    <div class="pricing-price">
+                        $99<span class="pricing-price-period"> one-time</span>
+                    </div>
+                    
+                    <ul class="pricing-features">
+                        <li>Full wedding planning tools</li>
+                        <li>Unlimited AI chat assistant</li>
+                        <li>Unlimited partners & co-planners</li>
+                        <li>Budget tracking</li>
+                        <li>Guest management</li>
+                        <li>Vendor coordination</li>
+                        <li>Task management</li>
+                    </ul>
+                    
+                    <button class="btn btn-primary btn-full" onclick="selectPlan('vip', 'monthly')">
+                        Start Free Trial
+                    </button>
+                    <button class="btn btn-ghost btn-full mt-sm" onclick="selectPlan('vip', 'one_time')">
+                        One-Time Payment
+                    </button>
                 </div>
-                <h3 style="color: var(--navy);">Until I Do</h3>
-                <div class="price">$199<span class="price-period">one-time</span></div>
-                <p style="color: var(--gold); font-weight: 600; margin: 10px 0;">
-                    Save over 50% vs monthly!
-                </p>
-                <ul>
-                    <li>Everything in Monthly VIP</li>
-                    <li>Access until your wedding day</li>
-                    <li>Priority email support</li>
-                    <li>Lifetime access to your data</li>
-                    <li>Export all wedding details</li>
-                    <li>No recurring charges</li>
-                    <li>Best for engagements 1+ year out</li>
-                </ul>
-                <button class="btn btn-gold" onclick="subscribe('lifetime')" style="width: 100%; margin-top: 20px;">
-                    Select Until I Do
-                </button>
-            </div>
 
-            <!-- Trial (Free) -->
-            <div class="pricing-card">
-                <h3 style="color: var(--peach);">Free Trial</h3>
-                <div class="price">$0<span class="price-period">/14 days</span></div>
-                <ul>
-                    <li>Limited to 50 messages</li>
-                    <li>Basic wedding profile</li>
-                    <li>Budget tracking</li>
-                    <li>Vendor management</li>
-                    <li>Test all features</li>
-                    <li>No credit card required</li>
-                    <li>Upgrade anytime</li>
-                </ul>
-                <a href="/onboarding-v2.html" class="btn btn-secondary" style="width: 100%; margin-top: 20px; display: block; text-decoration: none;">
-                    Start Free Trial
-                </a>
+                <!-- VIP + Bestie Plan -->
+                <div class="pricing-card recommended fade-in" style="animation-delay: 0.1s;">
+                    <span class="pricing-badge">Recommended</span>
+                    
+                    <h3 class="pricing-title">VIP + Bestie</h3>
+                    
+                    <div class="pricing-price">
+                        $19.99<span class="pricing-price-period">/month</span>
+                    </div>
+                    <div class="pricing-divider">or</div>
+                    <div class="pricing-price">
+                        $149<span class="pricing-price-period"> one-time</span>
+                    </div>
+                    
+                    <ul class="pricing-features">
+                        <li>Everything in VIP</li>
+                        <li>Separate Bestie interface</li>
+                        <li>Bachelorette party planning</li>
+                        <li>Bridal shower planning</li>
+                        <li>Bridesmaid tracker</li>
+                        <li>Payment tracking</li>
+                        <li>Bestie AI chat assistant</li>
+                    </ul>
+                    
+                    <button class="btn btn-primary btn-full" onclick="selectPlan('vip_bestie', 'monthly')">
+                        Start Free Trial
+                    </button>
+                    <button class="btn btn-ghost btn-full mt-sm" onclick="selectPlan('vip_bestie', 'one_time')">
+                        One-Time Payment
+                    </button>
+                </div>
             </div>
-        </div>
-
-        <div class="text-center" style="margin-top: 50px;">
-            <p style="color: white; font-size: 1.1rem;">
-                Already have an account? <a href="/login-v2.html" style="color: var(--gold); text-decoration: underline;">Sign in</a>
+            
+            <p class="text-white text-center mt-lg" style="opacity: 0.7; font-size: 0.875rem;">
+                7-day free trial included. Cancel anytime. No surprises.
             </p>
         </div>
     </div>
 
+    <script src="https://js.stripe.com/v3/"></script>
     <script>
-        const supabase = window.supabase.createClient(
-            'https://nluvnjydydotsrpluhey.supabase.co',
-            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5sdXZuanlkeWRvdHNycGx1aGV5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA3NjE5MjAsImV4cCI6MjA3NjMzNzkyMH0.p5S8vYtZeYqp24avigifhjEDRaKv8TxJTaTkeLoE5mY'
-        );
+        // Get wedding_id from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const weddingId = urlParams.get('wedding_id');
+        
+        if (!weddingId) {
+            alert('No wedding ID found. Please complete onboarding first.');
+            window.location.href = 'welcome-v2.html';
+        }
 
-        async function subscribe(plan) {
+        async function selectPlan(tier, billing) {
             try {
-                const { data: { session } } = await supabase.auth.getSession();
-
-                if (!session) {
-                    alert('Please sign in first');
-                    window.location.href = '/login-v2.html';
-                    return;
-                }
-
+                // For now, skip payment and go straight to dashboard with trial
+                // User can subscribe later via dashboard
+                window.location.href = `dashboard-v2.html?wedding_id=${weddingId}&trial=true`;
+                
+                // Uncomment below when ready to integrate Stripe Checkout:
+                /*
                 const response = await fetch('/api/create-checkout', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
                     body: JSON.stringify({
-                        userToken: session.access_token,
-                        plan: plan
+                        wedding_id: weddingId,
+                        tier: tier,
+                        billing: billing
                     })
                 });
-
+                
                 const data = await response.json();
-
-                if (data.checkoutUrl) {
-                    window.location.href = data.checkoutUrl;
+                
+                if (data.url) {
+                    window.location.href = data.url;
                 } else {
-                    alert('Error creating checkout session');
+                    throw new Error('No checkout URL returned');
                 }
+                */
             } catch (error) {
-                console.error('Error:', error);
-                alert('Error: ' + error.message);
+                console.error('Error selecting plan:', error);
+                alert('Error processing your selection. Please try again.');
             }
         }
     </script>
