@@ -386,16 +386,33 @@
         // Create wedding profile
         async function createWedding() {
             try {
+                // Get current authenticated user
+                const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+                // Handle case where user is not authenticated
+                if (authError || !user) {
+                    console.error('Authentication error:', authError);
+                    alert('You must be logged in to create a wedding profile. Please refresh and try again.');
+                    window.location.href = 'login-v2.html';
+                    return;
+                }
+
+                // Add userId to the request data
+                const requestData = {
+                    ...onboardingData,
+                    userId: user.id
+                };
+
                 const response = await fetch('/api/create-wedding', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify(onboardingData)
+                    body: JSON.stringify(requestData)
                 });
-                
+
                 const data = await response.json();
-                
+
                 if (data.success) {
                     // Redirect to subscription page
                     window.location.href = 'subscribe-v2.html?wedding_id=' + data.wedding_id;
