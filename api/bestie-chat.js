@@ -143,7 +143,7 @@ Respond directly - no special formatting needed.`
           wedding_id: membership.wedding_id,
           user_id: user.id,
           role: 'user',
-          content: message,
+          message: message,
           message_type: 'bestie'
         });
 
@@ -158,7 +158,7 @@ Respond directly - no special formatting needed.`
           wedding_id: membership.wedding_id,
           user_id: user.id,
           role: 'assistant',
-          content: assistantMessage,
+          message: assistantMessage,
           message_type: 'bestie'
         });
 
