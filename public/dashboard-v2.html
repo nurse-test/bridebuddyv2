@@ -261,6 +261,13 @@
             showLoading();
 
             try {
+                // Get user session token
+                const { data: { session } } = await supabase.auth.getSession();
+
+                if (!session) {
+                    throw new Error('Not authenticated');
+                }
+
                 // Call chat API
                 const response = await fetch('/api/chat', {
                     method: 'POST',
@@ -269,7 +276,8 @@
                     },
                     body: JSON.stringify({
                         message: message,
-                        wedding_id: weddingId
+                        userToken: session.access_token,
+                        conversationId: weddingId
                     })
                 });
 
