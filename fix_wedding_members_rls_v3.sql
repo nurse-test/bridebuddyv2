@@ -47,7 +47,7 @@ USING (user_id = auth.uid());
 SELECT
   policyname,
   cmd,
-  pg_get_expr(qual, 'wedding_members'::regclass) AS using_expression
+  qual AS using_expression
 FROM pg_policies
 WHERE tablename = 'wedding_members'
 ORDER BY cmd, policyname;
