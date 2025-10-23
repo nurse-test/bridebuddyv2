@@ -183,23 +183,83 @@
             }
         }
 
+        // Lazy Susan icon cycling
+        const icons = ['/i.png', '/i-2.png', '/i-3.png', '/i-4.png'];
+        let currentIconIndex = 0;
+        let iconInterval = null;
+
+        function startIconCycle(imgElement) {
+            currentIconIndex = 0;
+            imgElement.src = icons[currentIconIndex];
+
+            iconInterval = setInterval(() => {
+                currentIconIndex = (currentIconIndex + 1) % icons.length;
+                imgElement.src = icons[currentIconIndex];
+            }, 1000); // Change icon every 1 second
+        }
+
+        function stopIconCycle() {
+            if (iconInterval) {
+                clearInterval(iconInterval);
+                iconInterval = null;
+            }
+        }
+
+        // Show loading indicator
+        function showLoading() {
+            const messagesContainer = document.getElementById('chatMessages');
+
+            const loadingDiv = document.createElement('div');
+            loadingDiv.id = 'loadingIndicator';
+            loadingDiv.className = 'chat-loading';
+
+            const lazySusan = document.createElement('div');
+            lazySusan.className = 'lazy-susan';
+
+            const icon = document.createElement('img');
+            icon.className = 'lazy-susan-icon';
+            icon.alt = 'Loading...';
+
+            lazySusan.appendChild(icon);
+            loadingDiv.appendChild(lazySusan);
+            messagesContainer.appendChild(loadingDiv);
+
+            // Start cycling through icons
+            startIconCycle(icon);
+
+            // Scroll to bottom
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        // Hide loading indicator
+        function hideLoading() {
+            stopIconCycle();
+            const loadingIndicator = document.getElementById('loadingIndicator');
+            if (loadingIndicator) {
+                loadingIndicator.remove();
+            }
+        }
+
         // Send message
         async function sendMessage(event) {
             event.preventDefault();
-            
+
             const input = document.getElementById('messageInput');
             const message = input.value.trim();
-            
+
             if (!message) return;
-            
+
             // Display user message
             displayMessage(message, 'user');
             input.value = '';
-            
+
             // Disable input while processing
             input.disabled = true;
             document.getElementById('sendBtn').disabled = true;
-            
+
+            // Show loading indicator
+            showLoading();
+
             try {
                 // Call chat API
                 const response = await fetch('/api/chat', {
@@ -212,9 +272,9 @@
                         wedding_id: weddingId
                     })
                 });
-                
+
                 const data = await response.json();
-                
+
                 if (data.response) {
                     displayMessage(data.response, 'assistant');
                 } else {
@@ -224,6 +284,9 @@
                 console.error('Error sending message:', error);
                 displayMessage('Sorry, I had trouble processing that. Please try again!', 'assistant');
             } finally {
+                // Hide loading indicator
+                hideLoading();
+
                 input.disabled = false;
                 document.getElementById('sendBtn').disabled = false;
                 input.focus();
