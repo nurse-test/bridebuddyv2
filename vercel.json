@@ -2,11 +2,7 @@
   "rewrites": [
     {
       "source": "/",
-      "destination": "/public/welcome-v2.html"
-    },
-    {
-      "source": "/(.*)",
-      "destination": "/public/$1"
+      "destination": "/welcome-v2.html"
     }
   ],
   "headers": [

@@ -68,7 +68,6 @@
                     .from('wedding_members')
                     .select('wedding_id')
                     .eq('user_id', data.user.id)
-                    .eq('status', 'active')
                     .single();
                 
                 if (memberError) throw memberError;

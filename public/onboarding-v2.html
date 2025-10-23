@@ -392,7 +392,7 @@
                 // Handle case where user is not authenticated
                 if (authError || !user) {
                     console.error('Authentication error:', authError);
-                    alert('You must be logged in to create a wedding profile. Please refresh and try again.');
+                    alert('You must be logged in to create a wedding profile. Redirecting to login...');
                     window.location.href = 'login-v2.html';
                     return;
                 }
