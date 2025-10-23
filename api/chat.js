@@ -216,7 +216,43 @@ ONLY include fields that were mentioned in the message. If nothing was mentioned
 
     assistantMessage += trialWarning;
 
-    return res.status(200).json({ 
+    // Save messages to chat_messages table
+    try {
+      // Save user message
+      const { error: userMsgError } = await supabaseService
+        .from('chat_messages')
+        .insert({
+          wedding_id: membership.wedding_id,
+          user_id: user.id,
+          role: 'user',
+          content: message,
+          message_type: 'main'
+        });
+
+      if (userMsgError) {
+        console.error('Failed to save user message:', userMsgError);
+      }
+
+      // Save assistant message
+      const { error: assistantMsgError } = await supabaseService
+        .from('chat_messages')
+        .insert({
+          wedding_id: membership.wedding_id,
+          user_id: user.id,
+          role: 'assistant',
+          content: assistantMessage,
+          message_type: 'main'
+        });
+
+      if (assistantMsgError) {
+        console.error('Failed to save assistant message:', assistantMsgError);
+      }
+    } catch (saveError) {
+      console.error('Error saving chat messages:', saveError);
+      // Don't fail the request if saving fails
+    }
+
+    return res.status(200).json({
       response: assistantMessage,
       conversationId: conversationId || 'temp',
       daysLeftInTrial: daysLeft,

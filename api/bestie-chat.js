@@ -23,6 +23,12 @@ export default async function handler(req, res) {
     }
   );
 
+  // Service role client for database updates
+  const supabaseService = createClient(
+    process.env.SUPABASE_URL,
+    process.env.SUPABASE_SERVICE_ROLE_KEY
+  );
+
   try {
     const { data: { user }, error: userError } = await supabase.auth.getUser();
     if (userError || !user) throw new Error('Invalid user token');
@@ -127,6 +133,42 @@ Respond directly - no special formatting needed.`
     }
 
     const assistantMessage = claudeData.content[0].text;
+
+    // Save messages to chat_messages table
+    try {
+      // Save user message
+      const { error: userMsgError } = await supabaseService
+        .from('chat_messages')
+        .insert({
+          wedding_id: membership.wedding_id,
+          user_id: user.id,
+          role: 'user',
+          content: message,
+          message_type: 'bestie'
+        });
+
+      if (userMsgError) {
+        console.error('Failed to save user message:', userMsgError);
+      }
+
+      // Save assistant message
+      const { error: assistantMsgError } = await supabaseService
+        .from('chat_messages')
+        .insert({
+          wedding_id: membership.wedding_id,
+          user_id: user.id,
+          role: 'assistant',
+          content: assistantMessage,
+          message_type: 'bestie'
+        });
+
+      if (assistantMsgError) {
+        console.error('Failed to save assistant message:', assistantMsgError);
+      }
+    } catch (saveError) {
+      console.error('Error saving chat messages:', saveError);
+      // Don't fail the request if saving fails
+    }
 
     return res.status(200).json({
       response: assistantMessage,
