@@ -576,132 +576,44 @@ p {
     text-align: center;
 }
 
-/* Lazy Susan Container */
+/* Lazy Susan Container - displays one icon at a time */
 .lazy-susan {
     position: relative;
-    width: 200px;
-    height: 200px;
-    animation: lazyRotate 8s linear infinite;
-}
-
-@keyframes lazyRotate {
-    from {
-        transform: rotate(0deg);
-    }
-    to {
-        transform: rotate(360deg);
-    }
-}
-
-/* Wedding Icons on Lazy Susan */
-.lazy-susan-icon {
-    position: absolute;
-    width: 60px;
-    height: 60px;
+    width: 120px;
+    height: 120px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 40px;
+}
+
+/* Lazy Susan Icon - single image that cycles every 1 second */
+.lazy-susan-icon {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
     filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
-    animation: iconCounterRotate 8s linear infinite;
 }
 
-/* Counter-rotate icons to keep them upright */
-@keyframes iconCounterRotate {
-    from {
-        transform: rotate(0deg);
-    }
-    to {
-        transform: rotate(-360deg);
-    }
+/* Loading indicator for chat messages */
+.chat-loading {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-sm) var(--spacing-md);
+    max-width: 85%;
 }
 
-/* Position icons around the circle */
-.lazy-susan-icon:nth-child(1) {
-    top: 0;
-    left: 50%;
-    margin-left: -30px;
+.chat-loading .lazy-susan {
+    width: 60px;
+    height: 60px;
 }
 
-.lazy-susan-icon:nth-child(1)::after {
-    content: '🥂';
-}
-
-.lazy-susan-icon:nth-child(2) {
-    top: 50%;
-    right: 0;
-    margin-top: -30px;
-}
-
-.lazy-susan-icon:nth-child(2)::after {
-    content: '💍';
-}
-
-.lazy-susan-icon:nth-child(3) {
-    bottom: 0;
-    left: 50%;
-    margin-left: -30px;
-}
-
-.lazy-susan-icon:nth-child(3)::after {
-    content: '🎂';
-}
-
-.lazy-susan-icon:nth-child(4) {
-    top: 50%;
-    left: 0;
-    margin-top: -30px;
-}
-
-.lazy-susan-icon:nth-child(4)::after {
-    content: '💕';
-}
-
-/* Circuit nodes pulsing effect */
-.circuit-node {
-    position: absolute;
-    width: 12px;
-    height: 12px;
-    background: var(--gold);
-    border-radius: 50%;
-    box-shadow: 0 0 20px rgba(212, 175, 55, 0.8);
-    animation: nodePulse 2s ease-in-out infinite;
-}
-
-@keyframes nodePulse {
-    0%, 100% {
-        transform: scale(1);
-        opacity: 1;
-    }
-    50% {
-        transform: scale(1.5);
-        opacity: 0.6;
-    }
-}
-
-/* Position circuit nodes */
-.circuit-node:nth-child(5) {
-    top: 20%;
-    left: 20%;
-    animation-delay: 0s;
-}
-
-.circuit-node:nth-child(6) {
-    top: 20%;
-    right: 20%;
-    animation-delay: 0.5s;
-}
-
-.circuit-node:nth-child(7) {
-    bottom: 20%;
-    left: 20%;
-    animation-delay: 1s;
-}
-
-.circuit-node:nth-child(8) {
-    bottom: 20%;
-    right: 20%;
-    animation-delay: 1.5s;
+.chat-loading .chat-bubble {
+    background: rgba(156, 118, 198, 0.15);
+    border: 1px solid rgba(156, 118, 198, 0.2);
+    border-radius: var(--radius-md);
+    border-bottom-left-radius: 4px;
+    padding: var(--spacing-sm) var(--spacing-md);
 }
 
 .loading-message {
@@ -984,6 +896,13 @@ p {
 
 .chat-container.bestie .chat-input {
     background: rgba(255, 255, 255, 0.9);
+}
+
+.chat-container.bestie .chat-loading .chat-bubble {
+    background: rgba(255, 251, 246, 0.25);
+    backdrop-filter: blur(10px);
+    color: white;
+    border-color: rgba(255, 255, 255, 0.2);
 }
 
 /* ═══════════════════════════════════════════════════════════
