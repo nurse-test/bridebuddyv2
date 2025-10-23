@@ -111,6 +111,15 @@ Respond directly - no special formatting needed.`
       })
     });
 
+    // Check if API call was successful
+    if (!claudeResponse.ok) {
+      const errorData = await claudeResponse.json();
+      console.error('Anthropic API error:', errorData);
+      console.error('API key present:', !!process.env.ANTHROPIC_API_KEY);
+      console.error('API key length:', process.env.ANTHROPIC_API_KEY?.length || 0);
+      throw new Error(`Anthropic API error: ${errorData.error?.message || 'Unknown error'}`);
+    }
+
     const claudeData = await claudeResponse.json();
 
     if (!claudeData.content || !claudeData.content[0]) {
