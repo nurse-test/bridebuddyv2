@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notifications - Bride Buddy</title>
+    <link rel="stylesheet" href="/css/styles-v2.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <!-- Ivory/Bridal Background -->
+    <div class="bg-bridal"></div>
+
+    <!-- Main Content -->
+    <div class="container" style="padding: 40px 20px; max-width: 800px;">
+        <!-- Header -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px;">
+            <h1>Notifications</h1>
+            <button onclick="window.location.href='/dashboard-v2.html'" class="btn btn-secondary">
+                Back to Chat
+            </button>
+        </div>
+
+        <!-- Notifications List -->
+        <div id="notificationsList">
+            <!-- Notifications will be loaded here -->
+        </div>
+
+        <div id="emptyState" class="box box-ivory text-center hidden" style="padding: 60px 20px;">
+            <h2 style="color: #999;">No notifications yet</h2>
+            <p style="color: #666;">
+                You'll see updates here when your co-planner makes changes to the wedding profile.
+            </p>
+        </div>
+    </div>
+
+    <script>
+        const supabase = window.supabase.createClient(
+            'https://nluvnjydydotsrpluhey.supabase.co',
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5sdXZuanlkeWRvdHNycGx1aGV5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA3NjE5MjAsImV4cCI6MjA3NjMzNzkyMH0.p5S8vYtZeYqp24avigifhjEDRaKv8TxJTaTkeLoE5mY'
+        );
+
+        let user = null;
+        let weddingId = null;
+
+        // Initialize
+        supabase.auth.getSession().then(async ({ data: { session } }) => {
+            if (!session) {
+                window.location.href = '/login-v2.html';
+                return;
+            }
+
+            user = session.user;
+
+            // Get wedding ID
+            const { data: membership } = await supabase
+                .from('wedding_members')
+                .select('wedding_id')
+                .eq('user_id', user.id)
+                .single();
+
+            if (membership) {
+                weddingId = membership.wedding_id;
+                loadNotifications();
+            }
+        });
+
+        async function loadNotifications() {
+            try {
+                // Check if pending_updates table exists and has data
+                const { data: updates, error } = await supabase
+                    .from('pending_updates')
+                    .select('*')
+                    .eq('wedding_id', weddingId)
+                    .order('created_at', { ascending: false });
+
+                if (error) {
+                    console.log('No notifications table or error:', error);
+                    showEmptyState();
+                    return;
+                }
+
+                if (!updates || updates.length === 0) {
+                    showEmptyState();
+                    return;
+                }
+
+                // Display notifications
+                const listContainer = document.getElementById('notificationsList');
+                listContainer.innerHTML = '';
+
+                updates.forEach(update => {
+                    const notificationDiv = createNotificationCard(update);
+                    listContainer.appendChild(notificationDiv);
+                });
+
+            } catch (error) {
+                console.error('Error loading notifications:', error);
+                showEmptyState();
+            }
+        }
+
+        function createNotificationCard(update) {
+            const div = document.createElement('div');
+            div.className = 'box box-lavender';
+            div.style.marginBottom = '20px';
+
+            const statusColor = update.status === 'approved' ? 'var(--gold)' :
+                               update.status === 'rejected' ? '#c62828' : '#666';
+
+            div.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: start;">
+                    <div style="flex: 1;">
+                        <h3 style="margin-bottom: 10px;">${update.field_name || 'Update'}</h3>
+                        <p style="color: #666; margin-bottom: 5px;">
+                            <strong>New value:</strong> ${update.new_value || 'N/A'}
+                        </p>
+                        <p style="color: #999; font-size: 0.9rem;">
+                            ${new Date(update.created_at).toLocaleString()}
+                        </p>
+                        <p style="color: ${statusColor}; font-weight: 600; margin-top: 10px;">
+                            Status: ${update.status.toUpperCase()}
+                        </p>
+                    </div>
+                    ${update.status === 'pending' ? `
+                        <div style="display: flex; gap: 10px;">
+                            <button onclick="approveUpdate('${update.id}')" class="btn btn-primary" style="padding: 8px 16px;">
+                                Approve
+                            </button>
+                            <button onclick="rejectUpdate('${update.id}')" class="btn btn-secondary" style="padding: 8px 16px;">
+                                Reject
+                            </button>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+
+            return div;
+        }
+
+        async function approveUpdate(updateId) {
+            try {
+                const session = await supabase.auth.getSession();
+                const response = await fetch('/api/approve-update', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        userToken: session.data.session.access_token,
+                        updateId: updateId,
+                        approve: true
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Failed to approve update');
+                }
+
+                // Reload notifications
+                loadNotifications();
+
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+
+        async function rejectUpdate(updateId) {
+            try {
+                const session = await supabase.auth.getSession();
+                const response = await fetch('/api/approve-update', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        userToken: session.data.session.access_token,
+                        updateId: updateId,
+                        approve: false
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Failed to reject update');
+                }
+
+                // Reload notifications
+                loadNotifications();
+
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+
+        function showEmptyState() {
+            document.getElementById('notificationsList').innerHTML = '';
+            document.getElementById('emptyState').classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign In - Bride Buddy</title>
+    <link rel="stylesheet" href="/css/styles-v2.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <!-- Gradient Background -->
+    <div class="bg-gradient"></div>
+
+    <!-- Main Content -->
+    <div class="container">
+        <div class="onboarding-container">
+            <div class="box box-ivory" style="max-width: 500px; margin: 0 auto;">
+                <h1 class="text-center">Welcome Back!</h1>
+                <p class="text-center" style="color: #666; margin-bottom: 30px;">
+                    Sign in to continue planning your perfect day
+                </p>
+
+                <form id="loginForm" onsubmit="handleLogin(event)">
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" id="email" placeholder="your@email.com" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Password</label>
+                        <input type="password" id="password" placeholder="Enter your password" required>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 20px;">
+                        Sign In
+                    </button>
+                </form>
+
+                <div class="text-center" style="margin-top: 30px;">
+                    <p style="color: #666;">
+                        Don't have an account? <a href="/onboarding-v2.html" style="color: var(--purple); text-decoration: underline;">Sign up free</a>
+                    </p>
+                    <p style="color: #666; margin-top: 10px;">
+                        <a href="#" onclick="resetPassword()" style="color: var(--peach); text-decoration: underline;">Forgot password?</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const supabase = window.supabase.createClient(
+            'https://nluvnjydydotsrpluhey.supabase.co',
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5sdXZuanlkeWRvdHNycGx1aGV5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA3NjE5MjAsImV4cCI6MjA3NjMzNzkyMH0.p5S8vYtZeYqp24avigifhjEDRaKv8TxJTaTkeLoE5mY'
+        );
+
+        async function handleLogin(event) {
+            event.preventDefault();
+
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            try {
+                const { data, error } = await supabase.auth.signInWithPassword({
+                    email: email,
+                    password: password
+                });
+
+                if (error) throw error;
+
+                // Check if user has a wedding profile
+                const { data: membership } = await supabase
+                    .from('wedding_members')
+                    .select('wedding_id')
+                    .eq('user_id', data.user.id)
+                    .single();
+
+                if (membership) {
+                    window.location.href = '/dashboard-v2.html';
+                } else {
+                    // No wedding profile, redirect to onboarding
+                    window.location.href = '/onboarding-v2.html';
+                }
+
+            } catch (error) {
+                alert('Error signing in: ' + error.message);
+            }
+        }
+
+        async function resetPassword() {
+            const email = prompt('Enter your email address:');
+            if (!email) return;
+
+            try {
+                const { error } = await supabase.auth.resetPasswordForEmail(email, {
+                    redirectTo: window.location.origin + '/login-v2.html'
+                });
+
+                if (error) throw error;
+
+                alert('Password reset email sent! Check your inbox.');
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+
+        // Check if already logged in
+        supabase.auth.getSession().then(({ data: { session } }) => {
+            if (session) {
+                window.location.href = '/dashboard-v2.html';
+            }
+        });
+    </script>
+</body>
+</html>

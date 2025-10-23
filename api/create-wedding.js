@@ -10,7 +10,20 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { userId, coupleNames, weddingDate } = req.body;
+  const {
+    userId,
+    coupleNames,
+    weddingDate,
+    partner1Name,
+    partner2Name,
+    weddingTime,
+    ceremonyLocation,
+    receptionLocation,
+    expectedGuestCount,
+    totalBudget,
+    weddingStyle,
+    colorSchemePrimary
+  } = req.body;
 
   if (!userId) {
     return res.status(400).json({ error: 'User ID required' });
@@ -29,17 +42,31 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'User already has a wedding' });
     }
 
+    // Build wedding profile data
+    const weddingData = {
+      owner_id: userId,
+      trial_start_date: new Date().toISOString(),
+      trial_end_date: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(), // 14 day trial
+      plan_type: 'trial'
+    };
+
+    // Add optional fields
+    if (coupleNames) weddingData.wedding_name = coupleNames;
+    if (weddingDate) weddingData.wedding_date = weddingDate;
+    if (partner1Name) weddingData.partner1_name = partner1Name;
+    if (partner2Name) weddingData.partner2_name = partner2Name;
+    if (weddingTime) weddingData.wedding_time = weddingTime;
+    if (ceremonyLocation) weddingData.ceremony_location = ceremonyLocation;
+    if (receptionLocation) weddingData.reception_location = receptionLocation;
+    if (expectedGuestCount) weddingData.expected_guest_count = parseInt(expectedGuestCount);
+    if (totalBudget) weddingData.total_budget = parseFloat(totalBudget);
+    if (weddingStyle) weddingData.wedding_style = weddingStyle;
+    if (colorSchemePrimary) weddingData.color_scheme_primary = colorSchemePrimary;
+
     // Create wedding profile
     const { data: wedding, error: weddingError } = await supabase
       .from('wedding_profiles')
-      .insert({
-        owner_id: userId,
-        wedding_name: coupleNames,
-        wedding_date: weddingDate,
-        trial_start_date: new Date().toISOString(),
-        trial_end_date: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(), // 14 day trial
-        plan_type: 'trial'
-      })
+      .insert(weddingData)
       .select()
       .single();
 

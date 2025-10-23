@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bride Buddy - Wedding Planner</title>
+    <link rel="stylesheet" href="/css/styles-v2.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <!-- Ivory/Bridal Background -->
+    <div class="bg-bridal"></div>
+
+    <!-- Chat Container -->
+    <div class="chat-container">
+        <!-- Header -->
+        <div class="chat-header">
+            <div>
+                <h2 style="margin: 0; background: var(--gradient-primary); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+                    Bride Buddy
+                </h2>
+                <p style="margin: 0; color: #666; font-size: 0.9rem;" id="trialStatus"></p>
+            </div>
+            <div style="display: flex; gap: 12px; align-items: center;">
+                <button onclick="window.location.href='/bestie-v2.html'" class="btn btn-secondary" style="padding: 8px 16px;">
+                    Bestie Chat
+                </button>
+                <button onclick="showInvite()" class="btn btn-secondary" style="padding: 8px 16px;">
+                    Invite Co-Planner
+                </button>
+                <button onclick="logout()" class="btn btn-secondary" style="padding: 8px 16px;">
+                    Logout
+                </button>
+            </div>
+        </div>
+
+        <!-- Messages -->
+        <div class="chat-messages" id="chatMessages">
+            <div class="message message-assistant">
+                <div class="message-bubble">
+                    Hi! I'm your Bride Buddy 💍 Ask me anything about wedding planning! I can help you with vendors, budgets, timelines, etiquette, and more!
+                </div>
+            </div>
+        </div>
+
+        <!-- Input Area -->
+        <div class="chat-input-container">
+            <div class="chat-input-wrapper">
+                <input
+                    type="text"
+                    id="chatInput"
+                    placeholder="Ask about weddings, vendors, budget..."
+                    onkeypress="if(event.key==='Enter') sendMessage()"
+                >
+                <button onclick="sendMessage()" class="btn btn-primary">Send</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const supabase = window.supabase.createClient(
+            'https://nluvnjydydotsrpluhey.supabase.co',
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5sdXZuanlkeWRvdHNycGx1aGV5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA3NjE5MjAsImV4cCI6MjA3NjMzNzkyMH0.p5S8vYtZeYqp24avigifhjEDRaKv8TxJTaTkeLoE5mY'
+        );
+
+        let user = null;
+        let conversationId = null;
+
+        // Initialize
+        supabase.auth.getSession().then(async ({ data: { session } }) => {
+            if (!session) {
+                window.location.href = '/login-v2.html';
+                return;
+            }
+
+            user = session.user;
+
+            // Check trial/VIP status
+            const { data: membership } = await supabase
+                .from('wedding_members')
+                .select('wedding_id')
+                .eq('user_id', user.id)
+                .single();
+
+            if (membership) {
+                const { data: wedding } = await supabase
+                    .from('wedding_profiles')
+                    .select('trial_end_date, is_vip, subscription_end_date, wedding_name')
+                    .eq('id', membership.wedding_id)
+                    .single();
+
+                if (wedding) {
+                    const now = new Date();
+                    const trialActive = wedding.trial_end_date && new Date(wedding.trial_end_date) > now;
+                    const vipActive = wedding.is_vip && (!wedding.subscription_end_date || new Date(wedding.subscription_end_date) > now);
+
+                    // Update header with wedding name
+                    if (wedding.wedding_name) {
+                        document.querySelector('h2').textContent = wedding.wedding_name;
+                    }
+
+                    // Show trial status
+                    if (trialActive && !vipActive) {
+                        const daysLeft = Math.ceil((new Date(wedding.trial_end_date) - now) / (1000 * 60 * 60 * 24));
+                        document.getElementById('trialStatus').textContent = `Trial: ${daysLeft} days left`;
+                    } else if (vipActive) {
+                        document.getElementById('trialStatus').innerHTML = '<span class="gold-text">VIP Member ✨</span>';
+                    }
+
+                    if (!trialActive && !vipActive) {
+                        window.location.href = '/subscribe-v2.html';
+                        return;
+                    }
+                }
+            }
+        });
+
+        function logout() {
+            supabase.auth.signOut();
+            window.location.href = '/login-v2.html';
+        }
+
+        async function showInvite() {
+            try {
+                const session = await supabase.auth.getSession();
+                const res = await fetch('/api/create-invite', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ userToken: session.data.session.access_token })
+                });
+                const data = await res.json();
+
+                if (data.invite_code) {
+                    const link = `${window.location.origin}/invite-v2.html?code=${data.invite_code}`;
+                    prompt('Share this ONE-TIME invite link with your co-planner:', link);
+                } else {
+                    alert('Error: ' + (data.error || 'Failed to create invite'));
+                }
+            } catch (error) {
+                alert('Error creating invite: ' + error.message);
+            }
+        }
+
+        async function sendMessage() {
+            const input = document.getElementById('chatInput');
+            const message = input.value.trim();
+
+            if (!message || !user) return;
+
+            input.value = '';
+            input.disabled = true;
+
+            // Add user message to chat
+            addMessage(message, 'user');
+
+            try {
+                const session = await supabase.auth.getSession();
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        message: message,
+                        userToken: session.data.session.access_token,
+                        conversationId: conversationId
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.response) {
+                    addMessage(data.response, 'assistant');
+                    if (data.conversationId) {
+                        conversationId = data.conversationId;
+                    }
+                } else {
+                    addMessage('Sorry, I encountered an error. Please try again.', 'assistant');
+                }
+
+            } catch (error) {
+                console.error('Error:', error);
+                addMessage('Sorry, I encountered an error. Please try again.', 'assistant');
+            }
+
+            input.disabled = false;
+            input.focus();
+        }
+
+        function addMessage(text, role) {
+            const messagesContainer = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message message-${role}`;
+
+            const bubble = document.createElement('div');
+            bubble.className = 'message-bubble';
+            bubble.textContent = text;
+
+            messageDiv.appendChild(bubble);
+            messagesContainer.appendChild(messageDiv);
+
+            // Scroll to bottom
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+    </script>
+</body>
+</html>
