@@ -83,45 +83,74 @@
         </div>
     </div>
 
-    <script src="https://js.stripe.com/v3/"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
+        const supabase = window.supabase.createClient(
+            'https://nluvnjydydotsrpluhey.supabase.co',
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5sdXZuanlkeWRvdHNycGx1aGV5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA3NjE5MjAsImV4cCI6MjA3NjMzNzkyMH0.p5S8vYtZeYqp24avigifhjEDRaKv8TxJTaTkeLoE5mY'
+        );
+
         // Get wedding_id from URL
         const urlParams = new URLSearchParams(window.location.search);
         const weddingId = urlParams.get('wedding_id');
-        
+
         if (!weddingId) {
             alert('No wedding ID found. Please complete onboarding first.');
             window.location.href = 'welcome-v2.html';
         }
 
+        // Map tier + billing to Stripe Price IDs
+        const PRICE_IDS = {
+            'vip_monthly': 'price_1SHYkGDn8y3nIH6VnJNyAsE1',     // $12.99/month
+            'vip_one_time': 'price_1SHYjrDn8y3nIH6VtE3aORiS',    // $99 one-time
+            'vip_bestie_monthly': 'price_YOUR_BESTIE_MONTHLY',   // $19.99/month - ADD YOUR PRICE ID
+            'vip_bestie_one_time': 'price_YOUR_BESTIE_ONETIME'   // $149 one-time - ADD YOUR PRICE ID
+        };
+
         async function selectPlan(tier, billing) {
             try {
-                // For now, skip payment and go straight to dashboard with trial
-                // User can subscribe later via dashboard
-                window.location.href = `dashboard-v2.html?wedding_id=${weddingId}&trial=true`;
-                
-                // Uncomment below when ready to integrate Stripe Checkout:
-                /*
+                // If "monthly" (Start Free Trial), skip to dashboard - trial already started
+                if (billing === 'monthly') {
+                    window.location.href = `dashboard-v2.html?wedding_id=${weddingId}`;
+                    return;
+                }
+
+                // For one-time payment, go through Stripe checkout
+                const { data: { user } } = await supabase.auth.getUser();
+                if (!user) {
+                    alert('Please log in to continue.');
+                    window.location.href = 'login-v2.html';
+                    return;
+                }
+
+                // Get the price ID for this tier + billing combo
+                const priceKey = `${tier}_${billing}`;
+                const priceId = PRICE_IDS[priceKey];
+
+                if (!priceId || priceId.startsWith('price_YOUR_')) {
+                    alert('This payment option is not yet configured. Please contact support or try the free trial.');
+                    return;
+                }
+
                 const response = await fetch('/api/create-checkout', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({
-                        wedding_id: weddingId,
-                        tier: tier,
-                        billing: billing
+                        priceId: priceId,
+                        userId: user.id,
+                        weddingId: weddingId
                     })
                 });
-                
+
                 const data = await response.json();
-                
+
                 if (data.url) {
                     window.location.href = data.url;
                 } else {
                     throw new Error('No checkout URL returned');
                 }
-                */
             } catch (error) {
                 console.error('Error selecting plan:', error);
                 alert('Error processing your selection. Please try again.');
