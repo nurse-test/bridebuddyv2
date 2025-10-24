@@ -9,16 +9,14 @@
 -- ============================================================================
 SELECT
     '1. TABLES STATUS' as check_category,
-    tablename,
+    expected.tablename,
     CASE
-        WHEN rowsecurity THEN '✓ RLS Enabled'
-        ELSE '✗ RLS DISABLED - SECURITY RISK!'
+        WHEN pg_tables.rowsecurity THEN '✓ RLS Enabled'
+        WHEN pg_tables.tablename IS NOT NULL THEN '✗ RLS DISABLED - SECURITY RISK!'
+        ELSE '✗ Missing'
     END as rls_status,
     CASE
-        WHEN tablename IN (
-            SELECT tablename FROM pg_tables
-            WHERE schemaname = 'public'
-        ) THEN '✓ Exists'
+        WHEN pg_tables.tablename IS NOT NULL THEN '✓ Exists'
         ELSE '✗ Missing'
     END as exists_status
 FROM (
