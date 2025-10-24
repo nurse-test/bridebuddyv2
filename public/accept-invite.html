@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bride Buddy - Accept Invitation</title>
+    <link rel="stylesheet" href="/css/styles-v2.css">
+    <style>
+        .invite-header {
+            text-align: center;
+            padding: 32px 0;
+            background: linear-gradient(135deg, rgba(212, 175, 55, 0.1), rgba(156, 118, 198, 0.1));
+            border-radius: 16px;
+            margin-bottom: 24px;
+        }
+        .role-badge {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 14px;
+            margin-top: 12px;
+        }
+        .role-partner { background: rgba(212, 175, 55, 0.2); color: var(--gold); }
+        .role-co_planner { background: rgba(156, 118, 198, 0.2); color: var(--lavender); }
+        .role-bestie { background: rgba(255, 182, 193, 0.3); color: #c26078; }
+
+        .permission-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 8px;
+            margin-bottom: 8px;
+        }
+        .permission-icon {
+            font-size: 20px;
+            margin-right: 12px;
+        }
+        .loading-spinner {
+            border: 4px solid rgba(212, 175, 55, 0.1);
+            border-top: 4px solid var(--gold);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .error-box {
+            background: rgba(255, 0, 0, 0.1);
+            border: 2px solid rgba(255, 0, 0, 0.3);
+            border-radius: 12px;
+            padding: 16px;
+            color: #c00;
+            text-align: center;
+        }
+        .success-box {
+            background: rgba(0, 200, 0, 0.1);
+            border: 2px solid rgba(0, 200, 0, 0.3);
+            border-radius: 12px;
+            padding: 16px;
+            color: #060;
+            text-align: center;
+        }
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body class="bg-bridal">
+    <div class="screen">
+        <div class="container">
+            <!-- Loading State -->
+            <div id="loadingState" class="box-ivory fade-in">
+                <div class="loading-spinner"></div>
+                <p class="text-navy" style="text-align: center;">Validating invite...</p>
+            </div>
+
+            <!-- Error State -->
+            <div id="errorState" class="hidden">
+                <div class="error-box">
+                    <h3 style="margin-bottom: 12px;">Invalid Invite</h3>
+                    <p id="errorMessage"></p>
+                    <a href="/login-v2.html" class="btn btn-primary" style="margin-top: 16px; display: inline-block;">
+                        Go to Login
+                    </a>
+                </div>
+            </div>
+
+            <!-- Invite Details -->
+            <div id="inviteDetails" class="hidden">
+                <!-- Header -->
+                <div class="invite-header fade-in">
+                    <h1 style="color: var(--navy); font-family: var(--font-heading); margin: 0 0 8px 0;">
+                        You're Invited!
+                    </h1>
+                    <p class="text-navy" style="font-size: 18px; margin: 0;">
+                        <span id="weddingName"></span>
+                    </p>
+                    <div class="role-badge" id="roleBadge"></div>
+                    <p class="text-navy" style="margin-top: 16px; opacity: 0.7; font-size: 14px;">
+                        Invited by <strong id="inviterName"></strong>
+                    </p>
+                    <p class="text-navy" style="opacity: 0.5; font-size: 12px; margin-top: 8px;">
+                        Expires in <span id="expiresIn"></span>
+                    </p>
+                </div>
+
+                <!-- Permissions Info -->
+                <div class="box-light-blue fade-in" style="animation-delay: 0.1s; margin-bottom: 24px;">
+                    <h3 class="text-white mb-md">Your Access</h3>
+                    <div id="permissionsDisplay"></div>
+                </div>
+
+                <!-- Bestie Permissions (only for bestie role) -->
+                <div id="bestiePermissionsSection" class="box-lavender fade-in hidden" style="animation-delay: 0.2s; margin-bottom: 24px;">
+                    <h3 class="text-navy mb-md">Bestie Permissions</h3>
+                    <p class="text-navy" style="opacity: 0.8; font-size: 14px; margin-bottom: 16px;">
+                        Control what the inviter can see in your private bestie planning space:
+                    </p>
+
+                    <div class="form-group">
+                        <label class="checkbox-item" style="background: rgba(156, 118, 198, 0.1);">
+                            <input type="checkbox" id="bestieReadPermission">
+                            <span class="checkbox-label" style="color: var(--navy);">
+                                Allow inviter to <strong>view</strong> my bestie knowledge
+                            </span>
+                        </label>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="checkbox-item" style="background: rgba(156, 118, 198, 0.1);">
+                            <input type="checkbox" id="bestieEditPermission">
+                            <span class="checkbox-label" style="color: var(--navy);">
+                                Allow inviter to <strong>edit</strong> my bestie knowledge
+                            </span>
+                        </label>
+                    </div>
+
+                    <p class="text-navy" style="font-size: 12px; opacity: 0.6; margin-top: 12px;">
+                        You can change these permissions anytime from your settings.
+                    </p>
+                </div>
+
+                <!-- Auth State: Not Logged In -->
+                <div id="authPrompt" class="box-ivory fade-in hidden" style="animation-delay: 0.3s;">
+                    <h3 class="text-navy mb-md">Create Account or Sign In</h3>
+                    <p class="text-navy" style="opacity: 0.8; margin-bottom: 24px;">
+                        To accept this invitation, you need to create an account or sign in.
+                    </p>
+
+                    <a href="/signup-v2.html" class="btn btn-primary btn-full btn-lg" style="margin-bottom: 12px;">
+                        Create Account
+                    </a>
+
+                    <a href="/login-v2.html" class="btn btn-secondary btn-full btn-lg">
+                        Sign In
+                    </a>
+
+                    <p class="text-navy" style="font-size: 12px; opacity: 0.6; margin-top: 16px; text-align: center;">
+                        This invite link will remain valid after you sign in.
+                    </p>
+                </div>
+
+                <!-- Auth State: Logged In -->
+                <div id="acceptPrompt" class="box-ivory fade-in hidden" style="animation-delay: 0.3s;">
+                    <button id="acceptBtn" class="btn btn-primary btn-full btn-lg">
+                        Accept Invitation
+                    </button>
+
+                    <p class="text-navy" style="font-size: 12px; opacity: 0.6; margin-top: 16px; text-align: center;">
+                        By accepting, you'll join the wedding planning team.
+                    </p>
+                </div>
+
+                <!-- Processing State -->
+                <div id="processingState" class="box-ivory fade-in hidden" style="animation-delay: 0.3s;">
+                    <div class="loading-spinner"></div>
+                    <p class="text-navy" style="text-align: center;">Accepting invitation...</p>
+                </div>
+
+                <!-- Success State -->
+                <div id="successState" class="hidden">
+                    <div class="success-box">
+                        <h3 style="margin-bottom: 12px;">Welcome!</h3>
+                        <p id="successMessage"></p>
+                        <p style="font-size: 12px; opacity: 0.7; margin-top: 12px;">Redirecting to dashboard...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        const supabase = window.supabase.createClient(
+            'https://nluvnjydydotsrpluhey.supabase.co',
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5sdXZuanlkeWRvdHNycGx1aGV5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQ5ODkxMjksImV4cCI6MjA1MDU2NTEyOX0.rWtPJBnvlKnGdgIBcMTVPLhfXWqD0I7pLCIFhyY_6ns'
+        );
+
+        let inviteData = null;
+        let inviteToken = null;
+
+        // ====================================================================
+        // Initialize
+        // ====================================================================
+        async function init() {
+            // Get token from URL
+            const urlParams = new URLSearchParams(window.location.search);
+            inviteToken = urlParams.get('token');
+
+            if (!inviteToken) {
+                showError('No invite token provided');
+                return;
+            }
+
+            // Validate invite
+            await validateInvite();
+        }
+
+        // ====================================================================
+        // Validate Invite
+        // ====================================================================
+        async function validateInvite() {
+            try {
+                const response = await fetch(`/api/get-invite-info?invite_token=${inviteToken}`);
+                const data = await response.json();
+
+                if (!response.ok || !data.is_valid) {
+                    showError(data.error || 'Invalid invite link');
+                    return;
+                }
+
+                inviteData = data.invite;
+                displayInvite();
+                await checkAuthState();
+
+            } catch (error) {
+                console.error('Validation error:', error);
+                showError('Failed to validate invite');
+            }
+        }
+
+        // ====================================================================
+        // Display Invite
+        // ====================================================================
+        function displayInvite() {
+            document.getElementById('loadingState').classList.add('hidden');
+            document.getElementById('inviteDetails').classList.remove('hidden');
+
+            // Set wedding name
+            document.getElementById('weddingName').textContent = inviteData.wedding_name;
+
+            // Set inviter name
+            document.getElementById('inviterName').textContent = inviteData.inviter_name;
+
+            // Set role badge
+            const roleBadge = document.getElementById('roleBadge');
+            roleBadge.textContent = inviteData.role_display;
+            roleBadge.className = `role-badge role-${inviteData.role}`;
+
+            // Set expiration
+            const expiresIn = inviteData.days_until_expiration > 0
+                ? `${inviteData.days_until_expiration} day${inviteData.days_until_expiration !== 1 ? 's' : ''}`
+                : `${inviteData.hours_until_expiration} hour${inviteData.hours_until_expiration !== 1 ? 's' : ''}`;
+            document.getElementById('expiresIn').textContent = expiresIn;
+
+            // Display permissions
+            displayPermissions();
+
+            // Show bestie permissions section if role is bestie
+            if (inviteData.role === 'bestie') {
+                document.getElementById('bestiePermissionsSection').classList.remove('hidden');
+
+                // Add listener to enforce edit requires read
+                const readCheckbox = document.getElementById('bestieReadPermission');
+                const editCheckbox = document.getElementById('bestieEditPermission');
+
+                editCheckbox.addEventListener('change', () => {
+                    if (editCheckbox.checked) {
+                        readCheckbox.checked = true;
+                    }
+                });
+
+                readCheckbox.addEventListener('change', () => {
+                    if (!readCheckbox.checked) {
+                        editCheckbox.checked = false;
+                    }
+                });
+            }
+        }
+
+        // ====================================================================
+        // Display Permissions
+        // ====================================================================
+        function displayPermissions() {
+            const permissionsDisplay = document.getElementById('permissionsDisplay');
+            const canRead = inviteData.wedding_profile_permissions.read;
+            const canEdit = inviteData.wedding_profile_permissions.edit;
+
+            let html = '';
+
+            if (inviteData.role === 'partner') {
+                html = `
+                    <div class="permission-item">
+                        <span class="text-white">
+                            <span class="permission-icon">👑</span>
+                            <strong>Full Partner Access</strong>
+                        </span>
+                        <span class="text-white">✓</span>
+                    </div>
+                    <div class="permission-item">
+                        <span class="text-white">Can view and edit all wedding details</span>
+                        <span class="text-white">✓</span>
+                    </div>
+                    <div class="permission-item">
+                        <span class="text-white">Can invite additional team members</span>
+                        <span class="text-white">✓</span>
+                    </div>
+                `;
+            } else if (inviteData.role === 'bestie') {
+                html = `
+                    <div class="permission-item">
+                        <span class="text-white">
+                            <span class="permission-icon">💖</span>
+                            <strong>Bestie Access</strong>
+                        </span>
+                        <span class="text-white">✓</span>
+                    </div>
+                    <div class="permission-item">
+                        <span class="text-white">Private bestie planning space</span>
+                        <span class="text-white">✓</span>
+                    </div>
+                    <div class="permission-item">
+                        <span class="text-white">Can view wedding details</span>
+                        <span class="text-white">${canRead ? '✓' : '✗'}</span>
+                    </div>
+                    <div class="permission-item">
+                        <span class="text-white">Can edit wedding details</span>
+                        <span class="text-white">${canEdit ? '✓' : '✗'}</span>
+                    </div>
+                `;
+            } else { // co_planner
+                html = `
+                    <div class="permission-item">
+                        <span class="text-white">
+                            <span class="permission-icon">🤝</span>
+                            <strong>Co-planner Access</strong>
+                        </span>
+                        <span class="text-white">✓</span>
+                    </div>
+                    <div class="permission-item">
+                        <span class="text-white">Can view wedding details</span>
+                        <span class="text-white">${canRead ? '✓' : '✗'}</span>
+                    </div>
+                    <div class="permission-item">
+                        <span class="text-white">Can edit wedding details</span>
+                        <span class="text-white">${canEdit ? '✓' : '✗'}</span>
+                    </div>
+                `;
+            }
+
+            permissionsDisplay.innerHTML = html;
+        }
+
+        // ====================================================================
+        // Check Auth State
+        // ====================================================================
+        async function checkAuthState() {
+            const { data: { session } } = await supabase.auth.getSession();
+
+            if (session) {
+                // User is logged in - show accept button
+                document.getElementById('acceptPrompt').classList.remove('hidden');
+                document.getElementById('acceptBtn').addEventListener('click', acceptInvite);
+            } else {
+                // User not logged in - show auth prompt
+                document.getElementById('authPrompt').classList.remove('hidden');
+            }
+        }
+
+        // ====================================================================
+        // Accept Invite
+        // ====================================================================
+        async function acceptInvite() {
+            // Hide accept prompt, show processing
+            document.getElementById('acceptPrompt').classList.add('hidden');
+            document.getElementById('processingState').classList.remove('hidden');
+
+            try {
+                const { data: { session } } = await supabase.auth.getSession();
+
+                if (!session) {
+                    showError('Please log in to accept this invitation');
+                    return;
+                }
+
+                // Get bestie permissions if role is bestie
+                let bestiePermissions = { can_read: false, can_edit: false };
+                if (inviteData.role === 'bestie') {
+                    bestiePermissions = {
+                        can_read: document.getElementById('bestieReadPermission').checked,
+                        can_edit: document.getElementById('bestieEditPermission').checked
+                    };
+                }
+
+                // Call accept API
+                const response = await fetch('/api/accept-invite', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        invite_token: inviteToken,
+                        userToken: session.access_token,
+                        bestie_knowledge_permissions: bestiePermissions
+                    })
+                });
+
+                const result = await response.json();
+
+                if (!response.ok) {
+                    showError(result.error || 'Failed to accept invitation');
+                    document.getElementById('processingState').classList.add('hidden');
+                    document.getElementById('acceptPrompt').classList.remove('hidden');
+                    return;
+                }
+
+                // Show success
+                document.getElementById('processingState').classList.add('hidden');
+                document.getElementById('successState').classList.remove('hidden');
+                document.getElementById('successMessage').textContent = result.message;
+
+                // Redirect after 2 seconds
+                setTimeout(() => {
+                    window.location.href = result.redirect_to;
+                }, 2000);
+
+            } catch (error) {
+                console.error('Accept error:', error);
+                showError('Failed to accept invitation');
+                document.getElementById('processingState').classList.add('hidden');
+                document.getElementById('acceptPrompt').classList.remove('hidden');
+            }
+        }
+
+        // ====================================================================
+        // Show Error
+        // ====================================================================
+        function showError(message) {
+            document.getElementById('loadingState').classList.add('hidden');
+            document.getElementById('inviteDetails').classList.add('hidden');
+            document.getElementById('errorState').classList.remove('hidden');
+            document.getElementById('errorMessage').textContent = message;
+        }
+
+        // Initialize on page load
+        init();
+    </script>
+</body>
+</html>

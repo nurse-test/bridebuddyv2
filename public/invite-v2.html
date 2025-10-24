@@ -5,6 +5,36 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bride Buddy - Invite Collaborators</title>
     <link rel="stylesheet" href="/css/styles-v2.css">
+    <style>
+        .invite-link-box {
+            background: rgba(212, 175, 55, 0.1);
+            border: 2px dashed var(--gold);
+            border-radius: 12px;
+            padding: 16px;
+            margin-top: 16px;
+            word-break: break-all;
+        }
+        .copy-btn {
+            margin-top: 12px;
+            background: var(--gold);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            width: 100%;
+        }
+        .copy-btn:hover {
+            background: #c4a53f;
+        }
+        .copy-btn.copied {
+            background: #28a745;
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
 </head>
 <body class="bg-bridal">
     <div class="screen">
@@ -20,48 +50,66 @@
 
             <!-- Invite Form -->
             <div class="box-ivory fade-in">
-                <h3 class="text-navy mb-md">Who would you like to invite?</h3>
-                
-                <form id="inviteForm" onsubmit="sendInvite(event)">
-                    <div class="form-group">
-                        <label class="form-label">Name</label>
-                        <input type="text" class="form-input" id="inviteeName" placeholder="Jane Doe" required>
-                    </div>
+                <h3 class="text-navy mb-md">Create Invite Link</h3>
 
-                    <div class="form-group">
-                        <label class="form-label">Email</label>
-                        <input type="email" class="form-input" id="inviteeEmail" placeholder="jane@example.com" required>
-                    </div>
-
+                <form id="inviteForm" onsubmit="createInvite(event)">
                     <div class="form-group">
                         <label class="form-label">Role</label>
-                        <select class="form-input" id="inviteeRole" required onchange="toggleEditPermission()">
+                        <select class="form-input" id="inviteeRole" required onchange="updatePermissionOptions()">
                             <option value="">Select a role...</option>
                             <option value="partner">Partner (Full Edit Access)</option>
-                            <option value="co_planner">Co-planner (View + Request Changes)</option>
+                            <option value="co_planner">Co-planner</option>
                             <option value="bestie">Bestie (MOH/Best Man)</option>
                         </select>
                     </div>
 
-                    <!-- Edit permission for co-planners -->
-                    <div class="form-group hidden" id="editPermissionGroup">
+                    <!-- Permission options for all roles -->
+                    <div class="form-group hidden" id="permissionsGroup">
+                        <label class="form-label">Wedding Profile Access</label>
+
+                        <label class="checkbox-item" style="background: rgba(156, 118, 198, 0.1); margin-bottom: 8px;">
+                            <input type="checkbox" id="canRead">
+                            <span class="checkbox-label" style="color: var(--navy);">Can view wedding details</span>
+                        </label>
+
                         <label class="checkbox-item" style="background: rgba(156, 118, 198, 0.1);">
                             <input type="checkbox" id="canEdit">
-                            <span class="checkbox-label" style="color: var(--navy);">Allow edit requests (requires approval)</span>
+                            <span class="checkbox-label" style="color: var(--navy);">Can edit wedding details</span>
                         </label>
+
+                        <p class="text-navy" style="font-size: 12px; opacity: 0.6; margin-top: 8px;">
+                            Note: Edit permission requires read permission.
+                        </p>
                     </div>
 
                     <button type="submit" class="btn btn-primary btn-full btn-lg" id="inviteBtn">
-                        Send Invite
+                        Generate Invite Link
                     </button>
                 </form>
+
+                <!-- Generated Link Display -->
+                <div id="generatedLinkSection" class="hidden">
+                    <div class="invite-link-box">
+                        <p class="text-navy" style="font-weight: 600; margin-bottom: 8px;">Share this link:</p>
+                        <p id="inviteLink" class="text-navy" style="font-size: 14px; margin: 0;"></p>
+                        <button class="copy-btn" onclick="copyLink()">
+                            <span id="copyBtnText">Copy Link</span>
+                        </button>
+                    </div>
+                    <p class="text-navy" style="font-size: 12px; opacity: 0.6; margin-top: 12px; text-align: center;">
+                        Link expires in 7 days • One-time use only
+                    </p>
+                    <button class="btn btn-secondary btn-full" style="margin-top: 12px;" onclick="resetForm()">
+                        Create Another Invite
+                    </button>
+                </div>
             </div>
 
             <!-- Pending Invites -->
             <div class="box-light-blue mt-lg fade-in" style="animation-delay: 0.1s;">
-                <h3 class="text-white mb-md">Pending Invites</h3>
+                <h3 class="text-white mb-md">Active Invite Links</h3>
                 <div id="pendingInvites">
-                    <p class="text-white" style="opacity: 0.7; text-align: center;">No pending invites</p>
+                    <p class="text-white" style="opacity: 0.7; text-align: center;">Loading...</p>
                 </div>
             </div>
 
@@ -84,132 +132,294 @@
 
         const urlParams = new URLSearchParams(window.location.search);
         const weddingId = urlParams.get('wedding_id');
+        let currentInviteUrl = '';
 
         function goBack() {
             window.location.href = `dashboard-v2.html?wedding_id=${weddingId}`;
         }
 
-        function toggleEditPermission() {
+        // ====================================================================
+        // Update Permission Options Based on Role
+        // ====================================================================
+        function updatePermissionOptions() {
             const role = document.getElementById('inviteeRole').value;
-            const editGroup = document.getElementById('editPermissionGroup');
-            
-            if (role === 'co_planner') {
-                editGroup.classList.remove('hidden');
-            } else {
-                editGroup.classList.add('hidden');
+            const permissionsGroup = document.getElementById('permissionsGroup');
+            const canRead = document.getElementById('canRead');
+            const canEdit = document.getElementById('canEdit');
+
+            if (!role) {
+                permissionsGroup.classList.add('hidden');
+                return;
+            }
+
+            permissionsGroup.classList.remove('hidden');
+
+            // Set defaults based on role
+            if (role === 'partner') {
+                canRead.checked = true;
+                canEdit.checked = true;
+                canRead.disabled = true;
+                canEdit.disabled = true;
+            } else if (role === 'bestie') {
+                canRead.checked = false;
+                canEdit.checked = false;
+                canRead.disabled = false;
+                canEdit.disabled = false;
+            } else { // co_planner
+                canRead.checked = true;
+                canEdit.checked = false;
+                canRead.disabled = false;
+                canEdit.disabled = false;
             }
         }
 
-        async function sendInvite(event) {
+        // Enforce edit requires read
+        document.getElementById('canEdit')?.addEventListener('change', function() {
+            if (this.checked) {
+                document.getElementById('canRead').checked = true;
+            }
+        });
+
+        document.getElementById('canRead')?.addEventListener('change', function() {
+            if (!this.checked) {
+                document.getElementById('canEdit').checked = false;
+            }
+        });
+
+        // ====================================================================
+        // Create Invite
+        // ====================================================================
+        async function createInvite(event) {
             event.preventDefault();
-            
-            const name = document.getElementById('inviteeName').value;
-            const email = document.getElementById('inviteeEmail').value;
+
             const role = document.getElementById('inviteeRole').value;
-            const canEdit = role === 'co_planner' ? document.getElementById('canEdit').checked : false;
-            
+            const canRead = document.getElementById('canRead').checked;
+            const canEdit = document.getElementById('canEdit').checked;
+
             const btn = document.getElementById('inviteBtn');
             btn.disabled = true;
-            btn.textContent = 'Sending...';
-            
+            btn.textContent = 'Generating...';
+
             try {
+                // Get user session
+                const { data: { session } } = await supabase.auth.getSession();
+
+                if (!session) {
+                    alert('Please log in to create invites');
+                    return;
+                }
+
                 const response = await fetch('/api/create-invite', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({
-                        wedding_id: weddingId,
-                        invitee_name: name,
-                        invitee_email: email,
+                        userToken: session.access_token,
                         role: role,
-                        can_edit: canEdit
+                        wedding_profile_permissions: {
+                            read: canRead,
+                            edit: canEdit
+                        }
                     })
                 });
-                
+
                 const data = await response.json();
-                
+
                 if (data.success) {
-                    alert(`Invite sent to ${name}! They'll receive an email with a link to join.`);
-                    document.getElementById('inviteForm').reset();
+                    currentInviteUrl = data.invite_url;
+                    document.getElementById('inviteLink').textContent = data.invite_url;
+                    document.getElementById('inviteForm').classList.add('hidden');
+                    document.getElementById('generatedLinkSection').classList.remove('hidden');
                     loadPendingInvites();
                 } else {
                     throw new Error(data.error);
                 }
             } catch (error) {
-                console.error('Error sending invite:', error);
-                alert('Error sending invite. Please try again.');
+                console.error('Error creating invite:', error);
+                alert('Error creating invite link. Please try again.');
             } finally {
                 btn.disabled = false;
-                btn.textContent = 'Send Invite';
+                btn.textContent = 'Generate Invite Link';
             }
         }
 
+        // ====================================================================
+        // Copy Link
+        // ====================================================================
+        function copyLink() {
+            navigator.clipboard.writeText(currentInviteUrl).then(() => {
+                const btn = document.querySelector('.copy-btn');
+                const btnText = document.getElementById('copyBtnText');
+                btn.classList.add('copied');
+                btnText.textContent = 'Copied!';
+
+                setTimeout(() => {
+                    btn.classList.remove('copied');
+                    btnText.textContent = 'Copy Link';
+                }, 2000);
+            }).catch(err => {
+                console.error('Failed to copy:', err);
+                alert('Failed to copy link');
+            });
+        }
+
+        // ====================================================================
+        // Reset Form
+        // ====================================================================
+        function resetForm() {
+            document.getElementById('inviteForm').reset();
+            document.getElementById('inviteForm').classList.remove('hidden');
+            document.getElementById('generatedLinkSection').classList.add('hidden');
+            document.getElementById('permissionsGroup').classList.add('hidden');
+            currentInviteUrl = '';
+        }
+
+        // ====================================================================
+        // Load Pending Invites
+        // ====================================================================
         async function loadPendingInvites() {
             try {
                 const { data: invites, error } = await supabase
                     .from('invite_codes')
                     .select('*')
                     .eq('wedding_id', weddingId)
-                    .eq('is_used', false)
+                    .or('used.is.null,used.eq.false')
+                    .gt('expires_at', new Date().toISOString())
                     .order('created_at', { ascending: false });
-                
+
                 if (error) throw error;
-                
+
                 const container = document.getElementById('pendingInvites');
-                
+
                 if (!invites || invites.length === 0) {
-                    container.innerHTML = '<p class="text-white" style="opacity: 0.7; text-align: center;">No pending invites</p>';
+                    container.innerHTML = '<p class="text-white" style="opacity: 0.7; text-align: center;">No active invite links</p>';
                     return;
                 }
-                
-                container.innerHTML = invites.map(invite => `
-                    <div style="background: rgba(255, 255, 255, 0.2); padding: 12px; border-radius: 8px; margin-bottom: 8px;">
-                        <div style="color: white; font-weight: 600;">${invite.invitee_name}</div>
-                        <div style="color: white; opacity: 0.8; font-size: 0.875rem;">${invite.invitee_email}</div>
-                        <div style="color: white; opacity: 0.7; font-size: 0.875rem; margin-top: 4px;">Role: ${invite.role}</div>
-                    </div>
-                `).join('');
+
+                container.innerHTML = invites.map(invite => {
+                    const expiresAt = new Date(invite.expires_at);
+                    const now = new Date();
+                    const hoursLeft = Math.floor((expiresAt - now) / (1000 * 60 * 60));
+                    const daysLeft = Math.floor(hoursLeft / 24);
+                    const expiresText = daysLeft > 0
+                        ? `Expires in ${daysLeft} day${daysLeft !== 1 ? 's' : ''}`
+                        : `Expires in ${hoursLeft} hour${hoursLeft !== 1 ? 's' : ''}`;
+
+                    const roleDisplay = {
+                        'partner': 'Partner',
+                        'co_planner': 'Co-planner',
+                        'bestie': 'Bestie'
+                    }[invite.role] || invite.role;
+
+                    const permissions = invite.wedding_profile_permissions || {};
+                    const permissionsText = permissions.edit
+                        ? 'Can edit'
+                        : permissions.read
+                            ? 'Can view'
+                            : 'No access';
+
+                    return `
+                        <div style="background: rgba(255, 255, 255, 0.2); padding: 12px; border-radius: 8px; margin-bottom: 8px;">
+                            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 8px;">
+                                <div>
+                                    <div style="color: white; font-weight: 600; margin-bottom: 4px;">${roleDisplay}</div>
+                                    <div style="color: white; opacity: 0.8; font-size: 0.875rem;">${permissionsText}</div>
+                                </div>
+                                <div style="color: white; opacity: 0.7; font-size: 0.75rem; text-align: right;">
+                                    ${expiresText}
+                                </div>
+                            </div>
+                            <div style="background: rgba(0, 0, 0, 0.2); padding: 8px; border-radius: 6px; font-size: 0.75rem; color: white; word-break: break-all;">
+                                ${window.location.origin}/accept-invite.html?token=${invite.invite_token}
+                            </div>
+                            <button onclick="copyInviteLink('${invite.invite_token}')"
+                                    style="width: 100%; margin-top: 8px; padding: 6px; background: rgba(255, 255, 255, 0.3); border: none; border-radius: 6px; color: white; font-size: 0.875rem; cursor: pointer;">
+                                Copy Link
+                            </button>
+                        </div>
+                    `;
+                }).join('');
             } catch (error) {
                 console.error('Error loading invites:', error);
+                document.getElementById('pendingInvites').innerHTML =
+                    '<p class="text-white" style="opacity: 0.7; text-align: center;">Failed to load invites</p>';
             }
         }
 
+        // ====================================================================
+        // Copy Specific Invite Link
+        // ====================================================================
+        function copyInviteLink(token) {
+            const url = `${window.location.origin}/accept-invite.html?token=${token}`;
+            navigator.clipboard.writeText(url).then(() => {
+                alert('Invite link copied!');
+            }).catch(err => {
+                console.error('Failed to copy:', err);
+                alert('Failed to copy link');
+            });
+        }
+
+        // ====================================================================
+        // Load Current Members
+        // ====================================================================
         async function loadCurrentMembers() {
             try {
                 const { data: members, error } = await supabase
                     .from('wedding_members')
                     .select(`
-                        *,
-                        profiles (full_name, email)
+                        role,
+                        wedding_profile_permissions,
+                        user_id
                     `)
-                    .eq('wedding_id', weddingId)
-                    .eq('status', 'active');
-                
+                    .eq('wedding_id', weddingId);
+
                 if (error) throw error;
-                
+
                 const container = document.getElementById('currentMembers');
-                
+
                 if (!members || members.length === 0) {
                     container.innerHTML = '<p class="text-navy" style="opacity: 0.7; text-align: center;">No members yet</p>';
                     return;
                 }
-                
-                container.innerHTML = members.map(member => `
-                    <div style="background: rgba(60, 0, 157, 0.1); padding: 12px; border-radius: 8px; margin-bottom: 8px;">
-                        <div style="color: var(--navy); font-weight: 600;">${member.profiles.full_name || 'Unknown'}</div>
-                        <div style="color: var(--navy); opacity: 0.8; font-size: 0.875rem;">${member.profiles.email}</div>
-                        <div style="color: var(--navy); opacity: 0.7; font-size: 0.875rem; margin-top: 4px;">
-                            Role: ${member.role} ${member.can_edit ? '(Can edit)' : '(View only)'}
+
+                container.innerHTML = members.map(member => {
+                    const roleDisplay = {
+                        'owner': 'Owner',
+                        'partner': 'Partner',
+                        'co_planner': 'Co-planner',
+                        'bestie': 'Bestie',
+                        'member': 'Member'
+                    }[member.role] || member.role;
+
+                    const permissions = member.wedding_profile_permissions || {};
+                    const permissionsText = member.role === 'owner'
+                        ? 'Full access'
+                        : permissions.edit
+                            ? 'Can edit'
+                            : permissions.read
+                                ? 'Can view'
+                                : 'No access';
+
+                    return `
+                        <div style="background: rgba(60, 0, 157, 0.1); padding: 12px; border-radius: 8px; margin-bottom: 8px;">
+                            <div style="color: var(--navy); font-weight: 600;">${roleDisplay}</div>
+                            <div style="color: var(--navy); opacity: 0.8; font-size: 0.875rem; margin-top: 4px;">
+                                ${permissionsText}
+                            </div>
                         </div>
-                    </div>
-                `).join('');
+                    `;
+                }).join('');
             } catch (error) {
                 console.error('Error loading members:', error);
+                document.getElementById('currentMembers').innerHTML =
+                    '<p class="text-navy" style="opacity: 0.7; text-align: center;">Failed to load members</p>';
             }
         }
 
+        // ====================================================================
         // Initialize
+        // ====================================================================
         loadPendingInvites();
         loadCurrentMembers();
     </script>
