@@ -176,9 +176,10 @@
                         document.getElementById('trialBadge').classList.add('badge-warning');
                     }
 
-                    // Show pay modal on day 5 of 7-day trial (when 3 or fewer days remain)
-                    if (daysLeft <= 3 && !sessionStorage.getItem('modalShownForDay5')) {
-                        sessionStorage.setItem('modalShownForDay5', 'true');
+                    // Show pay modal ONLY on day 5 of 7-day trial (exactly 3 days remaining)
+                    const modalKey = `payModalShown_${weddingId}`;
+                    if (daysLeft === 3 && !localStorage.getItem(modalKey)) {
+                        localStorage.setItem(modalKey, 'true');
                         setTimeout(() => showSubscribeModal(), 1000); // Show after 1 second delay
                     }
                 }
