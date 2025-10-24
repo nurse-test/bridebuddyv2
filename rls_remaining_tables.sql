@@ -276,9 +276,13 @@ WHERE tablename IN (
 -- Expected: 24 total policies (4+5+3+4+3+5)
 
 -- ============================================================================
--- TESTING GUIDE
+-- TESTING GUIDE (EXAMPLES - DO NOT RUN AUTOMATICALLY)
+-- ============================================================================
+-- These are example queries to run manually after deployment.
+-- They are commented out to prevent errors during migration.
 -- ============================================================================
 
+/*
 -- Test 1: Can you see your chat messages?
 SELECT * FROM chat_messages;
 -- Should return: Only YOUR messages for YOUR wedding(s)
@@ -297,8 +301,9 @@ SELECT * FROM pending_updates;
 
 -- Test 5: Try to query someone else's data
 -- Replace 'other-wedding-id' with an actual wedding ID you don't belong to
-SELECT * FROM chat_messages WHERE wedding_id = 'other-wedding-id';
+-- SELECT * FROM chat_messages WHERE wedding_id = 'other-wedding-id';
 -- Should return: 0 rows (no access)
+*/
 
 -- ============================================================================
 -- SECURITY SUMMARY
