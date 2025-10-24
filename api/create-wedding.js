@@ -1,6 +1,14 @@
+// ============================================================================
+// CREATE WEDDING - VERCEL FUNCTION (SECURE)
+// ============================================================================
+// Creates a new wedding profile for authenticated user
+// SECURITY: Properly verifies user authentication before creating wedding
+// ============================================================================
+
 import { createClient } from '@supabase/supabase-js';
 
-const supabase = createClient(
+// Service role client (bypasses RLS for admin operations)
+const supabaseAdmin = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
@@ -11,7 +19,7 @@ export default async function handler(req, res) {
   }
 
   const {
-    userId,
+    userToken,  // ✅ CHANGED: Now requires userToken instead of userId
     coupleNames,
     weddingDate,
     partner1Name,
@@ -25,13 +33,47 @@ export default async function handler(req, res) {
     colorSchemePrimary
   } = req.body;
 
-  if (!userId) {
-    return res.status(400).json({ error: 'User ID required' });
+  // ========================================================================
+  // STEP 1: Validate required authentication token
+  // ========================================================================
+  if (!userToken) {
+    return res.status(400).json({
+      error: 'Missing required field: userToken'
+    });
   }
 
   try {
-    // Check if user already has a wedding
-    const { data: existingMembership } = await supabase
+    // ========================================================================
+    // STEP 2: Authenticate the user (SECURITY FIX)
+    // ========================================================================
+    const supabaseUser = createClient(
+      process.env.SUPABASE_URL,
+      process.env.SUPABASE_ANON_KEY,
+      {
+        global: {
+          headers: {
+            Authorization: `Bearer ${userToken}`
+          }
+        }
+      }
+    );
+
+    // Verify user authentication
+    const { data: { user }, error: authError } = await supabaseUser.auth.getUser();
+
+    if (authError || !user) {
+      return res.status(401).json({
+        error: 'Unauthorized - invalid or expired token'
+      });
+    }
+
+    // ✅ SECURITY FIX: Now using verified user ID from authenticated session
+    const userId = user.id;
+
+    // ========================================================================
+    // STEP 3: Check if user already has a wedding
+    // ========================================================================
+    const { data: existingMembership } = await supabaseAdmin
       .from('wedding_members')
       .select('wedding_id')
       .eq('user_id', userId)
@@ -39,12 +81,16 @@ export default async function handler(req, res) {
       .single();
 
     if (existingMembership) {
-      return res.status(400).json({ error: 'User already has a wedding' });
+      return res.status(400).json({
+        error: 'User already has a wedding'
+      });
     }
 
-    // Build wedding profile data
+    // ========================================================================
+    // STEP 4: Build wedding profile data
+    // ========================================================================
     const weddingData = {
-      owner_id: userId,
+      owner_id: userId,  // ✅ Now using verified userId
       trial_start_date: new Date().toISOString(),
       trial_end_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 day trial
       plan_type: 'trial',
@@ -65,8 +111,10 @@ export default async function handler(req, res) {
     if (weddingStyle) weddingData.wedding_style = weddingStyle;
     if (colorSchemePrimary) weddingData.color_scheme_primary = colorSchemePrimary;
 
-    // Create wedding profile
-    const { data: wedding, error: weddingError } = await supabase
+    // ========================================================================
+    // STEP 5: Create wedding profile
+    // ========================================================================
+    const { data: wedding, error: weddingError } = await supabaseAdmin
       .from('wedding_profiles')
       .insert(weddingData)
       .select()
@@ -74,29 +122,52 @@ export default async function handler(req, res) {
 
     if (weddingError) {
       console.error('Wedding creation error:', weddingError);
-      return res.status(500).json({ error: weddingError.message });
+      return res.status(500).json({
+        error: 'Failed to create wedding profile',
+        details: weddingError.message
+      });
     }
 
-    // Add owner to wedding_members
-    const { error: memberError } = await supabase
+    // ========================================================================
+    // STEP 6: Add owner to wedding_members
+    // ========================================================================
+    const { error: memberError } = await supabaseAdmin
       .from('wedding_members')
       .insert({
         wedding_id: wedding.id,
-        user_id: userId,
+        user_id: userId,  // ✅ Verified user ID
         role: 'owner'
       });
 
     if (memberError) {
       console.error('Member creation error:', memberError);
-      return res.status(500).json({ error: memberError.message });
+
+      // Rollback: Delete the wedding profile if member creation fails
+      await supabaseAdmin
+        .from('wedding_profiles')
+        .delete()
+        .eq('id', wedding.id);
+
+      return res.status(500).json({
+        error: 'Failed to set up wedding membership',
+        details: memberError.message
+      });
     }
 
-    return res.status(200).json({ 
-      success: true, 
-      weddingId: wedding.id 
+    // ========================================================================
+    // STEP 7: Return success response
+    // ========================================================================
+    return res.status(200).json({
+      success: true,
+      wedding_id: wedding.id,  // Changed to snake_case for consistency
+      message: 'Wedding created successfully'
     });
+
   } catch (error) {
-    console.error('Unexpected error:', error);
-    return res.status(500).json({ error: error.message });
+    console.error('Unexpected error creating wedding:', error);
+    return res.status(500).json({
+      error: 'Internal server error',
+      details: error.message
+    });
   }
 }
