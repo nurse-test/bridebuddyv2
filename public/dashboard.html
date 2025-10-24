@@ -1,0 +1,1195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Bride Buddy - AI Wedding Planner</title>
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Supabase Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <style>
+        /* ========================================
+           DESIGN SYSTEM - CSS VARIABLES
+           ======================================== */
+        :root {
+            /* Brand Colors */
+            --midnight-navy: #0A1628;
+            --pure-white: #FFFFFF;
+            --platinum: #E8EDF2;
+            --electric-blue: #00D4FF;
+            --warm-gold: #D4AF37;
+            --soft-lavender: #E6E6FA;
+            --shadow-blue: rgba(10, 22, 40, 0.15);
+
+            /* Glassmorphism */
+            --glass-bg: rgba(232, 237, 242, 0.1);
+            --glass-border: rgba(255, 255, 255, 0.18);
+            --glass-shadow: 0 8px 32px 0 rgba(10, 22, 40, 0.37);
+
+            /* Typography */
+            --font-heading: -apple-system, BlinkMacSystemFont, 'Inter', 'SF Pro Display', system-ui, sans-serif;
+            --font-body: -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif;
+            --font-mono: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+
+            /* Spacing */
+            --space-xs: 0.5rem;
+            --space-sm: 1rem;
+            --space-md: 1.5rem;
+            --space-lg: 2rem;
+            --space-xl: 3rem;
+
+            /* Transitions */
+            --transition-fast: 200ms cubic-bezier(0.4, 0, 0.2, 1);
+            --transition-base: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+            --transition-slow: 400ms cubic-bezier(0.4, 0, 0.6, 1);
+            --transition-bounce: 500ms cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        /* ========================================
+           GLOBAL STYLES
+           ======================================== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-body);
+            background: linear-gradient(135deg, var(--midnight-navy) 0%, #1a2744 100%);
+            color: var(--pure-white);
+            min-height: 100vh;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* ========================================
+           CHAT INTERFACE - PRIMARY VIEW
+           ======================================== */
+        .app-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            height: 100dvh; /* Dynamic viewport height for mobile */
+            position: relative;
+        }
+
+        /* Top Navigation Bar */
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: var(--space-sm) var(--space-md);
+            background: rgba(10, 22, 40, 0.8);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--glass-border);
+            position: relative;
+            z-index: 10;
+        }
+
+        .logo {
+            font-family: var(--font-heading);
+            font-size: 1.25rem;
+            font-weight: 600;
+            letter-spacing: -0.02em;
+            background: linear-gradient(135deg, var(--pure-white) 0%, var(--electric-blue) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .dashboard-icon {
+            width: 40px;
+            height: 40px;
+            position: relative;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform var(--transition-fast);
+        }
+
+        .dashboard-icon:hover {
+            transform: scale(1.1);
+        }
+
+        .dashboard-icon:active {
+            transform: scale(0.95);
+        }
+
+        /* Hexagon Icon */
+        .hexagon {
+            width: 32px;
+            height: 32px;
+            position: relative;
+        }
+
+        .hexagon svg {
+            width: 100%;
+            height: 100%;
+            filter: drop-shadow(0 0 8px rgba(0, 212, 255, 0.3));
+            animation: pulse-glow 3s ease-in-out infinite;
+        }
+
+        @keyframes pulse-glow {
+            0%, 100% { filter: drop-shadow(0 0 8px rgba(0, 212, 255, 0.3)); }
+            50% { filter: drop-shadow(0 0 16px rgba(0, 212, 255, 0.6)); }
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            background: var(--warm-gold);
+            color: var(--midnight-navy);
+            font-size: 0.625rem;
+            font-weight: 700;
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-family: var(--font-mono);
+            box-shadow: 0 2px 8px rgba(212, 175, 55, 0.4);
+        }
+
+        /* Chat Messages Area */
+        .chat-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: var(--space-md);
+            padding-bottom: calc(var(--space-md) + env(safe-area-inset-bottom));
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-md);
+        }
+
+        .chat-container::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .chat-container::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .chat-container::-webkit-scrollbar-thumb {
+            background: var(--glass-bg);
+            border-radius: 4px;
+        }
+
+        .chat-container::-webkit-scrollbar-thumb:hover {
+            background: rgba(232, 237, 242, 0.2);
+        }
+
+        /* Welcome Message */
+        .welcome-message {
+            text-align: center;
+            padding: var(--space-xl) var(--space-md);
+            animation: fadeIn var(--transition-slow) ease-out;
+        }
+
+        .welcome-message h1 {
+            font-family: var(--font-heading);
+            font-size: 1.75rem;
+            font-weight: 600;
+            margin-bottom: var(--space-sm);
+            letter-spacing: -0.02em;
+        }
+
+        .welcome-message p {
+            color: var(--platinum);
+            font-size: 1rem;
+            opacity: 0.9;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Message Bubbles */
+        .message {
+            display: flex;
+            gap: var(--space-sm);
+            animation: messageSlide var(--transition-base) ease-out;
+        }
+
+        @keyframes messageSlide {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .message.user {
+            flex-direction: row-reverse;
+        }
+
+        .message-bubble {
+            max-width: 80%;
+            padding: var(--space-sm) var(--space-md);
+            border-radius: 18px;
+            position: relative;
+        }
+
+        .message.user .message-bubble {
+            background: var(--midnight-navy);
+            color: var(--pure-white);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            margin-left: auto;
+        }
+
+        .message.ai .message-bubble {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.1);
+            position: relative;
+        }
+
+        .message.ai .message-bubble::before {
+            content: '';
+            position: absolute;
+            inset: -1px;
+            border-radius: 18px;
+            padding: 1px;
+            background: linear-gradient(135deg, var(--electric-blue), transparent);
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            opacity: 0.5;
+        }
+
+        .message-text {
+            line-height: 1.5;
+            font-size: 0.9375rem;
+        }
+
+        /* Suggested Prompts */
+        .suggested-prompts {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--space-xs);
+            padding: 0 var(--space-md);
+            margin-bottom: var(--space-sm);
+            animation: fadeIn var(--transition-slow) 0.3s ease-out;
+        }
+
+        .prompt-pill {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            color: var(--pure-white);
+            padding: var(--space-xs) var(--space-md);
+            border-radius: 20px;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            white-space: nowrap;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .prompt-pill::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 212, 255, 0.2), transparent);
+            transition: left var(--transition-slow);
+        }
+
+        .prompt-pill:hover::before {
+            left: 100%;
+        }
+
+        .prompt-pill:hover {
+            border-color: var(--electric-blue);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 212, 255, 0.2);
+        }
+
+        .prompt-pill:active {
+            transform: translateY(0);
+        }
+
+        /* Input Area */
+        .input-container {
+            padding: var(--space-md);
+            padding-bottom: calc(var(--space-md) + env(safe-area-inset-bottom));
+            background: rgba(10, 22, 40, 0.8);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-top: 1px solid var(--glass-border);
+        }
+
+        .input-wrapper {
+            display: flex;
+            gap: var(--space-sm);
+            align-items: center;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: var(--space-xs);
+            transition: all var(--transition-fast);
+        }
+
+        .input-wrapper:focus-within {
+            border-color: var(--electric-blue);
+            box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.1);
+        }
+
+        .chat-input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            outline: none;
+            color: var(--pure-white);
+            font-size: 1rem;
+            padding: var(--space-sm) var(--space-md);
+            font-family: var(--font-body);
+        }
+
+        .chat-input::placeholder {
+            color: var(--platinum);
+            opacity: 0.6;
+        }
+
+        .send-button, .voice-button {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all var(--transition-fast);
+            flex-shrink: 0;
+        }
+
+        .send-button {
+            background: var(--electric-blue);
+            color: var(--midnight-navy);
+        }
+
+        .send-button:hover {
+            background: #00e5ff;
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(0, 212, 255, 0.4);
+        }
+
+        .send-button:active {
+            transform: scale(0.95);
+        }
+
+        .voice-button {
+            background: transparent;
+            color: var(--platinum);
+        }
+
+        .voice-button:hover {
+            background: var(--glass-bg);
+            color: var(--pure-white);
+        }
+
+        /* ========================================
+           DASHBOARD SLIDE-IN
+           ======================================== */
+        .dashboard-panel {
+            position: fixed;
+            top: 0;
+            right: 0;
+            width: 100%;
+            height: 100vh;
+            height: 100dvh;
+            background: linear-gradient(135deg, var(--midnight-navy) 0%, #1a2744 100%);
+            transform: translateX(100%);
+            transition: transform var(--transition-slow);
+            z-index: 100;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .dashboard-panel.active {
+            transform: translateX(0);
+        }
+
+        /* Dashboard Header */
+        .dashboard-header {
+            padding: var(--space-md);
+            background: rgba(10, 22, 40, 0.8);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--glass-border);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .back-button {
+            display: flex;
+            align-items: center;
+            gap: var(--space-xs);
+            background: transparent;
+            border: none;
+            color: var(--electric-blue);
+            font-size: 1rem;
+            cursor: pointer;
+            padding: var(--space-xs) 0;
+            font-family: var(--font-body);
+            transition: all var(--transition-fast);
+        }
+
+        .back-button:hover {
+            gap: calc(var(--space-xs) + 4px);
+        }
+
+        .dashboard-content {
+            flex: 1;
+            padding: var(--space-md);
+            padding-bottom: calc(var(--space-xl) + env(safe-area-inset-bottom));
+        }
+
+        /* Hero - Countdown */
+        .countdown-hero {
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.1) 0%, rgba(212, 175, 55, 0.05) 100%);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: var(--space-xl) var(--space-md);
+            text-align: center;
+            margin-bottom: var(--space-lg);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .countdown-hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 50% 0%, rgba(0, 212, 255, 0.1), transparent 70%);
+            pointer-events: none;
+        }
+
+        .countdown-label {
+            font-family: var(--font-heading);
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--platinum);
+            margin-bottom: var(--space-md);
+            opacity: 0.8;
+        }
+
+        .countdown-display {
+            font-family: var(--font-mono);
+            font-size: 3rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--pure-white) 0%, var(--electric-blue) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: 0.05em;
+            text-shadow: 0 0 40px rgba(0, 212, 255, 0.3);
+            margin-bottom: var(--space-xs);
+            position: relative;
+            z-index: 1;
+        }
+
+        .countdown-sublabel {
+            font-size: 1.125rem;
+            color: var(--platinum);
+            font-family: var(--font-heading);
+        }
+
+        /* Quick Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--space-md);
+            margin-bottom: var(--space-lg);
+        }
+
+        .stat-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: var(--space-md);
+            transition: all var(--transition-base);
+            cursor: pointer;
+            position: relative;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--glass-shadow);
+            border-color: var(--electric-blue);
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            inset: -1px;
+            border-radius: 16px;
+            padding: 1px;
+            background: linear-gradient(135deg, var(--electric-blue), transparent);
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            opacity: 0;
+            transition: opacity var(--transition-fast);
+        }
+
+        .stat-card:hover::before {
+            opacity: 0.5;
+        }
+
+        .stat-icon {
+            font-size: 1.5rem;
+            margin-bottom: var(--space-xs);
+        }
+
+        .stat-value {
+            font-family: var(--font-mono);
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--pure-white);
+            margin-bottom: 4px;
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            color: var(--platinum);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            opacity: 0.8;
+        }
+
+        .stat-detail {
+            font-size: 0.875rem;
+            color: var(--platinum);
+            margin-top: var(--space-xs);
+            opacity: 0.7;
+        }
+
+        /* Progress Bar */
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            overflow: hidden;
+            margin-top: var(--space-sm);
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--electric-blue), var(--warm-gold));
+            border-radius: 3px;
+            transition: width var(--transition-slow);
+        }
+
+        /* Navigation Menu */
+        .nav-section {
+            margin-bottom: var(--space-lg);
+        }
+
+        .section-title {
+            font-family: var(--font-heading);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--platinum);
+            opacity: 0.6;
+            margin-bottom: var(--space-md);
+            padding-left: var(--space-xs);
+        }
+
+        .nav-menu {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-xs);
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: var(--space-md);
+            padding: var(--space-md);
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            color: var(--pure-white);
+            text-decoration: none;
+            font-size: 1rem;
+            transition: all var(--transition-fast);
+            cursor: pointer;
+        }
+
+        .nav-item:hover {
+            background: rgba(0, 212, 255, 0.1);
+            border-color: var(--electric-blue);
+            transform: translateX(4px);
+        }
+
+        .nav-icon {
+            font-size: 1.25rem;
+            width: 24px;
+            text-align: center;
+        }
+
+        /* Activity Feed */
+        .activity-feed {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-sm);
+        }
+
+        .activity-item {
+            display: flex;
+            gap: var(--space-md);
+            padding: var(--space-md);
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            transition: all var(--transition-fast);
+        }
+
+        .activity-item:hover {
+            border-color: var(--glass-border);
+            background: rgba(232, 237, 242, 0.15);
+        }
+
+        .activity-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--electric-blue);
+            margin-top: 6px;
+            flex-shrink: 0;
+        }
+
+        .activity-content {
+            flex: 1;
+        }
+
+        .activity-text {
+            font-size: 0.875rem;
+            color: var(--pure-white);
+            margin-bottom: 4px;
+        }
+
+        .activity-time {
+            font-size: 0.75rem;
+            color: var(--platinum);
+            opacity: 0.6;
+            font-family: var(--font-mono);
+        }
+
+        /* ========================================
+           RESPONSIVE DESIGN
+           ======================================== */
+        @media (min-width: 768px) {
+            .dashboard-panel {
+                width: 480px;
+                border-left: 1px solid var(--glass-border);
+                box-shadow: -20px 0 40px rgba(0, 0, 0, 0.3);
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .countdown-display {
+                font-size: 4rem;
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .stats-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+
+        /* ========================================
+           ACCESSIBILITY
+           ======================================== */
+        .visually-hidden {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border-width: 0;
+        }
+
+        /* Focus states */
+        *:focus-visible {
+            outline: 2px solid var(--electric-blue);
+            outline-offset: 2px;
+        }
+
+        button:focus-visible,
+        a:focus-visible,
+        input:focus-visible {
+            outline: 2px solid var(--electric-blue);
+            outline-offset: 2px;
+        }
+
+        /* Reduced motion */
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- ========================================
+         CHAT INTERFACE - PRIMARY VIEW
+         ======================================== -->
+    <div class="app-container">
+        <!-- Top Navigation Bar -->
+        <header class="top-bar">
+            <div class="logo">Bride Buddy</div>
+            <button class="dashboard-icon" id="dashboardToggle" aria-label="Open dashboard">
+                <div class="hexagon">
+                    <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M16 2L28 9V23L16 30L4 23V9L16 2Z"
+                              stroke="currentColor"
+                              stroke-width="2"
+                              stroke-linejoin="round"
+                              fill="none"
+                              style="color: var(--electric-blue);"/>
+                    </svg>
+                </div>
+                <span class="notification-badge">3</span>
+            </button>
+        </header>
+
+        <!-- Chat Messages Area -->
+        <main class="chat-container" id="chatContainer">
+            <!-- Welcome Message -->
+            <div class="welcome-message">
+                <h1>Welcome back! 💍</h1>
+                <p>How can I help you today?</p>
+            </div>
+
+            <!-- Demo AI Message -->
+            <div class="message ai">
+                <div class="message-bubble">
+                    <p class="message-text">I'm here to help you plan your perfect day. Whether you need to check your budget, send invites, or just brainstorm ideas - I've got you covered!</p>
+                </div>
+            </div>
+        </main>
+
+        <!-- Suggested Prompts -->
+        <div class="suggested-prompts" id="suggestedPrompts">
+            <button class="prompt-pill" data-prompt="View my dashboard">View my dashboard</button>
+            <button class="prompt-pill" data-prompt="Today's to-do list">Today's to-do list</button>
+            <button class="prompt-pill" data-prompt="Budget overview">Budget overview</button>
+            <button class="prompt-pill" data-prompt="Days until I do">Days until I do</button>
+        </div>
+
+        <!-- Input Area -->
+        <footer class="input-container">
+            <div class="input-wrapper">
+                <button class="voice-button" id="voiceButton" aria-label="Voice input">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                        <path d="M10 13C11.66 13 13 11.66 13 10V4C13 2.34 11.66 1 10 1C8.34 1 7 2.34 7 4V10C7 11.66 8.34 13 10 13Z"
+                              stroke="currentColor"
+                              stroke-width="1.5"
+                              stroke-linecap="round"
+                              stroke-linejoin="round"/>
+                        <path d="M15.7 9.7V10.5C15.7 13.26 13.4 15.5 10.5 15.5C7.6 15.5 5.3 13.26 5.3 10.5V9.7"
+                              stroke="currentColor"
+                              stroke-width="1.5"
+                              stroke-linecap="round"
+                              stroke-linejoin="round"/>
+                        <path d="M10.5 15.5V19"
+                              stroke="currentColor"
+                              stroke-width="1.5"
+                              stroke-linecap="round"
+                              stroke-linejoin="round"/>
+                    </svg>
+                </button>
+                <input
+                    type="text"
+                    class="chat-input"
+                    id="chatInput"
+                    placeholder="Ask me anything about your wedding..."
+                    aria-label="Chat message input"
+                />
+                <button class="send-button" id="sendButton" aria-label="Send message">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                        <path d="M18 2L9 11"
+                              stroke="currentColor"
+                              stroke-width="2"
+                              stroke-linecap="round"
+                              stroke-linejoin="round"/>
+                        <path d="M18 2L12 18L9 11L2 8L18 2Z"
+                              stroke="currentColor"
+                              stroke-width="2"
+                              stroke-linecap="round"
+                              stroke-linejoin="round"/>
+                    </svg>
+                </button>
+            </div>
+        </footer>
+    </div>
+
+    <!-- ========================================
+         DASHBOARD SLIDE-IN PANEL
+         ======================================== -->
+    <aside class="dashboard-panel" id="dashboardPanel" role="dialog" aria-label="Dashboard">
+        <!-- Dashboard Header -->
+        <header class="dashboard-header">
+            <button class="back-button" id="backToChat" aria-label="Back to chat">
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                    <path d="M12 16L6 10L12 4"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"/>
+                </svg>
+                Back to Chat
+            </button>
+        </header>
+
+        <!-- Dashboard Content -->
+        <div class="dashboard-content">
+            <!-- Hero: Wedding Countdown -->
+            <section class="countdown-hero">
+                <div class="countdown-label">Days Until "I Do"</div>
+                <div class="countdown-display" id="countdownDisplay">180</div>
+                <div class="countdown-sublabel">days remaining</div>
+            </section>
+
+            <!-- Quick Stats Grid -->
+            <section class="stats-grid">
+                <!-- Invites Card -->
+                <div class="stat-card">
+                    <div class="stat-icon">📨</div>
+                    <div class="stat-value">62/87</div>
+                    <div class="stat-label">RSVPs</div>
+                    <div class="stat-detail">71% response rate</div>
+                </div>
+
+                <!-- Budget Card -->
+                <div class="stat-card">
+                    <div class="stat-icon">💰</div>
+                    <div class="stat-value">$18.5K</div>
+                    <div class="stat-label">Budget Used</div>
+                    <div class="stat-detail">of $35K total</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 53%"></div>
+                    </div>
+                </div>
+
+                <!-- Tasks Card -->
+                <div class="stat-card">
+                    <div class="stat-icon">✓</div>
+                    <div class="stat-value">12</div>
+                    <div class="stat-label">Pending Tasks</div>
+                    <div class="stat-detail">3 high priority</div>
+                </div>
+
+                <!-- Next Event Card -->
+                <div class="stat-card">
+                    <div class="stat-icon">📅</div>
+                    <div class="stat-value">Tomorrow</div>
+                    <div class="stat-label">Next Event</div>
+                    <div class="stat-detail">Cake tasting, 2pm</div>
+                </div>
+            </section>
+
+            <!-- Navigation Menu -->
+            <nav class="nav-section">
+                <h2 class="section-title">Main Menu</h2>
+                <div class="nav-menu">
+                    <a href="#" class="nav-item" id="navChat">
+                        <span class="nav-icon">💬</span>
+                        <span>AI Chat</span>
+                    </a>
+                    <a href="#" class="nav-item">
+                        <span class="nav-icon">📨</span>
+                        <span>Invites Management</span>
+                    </a>
+                    <a href="#" class="nav-item">
+                        <span class="nav-icon">💰</span>
+                        <span>Finance Tracker</span>
+                    </a>
+                    <a href="#" class="nav-item">
+                        <span class="nav-icon">📅</span>
+                        <span>Calendar</span>
+                    </a>
+                    <a href="#" class="nav-item">
+                        <span class="nav-icon">✓</span>
+                        <span>Tasks</span>
+                    </a>
+                </div>
+            </nav>
+
+            <!-- Recent Activity Feed -->
+            <section class="nav-section">
+                <h2 class="section-title">Recent Activity</h2>
+                <div class="activity-feed">
+                    <div class="activity-item">
+                        <div class="activity-dot"></div>
+                        <div class="activity-content">
+                            <div class="activity-text">Guest John Doe RSVP'd (+1)</div>
+                            <div class="activity-time">2 hours ago</div>
+                        </div>
+                    </div>
+                    <div class="activity-item">
+                        <div class="activity-dot"></div>
+                        <div class="activity-content">
+                            <div class="activity-text">Payment received from florist</div>
+                            <div class="activity-time">5 hours ago</div>
+                        </div>
+                    </div>
+                    <div class="activity-item">
+                        <div class="activity-dot"></div>
+                        <div class="activity-content">
+                            <div class="activity-text">Menu finalized with caterer</div>
+                            <div class="activity-time">Yesterday</div>
+                        </div>
+                    </div>
+                    <div class="activity-item">
+                        <div class="activity-dot"></div>
+                        <div class="activity-content">
+                            <div class="activity-text">Guest Emily Chen RSVP'd (+2)</div>
+                            <div class="activity-time">2 days ago</div>
+                        </div>
+                    </div>
+                    <div class="activity-item">
+                        <div class="activity-dot"></div>
+                        <div class="activity-content">
+                            <div class="activity-text">Venue deposit confirmed</div>
+                            <div class="activity-time">3 days ago</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </aside>
+
+    <!-- ========================================
+         JAVASCRIPT - Interactions & Logic
+         ======================================== -->
+    <script type="module">
+        // ========================================
+        // SUPABASE CONFIGURATION
+        // ========================================
+        const SUPABASE_URL = 'https://nluvnjydydotsrpluhey.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5sdXZuanlkeWRvdHNycGx1aGV5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA3NjE5MjAsImV4cCI6MjA3NjMzNzkyMH0.p5S8vYtZeYqp24avigifhjEDRaKv8TxJTaTkeLoE5mY';
+
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // ========================================
+        // AUTH CHECK
+        // ========================================
+        async function checkAuth() {
+            const { data: { session } } = await supabase.auth.getSession();
+
+            if (!session) {
+                // Redirect to login if not authenticated
+                window.location.href = '/login.html';
+                return false;
+            }
+
+            return session;
+        }
+
+        // ========================================
+        // DOM ELEMENTS
+        // ========================================
+        const dashboardToggle = document.getElementById('dashboardToggle');
+        const dashboardPanel = document.getElementById('dashboardPanel');
+        const backToChat = document.getElementById('backToChat');
+        const navChat = document.getElementById('navChat');
+        const chatInput = document.getElementById('chatInput');
+        const sendButton = document.getElementById('sendButton');
+        const voiceButton = document.getElementById('voiceButton');
+        const chatContainer = document.getElementById('chatContainer');
+        const suggestedPrompts = document.getElementById('suggestedPrompts');
+        const countdownDisplay = document.getElementById('countdownDisplay');
+
+        // ========================================
+        // DASHBOARD PANEL TOGGLE
+        // ========================================
+        function openDashboard() {
+            dashboardPanel.classList.add('active');
+            dashboardPanel.setAttribute('aria-hidden', 'false');
+            document.body.style.overflow = 'hidden'; // Prevent background scroll on mobile
+        }
+
+        function closeDashboard() {
+            dashboardPanel.classList.remove('active');
+            dashboardPanel.setAttribute('aria-hidden', 'true');
+            document.body.style.overflow = '';
+        }
+
+        dashboardToggle.addEventListener('click', openDashboard);
+        backToChat.addEventListener('click', closeDashboard);
+        navChat.addEventListener('click', (e) => {
+            e.preventDefault();
+            closeDashboard();
+        });
+
+        // Close dashboard on Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && dashboardPanel.classList.contains('active')) {
+                closeDashboard();
+            }
+        });
+
+        // ========================================
+        // COUNTDOWN TIMER
+        // ========================================
+        function updateCountdown() {
+            // Placeholder: Calculate days until wedding (180 days from now)
+            const weddingDate = new Date();
+            weddingDate.setDate(weddingDate.getDate() + 180);
+
+            const now = new Date();
+            const diff = weddingDate - now;
+            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+
+            countdownDisplay.textContent = days;
+        }
+
+        // Update countdown on load and every minute
+        updateCountdown();
+        setInterval(updateCountdown, 60000);
+
+        // ========================================
+        // CHAT FUNCTIONALITY
+        // ========================================
+        function addMessage(text, isUser = false) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isUser ? 'user' : 'ai'}`;
+
+            messageDiv.innerHTML = `
+                <div class="message-bubble">
+                    <p class="message-text">${text}</p>
+                </div>
+            `;
+
+            chatContainer.appendChild(messageDiv);
+
+            // Scroll to bottom
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+
+            // Hide suggested prompts after first message
+            if (chatContainer.children.length > 2) {
+                suggestedPrompts.style.display = 'none';
+            }
+        }
+
+        function sendMessage() {
+            const message = chatInput.value.trim();
+
+            if (message === '') return;
+
+            // Add user message
+            addMessage(message, true);
+
+            // Clear input
+            chatInput.value = '';
+
+            // Simulate AI response (replace with actual API call)
+            setTimeout(() => {
+                let response = "I'm processing your request. In production, this would connect to the AI backend!";
+
+                // Handle special prompts
+                if (message.toLowerCase().includes('dashboard')) {
+                    response = "Opening your dashboard now...";
+                    setTimeout(openDashboard, 500);
+                } else if (message.toLowerCase().includes('budget')) {
+                    response = "You've spent $18,500 of your $35,000 budget (53%). Would you like to see a detailed breakdown?";
+                } else if (message.toLowerCase().includes('days') || message.toLowerCase().includes('countdown')) {
+                    response = "You have 180 days until your big day! That's about 6 months. Need help prioritizing tasks?";
+                } else if (message.toLowerCase().includes('task') || message.toLowerCase().includes('to-do')) {
+                    response = "You have 12 pending tasks, 3 of which are high priority. Your most urgent task is 'Finalize catering menu' - due in 2 days.";
+                }
+
+                addMessage(response, false);
+            }, 800);
+        }
+
+        // Send message on button click
+        sendButton.addEventListener('click', sendMessage);
+
+        // Send message on Enter key
+        chatInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        // ========================================
+        // SUGGESTED PROMPTS
+        // ========================================
+        document.querySelectorAll('.prompt-pill').forEach(pill => {
+            pill.addEventListener('click', () => {
+                const prompt = pill.dataset.prompt;
+                chatInput.value = prompt;
+                sendMessage();
+            });
+        });
+
+        // ========================================
+        // VOICE INPUT (Placeholder)
+        // ========================================
+        voiceButton.addEventListener('click', () => {
+            // Placeholder for voice input functionality
+            alert('Voice input would be implemented here using Web Speech API');
+        });
+
+        // ========================================
+        // INITIALIZE APP
+        // ========================================
+        (async function init() {
+            const session = await checkAuth();
+
+            if (session) {
+                console.log('User authenticated:', session.user.email);
+
+                // TODO: Fetch wedding data from Supabase
+                // const { data: wedding } = await supabase
+                //     .from('wedding_profiles')
+                //     .select('*')
+                //     .eq('owner_id', session.user.id)
+                //     .single();
+
+                // TODO: Update countdown with actual wedding date
+                // TODO: Fetch real stats for dashboard cards
+                // TODO: Fetch real activity feed
+            }
+        })();
+    </script>
+</body>
+</html>

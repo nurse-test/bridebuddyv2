@@ -3,7 +3,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { userToken } = req.body;
+  const { userToken, role = 'member' } = req.body;
 
   try {
     const response = await fetch(
@@ -15,7 +15,7 @@ export default async function handler(req, res) {
           'Authorization': `Bearer ${userToken}`,
           'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5sdXZuanlkeWRvdHNycGx1aGV5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA3NjE5MjAsImV4cCI6MjA3NjMzNzkyMH0.p5S8vYtZeYqp24avigifhjEDRaKv8TxJTaTkeLoE5mY'
         },
-        body: JSON.stringify({ userToken })
+        body: JSON.stringify({ userToken, role })
       }
     );
 
