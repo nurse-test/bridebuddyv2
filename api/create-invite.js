@@ -1,11 +1,12 @@
 // ============================================================================
-// CREATE INVITE - VERCEL FUNCTION (DIRECT IMPLEMENTATION)
+// CREATE INVITE - UNIFIED SYSTEM FOR ALL ROLES
 // ============================================================================
-// Generates invite codes for owners to share with co-planners or besties
-// Replaces proxy pattern - now implements logic directly in Vercel
+// Creates one-time-use invite links for partner, co-planner, and bestie roles
+// Returns shareable URL that expires in 7 days
 // ============================================================================
 
 import { createClient } from '@supabase/supabase-js';
+import { randomBytes } from 'crypto';
 
 // Service role client (bypasses RLS for admin operations)
 const supabaseAdmin = createClient(
@@ -18,18 +19,39 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { userToken, role = 'member' } = req.body;
+  const {
+    userToken,
+    role,
+    wedding_profile_permissions = { read: false, edit: false }
+  } = req.body;
 
-  // Validate role
-  if (!['member', 'bestie'].includes(role)) {
+  // ========================================================================
+  // STEP 1: Validate input
+  // ========================================================================
+  if (!role || !['partner', 'co_planner', 'bestie'].includes(role)) {
     return res.status(400).json({
-      error: 'Invalid role. Must be "member" or "bestie"'
+      error: 'Invalid role. Must be "partner", "co_planner", or "bestie"'
+    });
+  }
+
+  if (!userToken) {
+    return res.status(400).json({
+      error: 'Missing required field: userToken'
+    });
+  }
+
+  // Validate permissions structure
+  if (typeof wedding_profile_permissions !== 'object' ||
+      typeof wedding_profile_permissions.read !== 'boolean' ||
+      typeof wedding_profile_permissions.edit !== 'boolean') {
+    return res.status(400).json({
+      error: 'Invalid wedding_profile_permissions. Must be { read: boolean, edit: boolean }'
     });
   }
 
   try {
     // ========================================================================
-    // STEP 1: Authenticate the user
+    // STEP 2: Authenticate the user
     // ========================================================================
     const supabaseUser = createClient(
       process.env.SUPABASE_URL,
@@ -52,7 +74,7 @@ export default async function handler(req, res) {
     }
 
     // ========================================================================
-    // STEP 2: Verify user is the wedding owner
+    // STEP 3: Verify user is the wedding owner
     // ========================================================================
     const { data: membership, error: membershipError } = await supabaseAdmin
       .from('wedding_members')
@@ -68,26 +90,49 @@ export default async function handler(req, res) {
 
     if (membership.role !== 'owner') {
       return res.status(403).json({
-        error: 'Only wedding owners can create invite codes'
+        error: 'Only wedding owners can create invite links'
       });
     }
 
     // ========================================================================
-    // STEP 3: Generate unique invite code
+    // STEP 4: Get wedding details for response
     // ========================================================================
-    const inviteCode = generateInviteCode();
+    const { data: wedding, error: weddingError } = await supabaseAdmin
+      .from('wedding_profiles')
+      .select('partner1_name, partner2_name')
+      .eq('id', membership.wedding_id)
+      .single();
+
+    if (weddingError || !wedding) {
+      return res.status(500).json({
+        error: 'Failed to retrieve wedding details'
+      });
+    }
 
     // ========================================================================
-    // STEP 4: Insert into database
+    // STEP 5: Generate secure invite token
+    // ========================================================================
+    const inviteToken = generateSecureToken();
+
+    // ========================================================================
+    // STEP 6: Set expiration (7 days from now)
+    // ========================================================================
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + 7);
+
+    // ========================================================================
+    // STEP 7: Insert into database
     // ========================================================================
     const { data: invite, error: insertError } = await supabaseAdmin
       .from('invite_codes')
       .insert({
         wedding_id: membership.wedding_id,
-        code: inviteCode,
+        invite_token: inviteToken,
         created_by: user.id,
         role: role,
-        is_used: false
+        wedding_profile_permissions: wedding_profile_permissions,
+        used: false,
+        expires_at: expiresAt.toISOString()
       })
       .select()
       .single();
@@ -95,19 +140,32 @@ export default async function handler(req, res) {
     if (insertError) {
       console.error('Failed to create invite:', insertError);
       return res.status(500).json({
-        error: 'Failed to create invite code'
+        error: 'Failed to create invite link',
+        details: insertError.message
       });
     }
 
     // ========================================================================
-    // STEP 5: Return success response
+    // STEP 8: Build invite URL
+    // ========================================================================
+    const baseUrl = process.env.VERCEL_URL
+      ? `https://${process.env.VERCEL_URL}`
+      : 'https://bridebuddyv2.vercel.app';
+
+    const inviteUrl = `${baseUrl}/accept-invite.html?token=${inviteToken}`;
+
+    // ========================================================================
+    // STEP 9: Return success response
     // ========================================================================
     return res.status(200).json({
       success: true,
-      inviteCode: invite.code,
+      invite_url: inviteUrl,
+      invite_token: inviteToken,
       role: invite.role,
-      weddingId: invite.wedding_id,
-      message: `${role === 'bestie' ? 'Bestie' : 'Co-planner'} invite created successfully`
+      wedding_profile_permissions: invite.wedding_profile_permissions,
+      expires_at: invite.expires_at,
+      wedding_name: `${wedding.partner1_name} & ${wedding.partner2_name}`,
+      message: getRoleMessage(role)
     });
 
   } catch (error) {
@@ -120,18 +178,26 @@ export default async function handler(req, res) {
 }
 
 // ============================================================================
-// HELPER: Generate random 8-character invite code
+// HELPER: Generate cryptographically secure token
 // ============================================================================
-function generateInviteCode() {
-  // Use characters that are easy to read and communicate
-  // Excludes: 0, O, 1, I, L (to avoid confusion)
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-  let code = '';
+function generateSecureToken() {
+  // Generate 32 random bytes and convert to base64url
+  // This creates a token like: "a3K9mN2pQ7xR5vL8wT1yZ4bC6dE0fH3j"
+  return randomBytes(32)
+    .toString('base64')
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=/g, '');
+}
 
-  for (let i = 0; i < 8; i++) {
-    const randomIndex = Math.floor(Math.random() * chars.length);
-    code += chars.charAt(randomIndex);
-  }
-
-  return code;
+// ============================================================================
+// HELPER: Get role-specific message
+// ============================================================================
+function getRoleMessage(role) {
+  const messages = {
+    partner: 'Partner invite link created successfully',
+    co_planner: 'Co-planner invite link created successfully',
+    bestie: 'Bestie invite link created successfully'
+  };
+  return messages[role] || 'Invite link created successfully';
 }
