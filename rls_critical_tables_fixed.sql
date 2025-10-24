@@ -166,9 +166,13 @@ WHERE tablename IN ('wedding_profiles', 'wedding_members')
 ORDER BY tablename, policyname;
 
 -- ============================================================================
--- TESTING
+-- TESTING (EXAMPLES - DO NOT RUN AUTOMATICALLY)
+-- ============================================================================
+-- These are example queries to run manually after deployment.
+-- They are commented out to prevent errors during migration.
 -- ============================================================================
 
+/*
 -- Test 1: View your weddings (should work)
 SELECT * FROM wedding_profiles;
 
@@ -179,6 +183,7 @@ SELECT * FROM wedding_members;
 UPDATE wedding_profiles
 SET wedding_name = 'Test Update'
 WHERE owner_id = auth.uid();
+*/
 
 -- ============================================================================
 -- COMPLETE
