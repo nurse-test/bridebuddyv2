@@ -46,8 +46,10 @@ export default async function handler(req, res) {
     const weddingData = {
       owner_id: userId,
       trial_start_date: new Date().toISOString(),
-      trial_end_date: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(), // 14 day trial
-      plan_type: 'trial'
+      trial_end_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 day trial
+      plan_type: 'trial',
+      subscription_status: 'trialing',
+      bestie_addon_enabled: true  // Include 1 bestie invite in free trial
     };
 
     // Add optional fields
