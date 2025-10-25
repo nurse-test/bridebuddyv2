@@ -192,6 +192,7 @@ body {
   background-color: var(--color-navy);
   min-height: 100vh;
   overflow-x: hidden;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.08), 0 0.5px 1px rgba(255, 255, 255, 0.2);
 }
 
 /* ================================================================
@@ -204,16 +205,19 @@ h1, h2, h3, h4, h5, h6 {
   line-height: var(--leading-tight);
   color: var(--color-navy);
   margin-bottom: var(--space-4);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(255, 255, 255, 0.3);
 }
 
 h1 {
   font-size: var(--text-4xl);
   letter-spacing: -0.02em;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.15), 0 1px 3px rgba(255, 255, 255, 0.4);
 }
 
 h2 {
   font-size: var(--text-3xl);
   letter-spacing: -0.01em;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(255, 255, 255, 0.35);
 }
 
 h3 {
