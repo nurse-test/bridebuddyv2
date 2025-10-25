@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Review and approve pending updates">
+    <title>Bride Buddy - Pending Approvals</title>
+
+    <!--Preconnect to font providers -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="/css/styles-luxury.css">
+    <link rel="stylesheet" href="/css/components-luxury.css">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/images/favicon.svg">
+</head>
+<body>
+    <!-- Skip to main content for accessibility -->
+    <a href="#main-content" class="skip-to-main">Skip to main content</a>
+
+    <!-- Notifications Page Container -->
+    <div class="bg-stained-glass">
+        <div class="container" style="min-height: 100vh; padding-top: var(--space-8); padding-bottom: var(--space-8);">
+
+            <!-- Header -->
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--space-8);" class="animate-fade-in">
+                <button onclick="goBack()" class="btn btn-icon-only" style="background: rgba(212, 175, 55, 0.2); border-color: var(--color-gold);">
+                    <svg style="width: 24px; height: 24px; fill: currentColor;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
+                </button>
+                <h2 style="font-family: var(--font-heading); font-size: var(--text-2xl); color: var(--color-navy); margin: 0;">
+                    Pending Approvals
+                </h2>
+                <div style="width: 48px;"></div>
+            </div>
+
+            <!-- Pending Updates List -->
+            <main id="main-content">
+                <div id="pendingUpdatesList" class="animate-fade-in" style="animation-delay: 0.1s;">
+                    <p style="text-align: center; color: var(--color-burgundy); opacity: 0.7;">Loading...</p>
+                </div>
+
+                <!-- Empty State -->
+                <div id="emptyState" class="hidden card card-gold-accent text-center animate-fade-in" style="max-width: 500px; margin: 0 auto;">
+                    <div style="font-size: var(--text-5xl); margin-bottom: var(--space-4);">🎉</div>
+                    <h3 style="font-family: var(--font-heading); font-size: var(--text-2xl); color: var(--color-navy); margin-bottom: var(--space-3);">
+                        All Caught Up!
+                    </h3>
+                    <p style="color: var(--color-burgundy); opacity: 0.8; margin-bottom: var(--space-6);">
+                        No pending approvals at the moment.
+                    </p>
+                    <button class="btn btn-primary btn-lg" onclick="goBack()">
+                        Back to Dashboard
+                    </button>
+                </div>
+            </main>
+
+            <!-- View Chat Modal -->
+            <div id="chatModal" class="modal hidden">
+                <div class="modal-overlay" onclick="closeModal()"></div>
+                <div class="modal-content card card-gold-accent" style="max-width: 600px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-6);">
+                        <h3 style="font-family: var(--font-heading); font-size: var(--text-xl); color: var(--color-navy); margin: 0;">
+                            Update Request
+                        </h3>
+                        <button class="btn btn-icon-only" onclick="closeModal()" style="background: rgba(212, 175, 55, 0.2); border-color: var(--color-gold);">
+                            <svg style="width: 24px; height: 24px; fill: currentColor;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+                        </button>
+                    </div>
+
+                    <div id="modalContent" style="margin-bottom: var(--space-6);"></div>
+
+                    <div style="display: flex; gap: var(--space-3);">
+                        <button class="btn btn-primary" style="flex: 1;" onclick="approveUpdate()">
+                            Approve
+                        </button>
+                        <button class="btn btn-secondary" style="flex: 1;" onclick="rejectUpdate()">
+                            Reject
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Toast Container -->
+            <div id="toastContainer" class="toast-container"></div>
+
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script type="module">
+        import { initSupabase, showToast, getWeddingId } from '/js/shared.js';
+
+        // Initialize Supabase
+        const supabase = initSupabase();
+
+        // Get wedding_id from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const weddingId = urlParams.get('wedding_id');
+        let currentUpdateId = null;
+
+        // Make functions globally available
+        window.goBack = function() {
+            window.location.href = `dashboard-luxury.html?wedding_id=${weddingId}`;
+        };
+
+        window.closeModal = function() {
+            document.getElementById('chatModal').classList.add('hidden');
+            currentUpdateId = null;
+        };
+
+        function getUpdateTypeLabel(type) {
+            const labels = {
+                'task_completion': 'Task Completion',
+                'budget_payment': 'Budget Payment',
+                'budget_edit': 'Budget Edit',
+                'vendor_add': 'Vendor Addition'
+            };
+            return labels[type] || type;
+        }
+
+        async function loadPendingUpdates() {
+            try {
+                const { data: updates, error } = await supabase
+                    .from('pending_updates')
+                    .select(`*, profiles (full_name, email)`)
+                    .eq('wedding_id', weddingId)
+                    .eq('status', 'pending')
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+
+                const container = document.getElementById('pendingUpdatesList');
+                const emptyState = document.getElementById('emptyState');
+
+                if (!updates || updates.length === 0) {
+                    container.innerHTML = '';
+                    emptyState.classList.remove('hidden');
+                    return;
+                }
+
+                emptyState.classList.add('hidden');
+                container.innerHTML = updates.map((update, index) => `
+                    <div class="card card-champagne-accent animate-fade-in-scale" style="margin-bottom: var(--space-4); animation-delay: ${index * 0.1}s;">
+                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: var(--space-4);">
+                            <div>
+                                <div style="color: var(--color-navy); font-weight: 600; font-size: var(--text-lg);">${update.profiles.full_name}</div>
+                                <div style="color: var(--color-burgundy); opacity: 0.8; font-size: var(--text-sm);">${getUpdateTypeLabel(update.update_type)}</div>
+                            </div>
+                            <div class="badge badge-warning">Pending</div>
+                        </div>
+
+                        <div style="background: rgba(255, 255, 255, 0.5); padding: var(--space-4); border-radius: var(--radius-md); margin-bottom: var(--space-4);">
+                            <div style="color: var(--color-navy); font-weight: 600; margin-bottom: var(--space-2);">
+                                ${update.task_name || update.description || 'Update request'}
+                            </div>
+                            ${update.amount ? `<div style="color: var(--color-navy); opacity: 0.8;">Amount: $${update.amount}</div>` : ''}
+                        </div>
+
+                        <div style="display: flex; gap: var(--space-3);">
+                            <button class="btn btn-secondary" style="flex: 1;" onclick="viewChat('${update.id}')">
+                                View Chat
+                            </button>
+                            <button class="btn btn-primary" style="flex: 1;" onclick="quickApprove('${update.id}')">
+                                Quick Approve
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Error loading pending updates:', error);
+                showToast('Error loading pending updates', 'error');
+            }
+        }
+
+        window.viewChat = async function(updateId) {
+            try {
+                const { data: update, error } = await supabase
+                    .from('pending_updates')
+                    .select('*, profiles (full_name)')
+                    .eq('id', updateId)
+                    .single();
+
+                if (error) throw error;
+
+                currentUpdateId = updateId;
+
+                const modalContent = document.getElementById('modalContent');
+                modalContent.innerHTML = `
+                    <div style="background: rgba(156, 118, 198, 0.1); padding: var(--space-4); border-radius: var(--radius-md); margin-bottom: var(--space-4);">
+                        <div style="color: var(--color-navy); font-weight: 600; margin-bottom: var(--space-2);">Task: ${update.task_name || 'N/A'}</div>
+                        <div style="color: var(--color-navy); opacity: 0.8; margin-bottom: var(--space-2);">Action: ${getUpdateTypeLabel(update.update_type)}</div>
+                        ${update.amount ? `<div style="color: var(--color-navy); opacity: 0.8;">Amount: $${update.amount}</div>` : ''}
+                    </div>
+
+                    ${update.trigger_message ? `
+                        <div style="margin-bottom: var(--space-4);">
+                            <div style="color: var(--color-navy); font-weight: 600; margin-bottom: var(--space-2);">${update.profiles.full_name}'s message:</div>
+                            <div style="background: rgba(212, 175, 55, 0.1); padding: var(--space-4); border-radius: var(--radius-md); color: var(--color-navy);">
+                                "${update.trigger_message}"
+                            </div>
+                        </div>
+                    ` : ''}
+
+                    ${update.ai_response ? `
+                        <div>
+                            <div style="color: var(--color-navy); font-weight: 600; margin-bottom: var(--space-2);">AI response:</div>
+                            <div style="background: rgba(156, 118, 198, 0.1); padding: var(--space-4); border-radius: var(--radius-md); color: var(--color-navy);">
+                                "${update.ai_response}"
+                            </div>
+                        </div>
+                    ` : ''}
+                `;
+
+                document.getElementById('chatModal').classList.remove('hidden');
+            } catch (error) {
+                console.error('Error loading update details:', error);
+                showToast('Error loading update details', 'error');
+            }
+        };
+
+        window.quickApprove = async function(updateId) {
+            if (!confirm('Approve this update?')) return;
+            await approveUpdateById(updateId);
+        };
+
+        window.approveUpdate = async function() {
+            if (!currentUpdateId) return;
+            await approveUpdateById(currentUpdateId);
+            closeModal();
+        };
+
+        async function approveUpdateById(updateId) {
+            try {
+                const response = await fetch('/api/approve-update', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        update_id: updateId,
+                        action: 'approve',
+                        wedding_id: weddingId
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showToast('Update approved!', 'success');
+                    loadPendingUpdates();
+                } else {
+                    throw new Error(data.error);
+                }
+            } catch (error) {
+                console.error('Error approving update:', error);
+                showToast('Error approving update. Please try again.', 'error');
+            }
+        }
+
+        window.rejectUpdate = async function() {
+            if (!currentUpdateId) return;
+
+            if (!confirm('Reject this update? The co-planner will not be notified. We recommend reaching out to them directly.')) return;
+
+            try {
+                const response = await fetch('/api/approve-update', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        update_id: currentUpdateId,
+                        action: 'reject',
+                        wedding_id: weddingId
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showToast('Update rejected. Please reach out to the co-planner to discuss.', 'info');
+                    closeModal();
+                    loadPendingUpdates();
+                } else {
+                    throw new Error(data.error);
+                }
+            } catch (error) {
+                console.error('Error rejecting update:', error);
+                showToast('Error rejecting update. Please try again.', 'error');
+            }
+        };
+
+        // Initialize
+        loadPendingUpdates();
+    </script>
+
+    <!-- Custom Styles -->
+    <style>
+        @media (max-width: 768px) {
+            .card {
+                padding: var(--space-4) !important;
+            }
+        }
+    </style>
+</body>
+</html>
