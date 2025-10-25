@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="220" height="80" viewBox="0 0 220 80">
+  <defs>
+    <linearGradient id="logoGold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fbe9a5" />
+      <stop offset="100%" stop-color="#D4AF37" />
+    </linearGradient>
+  </defs>
+  <rect x="4" y="8" width="212" height="64" rx="18" fill="#F5F1E8" stroke="rgba(212,175,55,0.5)" stroke-width="2" />
+  <path d="M28 24 C38 12, 54 12, 64 24" fill="none" stroke="#7D3A5A" stroke-width="2" stroke-linecap="round" />
+  <circle cx="52" cy="32" r="6" fill="url(#logoGold)" opacity="0.8" />
+  <g font-family="'Playfair Display', serif" font-weight="600" fill="#2B1B3D">
+    <text x="32" y="50" font-size="28">Bride</text>
+  </g>
+  <g font-family="Montserrat, sans-serif" font-weight="700" fill="#2B1B3D" letter-spacing="0.28em">
+    <text x="110" y="50" font-size="20">BUDDY</text>
+  </g>
+  <path d="M160 24 L188 24 L204 40 L188 56 L160 56" fill="none" stroke="url(#logoGold)" stroke-width="2" stroke-linejoin="round" />
+  <circle cx="174" cy="40" r="4" fill="url(#logoGold)" />
+  <circle cx="194" cy="40" r="4" fill="url(#logoGold)" />
+</svg>
