@@ -40,7 +40,7 @@
             </div>
 
             <!-- SLIDE 1: Email & Password -->
-            <main id="main-content" class="slide active" id="slide1" style="max-width: 580px; width: 100%;">
+            <main id="slide1" class="slide active" style="max-width: 580px; width: 100%;">
                 <div class="card card-gold-accent animate-fade-in-scale">
                     <h2 style="font-family: var(--font-heading); font-size: var(--text-3xl); color: var(--color-navy); text-align: center; margin-bottom: var(--space-8);">
                         Create Your Account
@@ -269,6 +269,7 @@
 
         // Track current slide and collected data
         let currentSlide = 1;
+        let slide7Variant = null; // Track which slide 7 variant is active: 'NotYet' or 'Yes'
         let onboardingData = {
             email: '',
             password: '',
@@ -278,6 +279,22 @@
             startedPlanning: false,
             planningCompleted: []
         };
+
+        // Helper function to get current slide element
+        function getCurrentSlideElement() {
+            if (currentSlide === 7 && slide7Variant) {
+                return document.getElementById(`slide7${slide7Variant}`);
+            }
+            return document.getElementById(`slide${currentSlide}`);
+        }
+
+        // Helper function to get slide element by number
+        function getSlideElement(slideNum) {
+            if (slideNum === 7 && slide7Variant) {
+                return document.getElementById(`slide7${slide7Variant}`);
+            }
+            return document.getElementById(`slide${slideNum}`);
+        }
 
         // Update progress dots
         function updateProgress() {
@@ -354,14 +371,22 @@
         function nextSlide() {
             if (!validateSlide()) return;
 
+            // Prevent navigation beyond slide 6 (slide 7 is handled by special functions)
+            if (currentSlide >= 6) return;
+
             // Hide current slide
-            document.getElementById(`slide${currentSlide}`).classList.add('hidden');
+            const currentElement = getCurrentSlideElement();
+            if (currentElement) {
+                currentElement.classList.add('hidden');
+            }
 
             // Show next slide
             currentSlide++;
-            const nextElement = document.getElementById(`slide${currentSlide}`);
-            nextElement.classList.remove('hidden');
-            nextElement.classList.add('animate-fade-in-scale');
+            const nextElement = getSlideElement(currentSlide);
+            if (nextElement) {
+                nextElement.classList.remove('hidden');
+                nextElement.classList.add('animate-fade-in-scale');
+            }
 
             updateProgress();
 
@@ -373,11 +398,22 @@
 
         // Show previous slide
         function prevSlide() {
-            document.getElementById(`slide${currentSlide}`).classList.add('hidden');
+            // Prevent going back from slide 1 or from slide 7
+            if (currentSlide <= 1 || currentSlide >= 7) return;
+
+            // Hide current slide
+            const currentElement = getCurrentSlideElement();
+            if (currentElement) {
+                currentElement.classList.add('hidden');
+            }
+
+            // Show previous slide
             currentSlide--;
-            const prevElement = document.getElementById(`slide${currentSlide}`);
-            prevElement.classList.remove('hidden');
-            prevElement.classList.add('animate-fade-in-scale');
+            const prevElement = getSlideElement(currentSlide);
+            if (prevElement) {
+                prevElement.classList.remove('hidden');
+                prevElement.classList.add('animate-fade-in-scale');
+            }
 
             updateProgress();
         }
@@ -390,10 +426,12 @@
 
             if (started) {
                 currentSlide = 6;
+                slide7Variant = null; // Reset variant when going to slide 6
                 document.getElementById('slide6').classList.remove('hidden');
                 document.getElementById('slide6').classList.add('animate-fade-in-scale');
             } else {
                 currentSlide = 7;
+                slide7Variant = 'NotYet'; // Set variant for slide 7
                 document.getElementById('slide7NotYet').classList.remove('hidden');
                 document.getElementById('slide7NotYet').classList.add('animate-fade-in-scale');
                 setTimeout(createWedding, 3000);
@@ -410,6 +448,7 @@
 
             document.getElementById('slide6').classList.add('hidden');
             currentSlide = 7;
+            slide7Variant = 'Yes'; // Set variant for slide 7
             document.getElementById('slide7Yes').classList.remove('hidden');
             document.getElementById('slide7Yes').classList.add('animate-fade-in-scale');
             updateProgress();
