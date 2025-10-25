@@ -90,12 +90,15 @@ export default async function handler(req, res) {
     // STEP 4: Build wedding profile data
     // ========================================================================
     const weddingData = {
-      owner_id: userId,  // ✅ Now using verified userId
+      owner_id: userId,
+
+      // Subscription & Trial Fields
       trial_start_date: new Date().toISOString(),
       trial_end_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 day trial
       plan_type: 'trial',
-      subscription_status: 'trialing'
-      // Note: bestie_addon_enabled column removed - not in current schema
+      subscription_status: 'trialing',
+      bestie_addon_enabled: true, // Enable bestie for all new weddings
+      is_vip: false
     };
 
     // Add optional fields
