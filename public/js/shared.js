@@ -188,7 +188,7 @@ export function displayMessage(content, role = 'assistant', containerId = 'chatM
 
 /**
  * Navigate to a page with wedding_id parameter
- * @param {string} page - Page filename (e.g., 'dashboard-v2.html')
+ * @param {string} page - Page filename (e.g., 'dashboard-luxury.html')
  * @param {string|null} weddingId - Wedding ID (defaults to URL param)
  */
 export function navigateTo(page, weddingId = null) {
@@ -205,14 +205,14 @@ export function navigateTo(page, weddingId = null) {
  * @param {string|null} weddingId - Wedding ID (defaults to URL param)
  */
 export function goToDashboard(weddingId = null) {
-    navigateTo('dashboard-v2.html', weddingId);
+    navigateTo('dashboard-luxury.html', weddingId);
 }
 
 /**
  * Navigate back to welcome page
  */
 export function goToWelcome() {
-    window.location.href = 'welcome-v2.html';
+    window.location.href = 'index-luxury.html';
 }
 
 // ============================================================================
