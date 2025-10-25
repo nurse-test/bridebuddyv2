@@ -1,7 +1,7 @@
 # Bride Buddy Luxury UI System
-## Botanical-Tech Design Language
+## Sunset Glow Design Language
 
-Welcome to the Bride Buddy luxury UI system! This guide explains the design system, component library, and how to build production-ready pages using our botanical-tech aesthetic.
+Welcome to the Bride Buddy luxury UI system! This guide explains the design system, component library, and how to build production-ready pages using our sunset glow aesthetic.
 
 ---
 
@@ -12,11 +12,10 @@ Welcome to the Bride Buddy luxury UI system! This guide explains the design syst
   /css
     styles-luxury.css        # Core design system & utilities
     components-luxury.css    # Reusable UI components
-    styles-v2.css           # Legacy styles (can deprecate)
   /js
     shared.js               # Shared JavaScript utilities
   /images
-    # Add your stained glass backgrounds and logo here
+    # Add your logo or supplemental artwork here (backgrounds are handled via CSS gradients)
   index-luxury.html         # Landing page (complete)
   # Add remaining pages here
 ```
@@ -25,11 +24,11 @@ Welcome to the Bride Buddy luxury UI system! This guide explains the design syst
 
 ## 🎨 Design Philosophy
 
-**Luxury Botanical-Tech Aesthetic**
-- Art Nouveau botanical elements merged with circuit board motifs
-- Stained glass mosaic backgrounds with geometric patterns
-- "Intentional technology" - natural wisdom meets intelligent systems
-- Luxurious, sophisticated, timeless elegance
+**Sunset Glow Aesthetic**
+- Dark-to-warm twilight gradient with illuminated frosted glass panels
+- Champagne gold LED accents with subtle radial backlighting
+- "Intentional technology" - warm hospitality meets intelligent systems
+- Luxurious, sophisticated, and ready for launch
 
 ---
 
@@ -39,19 +38,21 @@ Welcome to the Bride Buddy luxury UI system! This guide explains the design syst
 
 | Color | Hex | CSS Variable | Usage |
 |-------|-----|--------------|-------|
-| **Deep Navy** | `#2B1B3D` | `var(--color-navy)` | Primary text, headers |
-| **Burgundy** | `#7D3A5A` | `var(--color-burgundy)` | Secondary text, accents |
-| **Warm Rust** | `#B85C3F` | `var(--color-rust)` | Tertiary accents, errors |
-| **Champagne Gold** | `#D4AF37` | `var(--color-gold)` | CTAs, highlights, circuit lines |
-| **Cream/Ivory** | `#F5F1E8` | `var(--color-cream)` | Card backgrounds |
-| **White** | `#FFFFFF` | `var(--color-white)` | Text on dark, line art |
+| **Deep Twilight** | `#1A0B2E` | `var(--color-background-top)` | Background gradient (top), button text |
+| **Midnight Plum** | `#4A1942` | `var(--color-background-middle)` | Gradient midpoint, overlays |
+| **Sunset Ember** | `#8B4513` | `var(--color-warm)` | Warm accents, warnings |
+| **Champagne Glow** | `#C9A961` | `var(--color-accent)` | Primary CTAs, highlights |
+| **Amber Depth** | `#B8933D` | `var(--color-accent-dark)` | Hover states, emphasis |
+| **Luminous Cream** | `#FFF9E6` | `var(--color-heading)` | Headlines, logo glow |
+| **Soft Cream** | `#F5E6D3` | `var(--color-body)` | Body copy, supporting text |
+| **Frosted Peach** | `rgba(255, 235, 205, 0.15)` | `var(--color-surface)` | Card surfaces, modals |
 
 ### Gradients
 
 ```css
---gradient-gold: linear-gradient(135deg, #D4AF37 0%, #F4D03F 100%);
---gradient-purple: linear-gradient(135deg, #2B1B3D 0%, #7D3A5A 100%);
---gradient-stained-glass: linear-gradient(135deg, #2B1B3D 0%, #7D3A5A 35%, #B85C3F 70%, #D4AF37 100%);
+--gradient-gold: linear-gradient(135deg, #C9A961 0%, #B8933D 100%);
+--gradient-sunset: linear-gradient(180deg, #1A0B2E 0%, #4A1942 50%, #8B4513 100%);
+--gradient-glow: radial-gradient(circle at 20% 20%, rgba(255, 235, 205, 0.2) 0%, transparent 55%);
 ```
 
 ---
@@ -93,12 +94,12 @@ Welcome to the Bride Buddy luxury UI system! This guide explains the design syst
 <button class="btn btn-primary btn-full">Full Width</button>
 ```
 
-#### Secondary Button (Burgundy Outline)
+#### Secondary Button (Cream Outline)
 ```html
 <button class="btn btn-secondary">Learn More</button>
 ```
 
-#### Tertiary Button (Text Only)
+#### Tertiary Button (Text Accent)
 ```html
 <button class="btn btn-tertiary">Cancel</button>
 ```
@@ -605,7 +606,7 @@ showToast('success', 'Saved!', 'Your wedding details have been updated.');
     <a href="#main-content" class="skip-to-main">Skip to main content</a>
 
     <!-- Choose background type -->
-    <div class="bg-stained-glass"> <!-- OR bg-subtle-pattern for dashboard pages -->
+    <div class="bg-sunset"> <!-- OR bg-sunset for dashboard pages -->
 
         <!-- For landing pages -->
         <div class="container" style="min-height: 100vh;">
@@ -663,7 +664,7 @@ showToast('success', 'Saved!', 'Your wedding details have been updated.');
     <link rel="stylesheet" href="/css/components-luxury.css">
 </head>
 <body>
-    <div class="bg-stained-glass">
+    <div class="bg-sunset">
         <div class="container" style="min-height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: var(--space-8);">
 
             <!-- Logo (links to home) -->
@@ -783,7 +784,7 @@ showToast('success', 'Saved!', 'Your wedding details have been updated.');
     <link rel="stylesheet" href="/css/components-luxury.css">
 </head>
 <body>
-    <div class="bg-subtle-pattern">
+    <div class="bg-sunset">
 
         <!-- Top Navbar -->
         <nav class="navbar">
@@ -1114,7 +1115,7 @@ All components are built mobile-first. Use breakpoints to adjust layouts:
 ### Quick Start Guide
 
 1. **Copy HTML template structure**
-2. **Choose background**: `.bg-stained-glass` or `.bg-subtle-pattern`
+2. **Choose background**: `.bg-sunset` or `.bg-sunset`
 3. **Add components from library**: Cards, buttons, forms, etc.
 4. **Style with utility classes**: `.flex`, `.grid`, spacing utilities
 5. **Add interactivity with vanilla JavaScript**

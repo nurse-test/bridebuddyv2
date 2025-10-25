@@ -14,13 +14,14 @@
   border: var(--glass-border);
   border-radius: var(--radius-xl);
   padding: var(--space-6);
-  box-shadow: var(--shadow-lg);
+  box-shadow: var(--glow-gold);
+  color: var(--color-body);
   transition: all var(--transition-base);
 }
 
 .card:hover {
-  box-shadow: var(--shadow-xl);
-  transform: translateY(-2px);
+  box-shadow: var(--glow-gold-strong);
+  transform: translateY(-4px);
 }
 
 .card-sm {
@@ -34,14 +35,14 @@
 }
 
 .card-gold-accent {
-  border: var(--border-width-2) solid var(--color-gold-30);
-  box-shadow: var(--shadow-xl), var(--glow-gold);
+  border: var(--border-width-2) solid var(--color-border);
+  box-shadow: var(--glow-gold-strong);
 }
 
 .card-featured {
-  background: linear-gradient(135deg, var(--color-cream-98), var(--color-white));
-  border: var(--border-width-4) solid var(--color-gold);
-  box-shadow: var(--shadow-2xl), var(--glow-gold-strong);
+  background: linear-gradient(135deg, var(--color-surface-strong), rgba(255, 235, 205, 0.35));
+  border: var(--border-width-2) solid var(--color-border-strong);
+  box-shadow: var(--shadow-2xl);
 }
 
 /* ================================================================
@@ -84,14 +85,14 @@
 /* Primary Button (Gold Gradient) */
 .btn-primary {
   background: var(--gradient-gold);
-  color: var(--color-navy);
-  box-shadow: var(--shadow-md);
-  transition: all 0.3s ease;
+  color: var(--color-background-top);
+  box-shadow: 0 4px 20px rgba(201, 169, 97, 0.5);
+  transition: all var(--transition-base);
 }
 
 .btn-primary:hover {
-  background: linear-gradient(135deg, var(--color-gold-hover) 0%, #C9A961 100%);
-  box-shadow: var(--shadow-lg), var(--glow-gold);
+  background: var(--gradient-gold-bright);
+  box-shadow: 0 6px 28px rgba(201, 169, 97, 0.6);
   transform: translateY(-2px);
 }
 
@@ -99,30 +100,30 @@
   transform: translateY(0);
 }
 
-/* Secondary Button (Burgundy Outline) */
+/* Secondary Button (Outline) */
 .btn-secondary {
   background: transparent;
-  color: var(--color-burgundy);
-  border: var(--border-width-2) solid var(--color-burgundy);
+  color: var(--color-body);
+  border: var(--border-width-2) solid rgba(245, 230, 211, 0.6);
   box-shadow: none;
 }
 
 .btn-secondary:hover {
-  background: var(--color-burgundy-10);
-  border-color: var(--color-gold);
-  color: var(--color-gold);
+  background: rgba(245, 230, 211, 0.1);
+  border-color: var(--color-accent);
+  color: var(--color-accent);
 }
 
 /* Tertiary Button (Text Only) */
 .btn-tertiary {
   background: transparent;
-  color: var(--color-gold);
+  color: var(--color-accent);
   box-shadow: none;
   padding: var(--space-2) var(--space-4);
 }
 
 .btn-tertiary:hover {
-  background: var(--color-gold-10);
+  background: rgba(201, 169, 97, 0.12);
 }
 
 /* Button Sizes */
@@ -166,7 +167,7 @@
 }
 
 .btn-primary.btn-loading::after {
-  border-color: var(--color-navy);
+  border-color: var(--color-background-top);
   border-top-color: transparent;
 }
 
@@ -192,11 +193,12 @@
   margin-bottom: var(--space-6);
 }
 
+
 .form-label {
   display: block;
   font-size: var(--text-sm);
   font-weight: var(--font-semibold);
-  color: var(--color-navy);
+  color: var(--color-body);
   margin-bottom: var(--space-2);
 }
 
@@ -206,9 +208,9 @@
   width: 100%;
   font-family: var(--font-body);
   font-size: var(--text-base);
-  color: var(--color-navy);
-  background-color: var(--color-cream);
-  border: var(--border-width-2) solid var(--color-cream);
+  color: var(--color-body);
+  background-color: var(--color-surface-subtle);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   padding: var(--space-3) var(--space-4);
   min-height: 48px; /* Touch-friendly */
@@ -219,13 +221,13 @@
 .form-select:focus,
 .form-textarea:focus {
   outline: none;
-  border-color: var(--color-gold);
-  box-shadow: 0 0 0 3px var(--color-gold-20);
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px rgba(201, 169, 97, 0.25);
 }
 
 .form-input::placeholder {
-  color: var(--color-burgundy);
-  opacity: 0.5;
+  color: var(--color-body-muted);
+  opacity: 1;
 }
 
 /* Textarea */
@@ -239,7 +241,7 @@
 .form-select.is-error,
 .form-textarea.is-error {
   border-color: var(--color-rust);
-  background-color: rgba(184, 92, 63, 0.05);
+  background-color: var(--color-rust-10);
 }
 
 .form-error {
@@ -259,7 +261,7 @@
 .form-input.is-success,
 .form-select.is-success,
 .form-textarea.is-success {
-  border-color: var(--color-gold);
+  border-color: var(--color-accent);
   background-color: var(--color-gold-10);
 }
 
@@ -269,7 +271,7 @@
 .form-textarea:disabled {
   opacity: 0.5;
   cursor: not-allowed;
-  background-color: var(--color-navy-10);
+  background-color: rgba(255, 255, 255, 0.05);
 }
 
 /* Password Input with Toggle */
@@ -288,7 +290,7 @@
   transform: translateY(-50%);
   background: none;
   border: none;
-  color: var(--color-burgundy);
+  color: var(--color-body);
   cursor: pointer;
   padding: var(--space-2);
   font-size: var(--text-lg);
@@ -296,7 +298,7 @@
 }
 
 .password-toggle:hover {
-  color: var(--color-gold);
+  color: var(--color-accent);
 }
 
 /* Checkbox */
@@ -311,41 +313,45 @@
   width: 20px;
   height: 20px;
   margin-top: 2px;
-  border: var(--border-width-2) solid var(--color-burgundy);
+  border: var(--border-width-2) solid rgba(245, 230, 211, 0.6);
   border-radius: var(--radius-sm);
   cursor: pointer;
   transition: all var(--transition-fast);
+  background: rgba(255, 255, 255, 0.02);
 }
 
 .checkbox-input:checked {
-  background-color: var(--color-gold);
-  border-color: var(--color-gold);
+  background-color: var(--color-accent);
+  border-color: var(--color-accent);
 }
 
 .checkbox-label {
   flex: 1;
   font-size: var(--text-base);
-  color: var(--color-navy);
+  color: var(--color-body);
   cursor: pointer;
   user-select: none;
 }
 
 /* Toggle Switch */
+
 .toggle-wrapper {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: var(--space-4);
-  background: var(--color-cream);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   margin-bottom: var(--space-4);
 }
+
 
 .toggle-switch {
   position: relative;
   width: 52px;
   height: 28px;
-  background-color: var(--color-burgundy-20);
+  background-color: rgba(255, 255, 255, 0.1);
   border-radius: var(--radius-full);
   cursor: pointer;
   transition: background-color var(--transition-base);

@@ -2,14 +2,16 @@
 
 ## Circuit Board Aesthetic with Bridal Elegance
 
-This is the complete, production-ready frontend design for Bride Buddy with your new circuit board aesthetic, electricity animations, and lazy Susan loading.
+> **Legacy Notice:** This document describes the earlier circuit board direction. The live implementation now follows the sunset glow aesthetic outlined in `README.md` and `LUXURY_UI_README.md`.
+
+This is the complete, production-ready frontend design for Bride Buddy with your circuit board aesthetic, electricity animations, and lazy Susan loading.
 
 ---
 
 ## 📦 What's Included
 
 ### ✅ Complete Design System
-**File: `styles-v2.css`**
+**File: `styles.css` (Sunset Glow)**
 
 **Color Palette:**
 - Background Gradient: Navy (#3C009D) → Purple (#7911C4) → Peach (#FF9F72)
@@ -259,7 +261,7 @@ All boxes use semi-transparent colors with backdrop blur:
    - All *-v2.html files
 
 3. **Upload CSS:**
-   - styles-v2.css to `/public` folder
+   - styles.css to `/public` folder
 
 4. **Build API routes** (use Claude Code):
    - /api/create-wedding.js
