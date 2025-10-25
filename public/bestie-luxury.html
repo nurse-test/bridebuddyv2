@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Private bestie planning space for MOH/Best Man">
+    <title>Bride Buddy - Bestie Planning</title>
+
+    <!-- Preconnect to font providers -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="/css/styles-luxury.css">
+    <link rel="stylesheet" href="/css/components-luxury.css">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/images/favicon.svg">
+</head>
+<body>
+    <!-- Skip to main content for accessibility -->
+    <a href="#main-content" class="skip-to-main">Skip to main content</a>
+
+    <!-- Bestie Chat Container -->
+    <div class="bg-stained-glass" style="min-height: 100vh; display: flex; flex-direction: column;">
+
+        <!-- Chat Header -->
+        <div class="navbar animate-fade-in" style="background: linear-gradient(135deg, rgba(156, 118, 198, 0.95), rgba(212, 175, 55, 0.95)); backdrop-filter: blur(20px); border-bottom: 2px solid var(--color-gold);">
+            <div class="container" style="display: flex; justify-content: space-between; align-items: center; padding: var(--space-4) var(--space-6);">
+                <div style="display: flex; align-items: center; gap: var(--space-3);">
+                    <button onclick="goBack()" class="btn btn-icon-only" style="background: rgba(255, 255, 255, 0.3); border-color: var(--color-white);">
+                        <svg style="width: 24px; height: 24px; fill: var(--color-white);" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
+                    </button>
+                    <h3 style="font-family: var(--font-heading); font-size: var(--text-xl); color: var(--color-white); margin: 0;">
+                        💖 Bestie Planning
+                    </h3>
+                </div>
+
+                <button onclick="toggleMenu()" class="btn btn-icon-only" style="background: rgba(255, 255, 255, 0.3); border-color: var(--color-white);">
+                    <svg style="width: 24px; height: 24px; fill: var(--color-white);" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Chat Messages -->
+        <main id="main-content" style="flex: 1; overflow-y: auto; padding: var(--space-6) 0;">
+            <div class="container" style="max-width: 800px;">
+                <div id="chatMessages">
+                    <!-- Welcome message -->
+                    <div class="animate-fade-in" style="margin-bottom: var(--space-4);">
+                        <div class="card card-champagne-accent" style="background: linear-gradient(135deg, rgba(255, 251, 246, 0.95), rgba(255, 248, 240, 0.95));">
+                            <p style="color: var(--color-navy); margin-bottom: var(--space-3);">
+                                <strong>Hey bestie! 💕</strong> Welcome to your secret planning space! I'm here to help you coordinate all the pre-wedding festivities.
+                            </p>
+                            <p style="color: var(--color-navy); margin-bottom: var(--space-3);">
+                                I have access to the main wedding details so you can plan around everything without bothering the couple. What would you like to work on?
+                            </p>
+                            <ul style="color: var(--color-navy); padding-left: var(--space-5); margin: 0;">
+                                <li style="margin-bottom: var(--space-1);">Bachelorette party planning</li>
+                                <li style="margin-bottom: var(--space-1);">Bridal shower coordination</li>
+                                <li style="margin-bottom: var(--space-1);">Bridesmaid management</li>
+                                <li style="margin-bottom: var(--space-1);">Payment tracking</li>
+                                <li>Surprise planning</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Chat Input -->
+        <div style="background: linear-gradient(180deg, transparent, rgba(156, 118, 198, 0.1)); padding: var(--space-4) 0; border-top: 2px solid var(--color-champagne);">
+            <div class="container" style="max-width: 800px;">
+                <form id="chatForm" style="display: flex; gap: var(--space-3); align-items: center;">
+                    <input
+                        type="text"
+                        id="messageInput"
+                        class="form-input"
+                        placeholder="Type your message..."
+                        autocomplete="off"
+                        required
+                        style="flex: 1; border-color: var(--color-gold);"
+                    >
+                    <button type="submit" class="btn btn-primary btn-icon-only" id="sendBtn" style="width: 48px; height: 48px; flex-shrink: 0;">
+                        <svg style="width: 24px; height: 24px; fill: currentColor;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+                    </button>
+                </form>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Menu Overlay -->
+    <div id="menuOverlay" class="modal hidden">
+        <div class="modal-overlay" onclick="toggleMenu()"></div>
+        <div class="modal-content card card-gold-accent" style="position: fixed; bottom: 0; left: 0; right: 0; border-radius: var(--radius-lg) var(--radius-lg) 0 0; max-height: 70vh; overflow-y: auto;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-6);">
+                <h2 style="font-family: var(--font-heading); font-size: var(--text-2xl); color: var(--color-navy); margin: 0;">
+                    Bestie Menu
+                </h2>
+                <button class="btn btn-icon-only" onclick="toggleMenu()" style="background: rgba(212, 175, 55, 0.2); border-color: var(--color-gold);">
+                    <svg style="width: 24px; height: 24px; fill: currentColor;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+                </button>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: var(--space-3);">
+                <button class="btn btn-secondary btn-full" onclick="viewEvents()">
+                    Manage Events
+                </button>
+                <button class="btn btn-secondary btn-full" onclick="viewBridesmaids()">
+                    Bridesmaid Tracker
+                </button>
+                <button class="btn btn-secondary btn-full" onclick="viewPayments()">
+                    Payment Tracking
+                </button>
+                <button class="btn btn-primary btn-full" onclick="navigateToDashboard()">
+                    Back to Main Planning
+                </button>
+                <button class="btn btn-ghost btn-full" onclick="logout()">
+                    Sign Out
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <!-- Scripts -->
+    <script type="module">
+        import {
+            initSupabase,
+            getSupabase,
+            loadWeddingData,
+            loadChatHistory,
+            displayChatHistory,
+            displayMessage,
+            loadingIndicator,
+            navigateTo,
+            logout,
+            showToast
+        } from '/js/shared.js';
+
+        // Initialize Supabase
+        const supabase = initSupabase();
+
+        // Get wedding_id from URL
+        let weddingId = null;
+        let conversationHistory = [];
+
+        // Make functions globally available
+        window.goBack = function() {
+            if (weddingId) {
+                window.location.href = `dashboard-luxury.html?wedding_id=${weddingId}`;
+            } else {
+                window.location.href = 'index-luxury.html';
+            }
+        };
+
+        window.toggleMenu = function() {
+            const menuOverlay = document.getElementById('menuOverlay');
+            menuOverlay.classList.toggle('hidden');
+        };
+
+        window.navigateToDashboard = function() {
+            if (weddingId) {
+                window.location.href = `dashboard-luxury.html?wedding_id=${weddingId}`;
+            }
+        };
+
+        window.logout = logout;
+
+        window.viewEvents = function() {
+            showToast('Events management coming soon! For now, ask me in the chat about managing your events.', 'info');
+            toggleMenu();
+        };
+
+        window.viewBridesmaids = function() {
+            showToast('Bridesmaid tracker coming soon! For now, ask me in the chat about tracking bridesmaids.', 'info');
+            toggleMenu();
+        };
+
+        window.viewPayments = function() {
+            showToast('Payment tracking coming soon! For now, ask me in the chat about tracking payments.', 'info');
+            toggleMenu();
+        };
+
+        // Load wedding data and verify bestie access
+        async function initializeBestie() {
+            try {
+                // Use shared loadWeddingData function
+                const { wedding, weddingId: loadedWeddingId, member } = await loadWeddingData();
+                weddingId = loadedWeddingId;
+
+                // Bestie-specific checks
+                if (!wedding.bestie_addon_enabled) {
+                    showToast('Bestie planning is not included in your current plan. Please upgrade to access this feature.', 'error');
+                    setTimeout(() => {
+                        window.location.href = `dashboard-luxury.html?wedding_id=${weddingId}`;
+                    }, 3000);
+                    return;
+                }
+
+                // Verify user has bestie role
+                if (member.role !== 'bestie' && member.role !== 'owner') {
+                    showToast('You do not have access to Bestie planning.', 'error');
+                    setTimeout(() => {
+                        window.location.href = `dashboard-luxury.html?wedding_id=${weddingId}`;
+                    }, 3000);
+                    return;
+                }
+
+                // Load chat history using shared function
+                await loadAndDisplayChatHistory();
+            } catch (error) {
+                console.error('Error loading wedding data:', error);
+                showToast('Error loading wedding data', 'error');
+            }
+        }
+
+        // Load and display chat history
+        async function loadAndDisplayChatHistory() {
+            try {
+                const messages = await loadChatHistory({
+                    weddingId,
+                    messageType: 'bestie',
+                    limit: 20
+                });
+
+                conversationHistory = messages;
+
+                // Display messages using shared function
+                displayChatHistory(messages, 'chatMessages');
+            } catch (error) {
+                console.error('Error loading chat history:', error);
+                showToast('Error loading chat history', 'error');
+            }
+        }
+
+        // Loading indicators
+        const showLoading = () => loadingIndicator.show('chatMessages');
+        const hideLoading = () => loadingIndicator.hide();
+
+        // Send message
+        document.getElementById('chatForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+
+            if (!message) return;
+
+            // Display user message
+            displayMessage(message, 'user');
+            input.value = '';
+
+            // Disable input while processing
+            input.disabled = true;
+            document.getElementById('sendBtn').disabled = true;
+
+            // Show loading indicator
+            showLoading();
+
+            try {
+                // Get user session token
+                const { data: { session } } = await supabase.auth.getSession();
+
+                if (!session) {
+                    throw new Error('Not authenticated');
+                }
+
+                // Call bestie chat API
+                const response = await fetch('/api/bestie-chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        message: message,
+                        userToken: session.access_token,
+                        conversationId: weddingId
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.response) {
+                    displayMessage(data.response, 'assistant');
+                } else {
+                    throw new Error('No response from AI');
+                }
+            } catch (error) {
+                console.error('Error sending message:', error);
+                displayMessage('Sorry, I had trouble processing that. Please try again!', 'assistant');
+                showToast('Error sending message', 'error');
+            } finally {
+                // Hide loading indicator
+                hideLoading();
+
+                input.disabled = false;
+                document.getElementById('sendBtn').disabled = false;
+                input.focus();
+            }
+        });
+
+        // Initialize bestie interface
+        initializeBestie();
+    </script>
+
+    <!-- Custom Styles -->
+    <style>
+        /* Chat message styles */
+        .chat-bubble {
+            padding: var(--space-4);
+            border-radius: var(--radius-lg);
+            margin-bottom: var(--space-3);
+            max-width: 80%;
+        }
+
+        .chat-bubble.user {
+            background: linear-gradient(135deg, var(--color-gold), var(--color-champagne));
+            color: var(--color-white);
+            margin-left: auto;
+            text-align: right;
+        }
+
+        .chat-bubble.assistant {
+            background: rgba(255, 255, 255, 0.9);
+            color: var(--color-navy);
+        }
+
+        @media (max-width: 768px) {
+            .chat-bubble {
+                max-width: 90%;
+            }
+
+            .navbar .container {
+                padding: var(--space-3) var(--space-4) !important;
+            }
+        }
+    </style>
+</body>
+</html>
