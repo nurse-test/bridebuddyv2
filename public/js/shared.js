@@ -10,8 +10,7 @@
 const SUPABASE_URL = 'https://nluvnjydydotsrpluhey.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5sdXZuanlkeWRvdHNycGx1aGV5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA3NjE5MjAsImV4cCI6MjA3NjMzNzkyMH0.p5S8vYtZeYqp24avigifhjEDRaKv8TxJTaTkeLoE5mY';
 
-// Lazy Susan icon paths
-const LAZY_SUSAN_ICONS = ['/i.png', '/i-2.png', '/i-3.png', '/i-4.png'];
+// CSS Spinner (replaced image-based lazy susan)
 
 // ============================================================================
 // SUPABASE CLIENT
@@ -72,42 +71,15 @@ export function updateUrlWithWeddingId(weddingId) {
 }
 
 // ============================================================================
-// LOADING INDICATOR (Lazy Susan Animation)
+// LOADING INDICATOR (CSS Spinner)
 // ============================================================================
 
-let currentIconIndex = 0;
-let iconInterval = null;
-
 /**
- * Start Lazy Susan icon cycling animation
- * @param {HTMLImageElement} imgElement - Image element to animate
- */
-function startIconCycle(imgElement) {
-    currentIconIndex = 0;
-    imgElement.src = LAZY_SUSAN_ICONS[currentIconIndex];
-
-    iconInterval = setInterval(() => {
-        currentIconIndex = (currentIconIndex + 1) % LAZY_SUSAN_ICONS.length;
-        imgElement.src = LAZY_SUSAN_ICONS[currentIconIndex];
-    }, 1000); // Change icon every 1 second
-}
-
-/**
- * Stop Lazy Susan icon cycling animation
- */
-function stopIconCycle() {
-    if (iconInterval) {
-        clearInterval(iconInterval);
-        iconInterval = null;
-    }
-}
-
-/**
- * Loading indicator utilities
+ * Loading indicator utilities with CSS-only spinner
  */
 export const loadingIndicator = {
     /**
-     * Show loading indicator with Lazy Susan animation
+     * Show loading indicator with CSS spinner
      * @param {string} containerId - ID of container to append loading indicator
      */
     show(containerId = 'chatMessages') {
@@ -120,30 +92,43 @@ export const loadingIndicator = {
         const loadingDiv = document.createElement('div');
         loadingDiv.id = 'loadingIndicator';
         loadingDiv.className = 'chat-loading';
+        loadingDiv.style.cssText = 'display: flex; justify-content: center; align-items: center; padding: var(--space-6);';
 
-        const lazySusan = document.createElement('div');
-        lazySusan.className = 'lazy-susan';
+        const spinner = document.createElement('div');
+        spinner.className = 'loading-spinner';
+        spinner.style.cssText = `
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(201, 169, 97, 0.2);
+            border-top-color: var(--color-gold);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        `;
 
-        const icon = document.createElement('img');
-        icon.className = 'lazy-susan-icon';
-        icon.alt = 'Loading...';
-
-        lazySusan.appendChild(icon);
-        loadingDiv.appendChild(lazySusan);
+        loadingDiv.appendChild(spinner);
         messagesContainer.appendChild(loadingDiv);
-
-        // Start cycling through icons
-        startIconCycle(icon);
 
         // Scroll to bottom
         messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+        // Add keyframe animation if not already present
+        if (!document.getElementById('spinner-keyframes')) {
+            const style = document.createElement('style');
+            style.id = 'spinner-keyframes';
+            style.textContent = `
+                @keyframes spin {
+                    from { transform: rotate(0deg); }
+                    to { transform: rotate(360deg); }
+                }
+            `;
+            document.head.appendChild(style);
+        }
     },
 
     /**
      * Hide loading indicator
      */
     hide() {
-        stopIconCycle();
         const loadingIndicator = document.getElementById('loadingIndicator');
         if (loadingIndicator) {
             loadingIndicator.remove();
