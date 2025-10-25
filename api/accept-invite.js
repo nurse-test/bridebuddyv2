@@ -230,7 +230,7 @@ export default async function handler(req, res) {
       permissions: {
         wedding_profile: invite.wedding_profile_permissions
       },
-      redirect_to: `/dashboard-v2.html?wedding_id=${invite.wedding_id}`
+      redirect_to: `/dashboard-luxury.html?wedding_id=${invite.wedding_id}`
     };
 
     // Add bestie-specific info
