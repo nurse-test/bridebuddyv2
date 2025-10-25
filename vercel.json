@@ -2,7 +2,7 @@
   "rewrites": [
     {
       "source": "/",
-      "destination": "/welcome-v2.html"
+      "destination": "/index-luxury.html"
     }
   ],
   "headers": [

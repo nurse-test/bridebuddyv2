@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Create your Bride Buddy account and wedding profile">
+    <title>Bride Buddy - Getting Started</title>
+
+    <!-- Preconnect to font providers -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="/css/styles-luxury.css">
+    <link rel="stylesheet" href="/css/components-luxury.css">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/images/favicon.svg">
+</head>
+<body>
+    <!-- Skip to main content for accessibility -->
+    <a href="#main-content" class="skip-to-main">Skip to main content</a>
+
+    <!-- Onboarding Container -->
+    <div class="bg-stained-glass">
+        <div class="container" style="min-height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; padding-top: var(--space-8); padding-bottom: var(--space-8);">
+
+            <!-- Progress Indicator -->
+            <div class="progress-dots animate-fade-in" id="progressDots" style="margin-bottom: var(--space-8);">
+                <div class="progress-dot active"></div>
+                <div class="progress-dot"></div>
+                <div class="progress-dot"></div>
+                <div class="progress-dot"></div>
+                <div class="progress-dot"></div>
+                <div class="progress-dot"></div>
+                <div class="progress-dot"></div>
+            </div>
+
+            <!-- SLIDE 1: Email & Password -->
+            <main id="main-content" class="slide active" id="slide1" style="max-width: 580px; width: 100%;">
+                <div class="card card-gold-accent animate-fade-in-scale">
+                    <h2 style="font-family: var(--font-heading); font-size: var(--text-3xl); color: var(--color-navy); text-align: center; margin-bottom: var(--space-8);">
+                        Create Your Account
+                    </h2>
+
+                    <div class="form-group">
+                        <label for="email" class="form-label">Email</label>
+                        <input type="email" class="form-input" id="email" placeholder="you@example.com" required autocomplete="email">
+                        <div class="form-error" id="emailError" style="display: none;">Please enter a valid email</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="password" class="form-label">Password</label>
+                        <input type="password" class="form-input" id="password" placeholder="Choose a secure password" required autocomplete="new-password">
+                        <div class="form-error" id="passwordError" style="display: none;">Password must be at least 6 characters</div>
+                    </div>
+
+                    <div class="nav-arrows">
+                        <button class="btn btn-icon-only" disabled>
+                            <svg style="width: 24px; height: 24px; fill: currentColor;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
+                        </button>
+                        <button class="btn btn-primary btn-icon-only" onclick="nextSlide()">
+                            <svg style="width: 24px; height: 24px; fill: currentColor;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
+                        </button>
+                    </div>
+                </div>
+            </main>
+
+            <!-- SLIDE 2: Your Name -->
+            <div class="slide hidden" id="slide2" style="max-width: 580px; width: 100%;">
+                <div class="card card-champagne-accent">
+                    <h2 style="font-family: var(--font-heading); font-size: var(--text-3xl); color: var(--color-navy); text-align: center; margin-bottom: var(--space-8);">
+                        What's your name?
+                    </h2>
+
+                    <div class="form-group">
+                        <label for="fullName" class="form-label">Full Name</label>
+                        <input type="text" class="form-input" id="fullName" placeholder="Jane Smith" required autocomplete="name">
+                        <div class="form-error" id="nameError" style="display: none;">Please enter your name</div>
+                    </div>
+
+                    <div class="nav-arrows">
+                        <button class="btn btn-secondary btn-icon-only" onclick="prevSlide()">
+                            <svg style="width: 24px; height: 24px; fill: currentColor;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
+                        </button>
+                        <button class="btn btn-primary btn-icon-only" onclick="nextSlide()">
+                            <svg style="width: 24px; height: 24px; fill: currentColor;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SLIDE 3: About Us -->
+            <div class="slide hidden" id="slide3" style="max-width: 580px; width: 100%;">
+                <div class="card card-rust-accent">
+                    <h2 style="font-family: var(--font-heading); font-size: var(--text-3xl); color: var(--color-navy); text-align: center; margin-bottom: var(--space-8);">
+                        Tell me about who's getting married!
+                    </h2>
+
+                    <div class="form-group">
+                        <label for="aboutUs" class="form-label">About Us</label>
+                        <textarea class="form-input" id="aboutUs" rows="4" placeholder="My fiancé John and I are getting married..." required></textarea>
+                        <div class="form-error" id="aboutUsError" style="display: none;">Please tell us about your wedding</div>
+                    </div>
+
+                    <div class="nav-arrows">
+                        <button class="btn btn-secondary btn-icon-only" onclick="prevSlide()">
+                            <svg style="width: 24px; height: 24px; fill: currentColor;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
+                        </button>
+                        <button class="btn btn-primary btn-icon-only" onclick="nextSlide()">
+                            <svg style="width: 24px; height: 24px; fill: currentColor;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SLIDE 4: Engagement Date -->
+            <div class="slide hidden" id="slide4" style="max-width: 580px; width: 100%;">
+                <div class="card card-champagne-accent">
+                    <h2 style="font-family: var(--font-heading); font-size: var(--text-3xl); color: var(--color-navy); text-align: center; margin-bottom: var(--space-8);">
+                        When did you get engaged?
+                    </h2>
+
+                    <div class="form-group">
+                        <label for="engagementDate" class="form-label">Engagement Date</label>
+                        <input type="date" class="form-input" id="engagementDate" required>
+                        <div class="form-error" id="engagementError" style="display: none;">Please select your engagement date</div>
+                    </div>
+
+                    <div class="nav-arrows">
+                        <button class="btn btn-secondary btn-icon-only" onclick="prevSlide()">
+                            <svg style="width: 24px; height: 24px; fill: currentColor;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
+                        </button>
+                        <button class="btn btn-primary btn-icon-only" onclick="nextSlide()">
+                            <svg style="width: 24px; height: 24px; fill: currentColor;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SLIDE 5: Planning Status -->
+            <div class="slide hidden" id="slide5" style="max-width: 580px; width: 100%;">
+                <div class="card card-gold-accent">
+                    <h2 style="font-family: var(--font-heading); font-size: var(--text-3xl); color: var(--color-navy); text-align: center; margin-bottom: var(--space-10);">
+                        Have you started planning anything yet?
+                    </h2>
+
+                    <button class="btn btn-primary btn-full btn-lg" style="margin-bottom: var(--space-4);" onclick="selectPlanningStatus(false)">
+                        Not Yet
+                    </button>
+
+                    <button class="btn btn-secondary btn-full btn-lg" onclick="selectPlanningStatus(true)">
+                        Yes, I've Started!
+                    </button>
+
+                    <div class="nav-arrows" style="margin-top: var(--space-8);">
+                        <button class="btn btn-secondary btn-icon-only" onclick="prevSlide()">
+                            <svg style="width: 24px; height: 24px; fill: currentColor;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
+                        </button>
+                        <button class="btn btn-icon-only" disabled>
+                            <svg style="width: 24px; height: 24px; fill: currentColor;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SLIDE 6: Planning Checklist (only if "Yes") -->
+            <div class="slide hidden" id="slide6" style="max-width: 580px; width: 100%;">
+                <div class="card card-champagne-accent">
+                    <h2 style="font-family: var(--font-heading); font-size: var(--text-3xl); color: var(--color-navy); text-align: center; margin-bottom: var(--space-8);">
+                        What have you completed?
+                    </h2>
+
+                    <div class="checkbox-group">
+                        <label class="checkbox-item">
+                            <input type="checkbox" name="planning" value="wedding_date">
+                            <span class="checkbox-label">Wedding Date</span>
+                        </label>
+                        <label class="checkbox-item">
+                            <input type="checkbox" name="planning" value="venue">
+                            <span class="checkbox-label">Venue</span>
+                        </label>
+                        <label class="checkbox-item">
+                            <input type="checkbox" name="planning" value="attire">
+                            <span class="checkbox-label">Attire</span>
+                        </label>
+                        <label class="checkbox-item">
+                            <input type="checkbox" name="planning" value="food">
+                            <span class="checkbox-label">Food</span>
+                        </label>
+                        <label class="checkbox-item">
+                            <input type="checkbox" name="planning" value="music">
+                            <span class="checkbox-label">Music</span>
+                        </label>
+                        <label class="checkbox-item">
+                            <input type="checkbox" name="planning" value="guests">
+                            <span class="checkbox-label">Guests</span>
+                        </label>
+                        <label class="checkbox-item">
+                            <input type="checkbox" name="planning" value="wedding_party">
+                            <span class="checkbox-label">Wedding Party</span>
+                        </label>
+                        <label class="checkbox-item">
+                            <input type="checkbox" name="planning" value="wedding_parties">
+                            <span class="checkbox-label">Wedding Parties (the fun kind!)</span>
+                        </label>
+                    </div>
+
+                    <div class="nav-arrows" style="margin-top: var(--space-8);">
+                        <button class="btn btn-secondary btn-icon-only" onclick="prevSlide()">
+                            <svg style="width: 24px; height: 24px; fill: currentColor;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
+                        </button>
+                        <button class="btn btn-primary btn-icon-only" onclick="showLoading()">
+                            <svg style="width: 24px; height: 24px; fill: currentColor;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SLIDE 7: Loading (Not Yet) -->
+            <div class="slide hidden" id="slide7NotYet" style="max-width: 580px; width: 100%;">
+                <div class="card card-gold-accent" style="text-align: center; padding: var(--space-12) var(--space-8);">
+                    <!-- Lazy Susan Loader -->
+                    <div style="width: 120px; height: 120px; margin: 0 auto var(--space-8); position: relative;">
+                        <div class="loading-circle" style="animation: spin 2s linear infinite;">
+                            <svg style="width: 120px; height: 120px; fill: var(--color-gold);" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <p style="font-size: var(--text-lg); color: var(--color-navy); line-height: var(--leading-relaxed); max-width: 400px; margin: 0 auto;">
+                        No worries, you're in the right place. Give me a second to generate your Wedding Profile
+                    </p>
+                </div>
+            </div>
+
+            <!-- SLIDE 8: Loading (Yes) -->
+            <div class="slide hidden" id="slide7Yes" style="max-width: 580px; width: 100%;">
+                <div class="card card-gold-accent" style="text-align: center; padding: var(--space-12) var(--space-8);">
+                    <!-- Lazy Susan Loader -->
+                    <div style="width: 120px; height: 120px; margin: 0 auto var(--space-8); position: relative;">
+                        <div class="loading-circle" style="animation: spin 2s linear infinite;">
+                            <svg style="width: 120px; height: 120px; fill: var(--color-gold);" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <p style="font-size: var(--text-lg); color: var(--color-navy); line-height: var(--leading-relaxed); max-width: 400px; margin: 0 auto;">
+                        Great work already! Let me build your wedding profile so I can gather more details through the chat
+                    </p>
+                </div>
+            </div>
+
+            <!-- Toast Container -->
+            <div id="toastContainer" class="toast-container"></div>
+
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script type="module">
+        import { initSupabase, showToast } from '/js/shared.js';
+
+        // Initialize Supabase
+        const supabase = initSupabase();
+
+        // Track current slide and collected data
+        let currentSlide = 1;
+        let onboardingData = {
+            email: '',
+            password: '',
+            fullName: '',
+            aboutUs: '',
+            engagementDate: '',
+            startedPlanning: false,
+            planningCompleted: []
+        };
+
+        // Make functions globally available
+        window.nextSlide = nextSlide;
+        window.prevSlide = prevSlide;
+        window.selectPlanningStatus = selectPlanningStatus;
+        window.showLoading = showLoading;
+
+        // Update progress dots
+        function updateProgress() {
+            const dots = document.querySelectorAll('.progress-dot');
+            dots.forEach((dot, index) => {
+                if (index < currentSlide) {
+                    dot.classList.add('active');
+                } else {
+                    dot.classList.remove('active');
+                }
+            });
+        }
+
+        // Validate current slide
+        function validateSlide() {
+            if (currentSlide === 1) {
+                const email = document.getElementById('email').value.trim();
+                const password = document.getElementById('password').value;
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+                if (!email || !emailRegex.test(email)) {
+                    document.getElementById('emailError').style.display = 'block';
+                    document.getElementById('email').classList.add('is-error');
+                    return false;
+                }
+                if (!password || password.length < 6) {
+                    document.getElementById('passwordError').style.display = 'block';
+                    document.getElementById('password').classList.add('is-error');
+                    return false;
+                }
+
+                onboardingData.email = email;
+                onboardingData.password = password;
+                return true;
+            }
+
+            if (currentSlide === 2) {
+                const fullName = document.getElementById('fullName').value.trim();
+                if (!fullName) {
+                    document.getElementById('nameError').style.display = 'block';
+                    document.getElementById('fullName').classList.add('is-error');
+                    return false;
+                }
+                onboardingData.fullName = fullName;
+                return true;
+            }
+
+            if (currentSlide === 3) {
+                const aboutUs = document.getElementById('aboutUs').value.trim();
+                if (!aboutUs || aboutUs.length < 10) {
+                    document.getElementById('aboutUsError').style.display = 'block';
+                    document.getElementById('aboutUs').classList.add('is-error');
+                    return false;
+                }
+                onboardingData.aboutUs = aboutUs;
+                return true;
+            }
+
+            if (currentSlide === 4) {
+                const engagementDate = document.getElementById('engagementDate').value;
+                if (!engagementDate) {
+                    document.getElementById('engagementError').style.display = 'block';
+                    document.getElementById('engagementDate').classList.add('is-error');
+                    return false;
+                }
+                onboardingData.engagementDate = engagementDate;
+                return true;
+            }
+
+            return true;
+        }
+
+        // Show next slide
+        function nextSlide() {
+            if (!validateSlide()) return;
+
+            // Hide current slide
+            document.getElementById(`slide${currentSlide}`).classList.add('hidden');
+
+            // Show next slide
+            currentSlide++;
+            const nextElement = document.getElementById(`slide${currentSlide}`);
+            nextElement.classList.remove('hidden');
+            nextElement.classList.add('animate-fade-in-scale');
+
+            updateProgress();
+
+            // Create account on slide 1 completion
+            if (currentSlide === 2) {
+                createAccount();
+            }
+        }
+
+        // Show previous slide
+        function prevSlide() {
+            document.getElementById(`slide${currentSlide}`).classList.add('hidden');
+            currentSlide--;
+            const prevElement = document.getElementById(`slide${currentSlide}`);
+            prevElement.classList.remove('hidden');
+            prevElement.classList.add('animate-fade-in-scale');
+
+            updateProgress();
+        }
+
+        // Handle planning status selection
+        function selectPlanningStatus(started) {
+            onboardingData.startedPlanning = started;
+
+            document.getElementById('slide5').classList.add('hidden');
+
+            if (started) {
+                currentSlide = 6;
+                document.getElementById('slide6').classList.remove('hidden');
+                document.getElementById('slide6').classList.add('animate-fade-in-scale');
+            } else {
+                currentSlide = 7;
+                document.getElementById('slide7NotYet').classList.remove('hidden');
+                document.getElementById('slide7NotYet').classList.add('animate-fade-in-scale');
+                setTimeout(createWedding, 3000);
+            }
+
+            updateProgress();
+        }
+
+        // Show loading screen
+        function showLoading() {
+            // Collect checked planning items
+            const checkboxes = document.querySelectorAll('input[name="planning"]:checked');
+            onboardingData.planningCompleted = Array.from(checkboxes).map(cb => cb.value);
+
+            document.getElementById('slide6').classList.add('hidden');
+            currentSlide = 7;
+            document.getElementById('slide7Yes').classList.remove('hidden');
+            document.getElementById('slide7Yes').classList.add('animate-fade-in-scale');
+            updateProgress();
+
+            setTimeout(createWedding, 3000);
+        }
+
+        // Create Supabase account
+        async function createAccount() {
+            try {
+                const { data, error } = await supabase.auth.signUp({
+                    email: onboardingData.email,
+                    password: onboardingData.password,
+                    options: {
+                        data: {
+                            full_name: onboardingData.fullName
+                        }
+                    }
+                });
+
+                if (error) throw error;
+
+                console.log('Account created:', data);
+            } catch (error) {
+                console.error('Error creating account:', error);
+                showToast('Error creating account. Please try again.', 'error');
+            }
+        }
+
+        // Create wedding profile
+        async function createWedding() {
+            try {
+                // Get current authenticated user and session
+                const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+
+                // Handle case where user is not authenticated
+                if (sessionError || !session) {
+                    console.error('Authentication error:', sessionError);
+                    showToast('You must be logged in to create a wedding profile. Redirecting to login...', 'error');
+                    setTimeout(() => {
+                        window.location.href = 'login-luxury.html';
+                    }, 2000);
+                    return;
+                }
+
+                // Build request with userToken for authentication
+                const requestData = {
+                    ...onboardingData,
+                    userToken: session.access_token
+                };
+
+                const response = await fetch('/api/create-wedding', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(requestData)
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // Redirect to subscription page
+                    window.location.href = 'subscribe-luxury.html?wedding_id=' + data.wedding_id;
+                } else {
+                    throw new Error(data.error);
+                }
+            } catch (error) {
+                console.error('Error creating wedding:', error);
+                showToast('Error creating wedding profile. Please try again.', 'error');
+            }
+        }
+
+        // Clear error messages on input
+        document.querySelectorAll('.form-input').forEach(input => {
+            input.addEventListener('input', () => {
+                input.classList.remove('is-error');
+                const errorElement = input.parentElement.querySelector('.form-error') ||
+                                   input.closest('.form-group').querySelector('.form-error');
+                if (errorElement) {
+                    errorElement.style.display = 'none';
+                }
+            });
+        });
+    </script>
+
+    <!-- Custom Styles -->
+    <style>
+        /* Slide transitions */
+        .slide {
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+
+        .slide.hidden {
+            display: none;
+        }
+
+        /* Navigation arrows container */
+        .nav-arrows {
+            display: flex;
+            justify-content: space-between;
+            margin-top: var(--space-8);
+            gap: var(--space-4);
+        }
+
+        /* Checkbox group styling */
+        .checkbox-group {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-3);
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            padding: var(--space-3);
+            background: var(--color-cream);
+            border: 2px solid transparent;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .checkbox-item:hover {
+            background: var(--color-white);
+            border-color: var(--color-champagne);
+        }
+
+        .checkbox-item input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            margin-right: var(--space-3);
+            cursor: pointer;
+        }
+
+        .checkbox-label {
+            color: var(--color-navy);
+            font-weight: 500;
+            flex: 1;
+        }
+
+        /* Loading animation */
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .card {
+                padding: var(--space-6) var(--space-4) !important;
+            }
+
+            h2 {
+                font-size: var(--text-2xl) !important;
+            }
+        }
+    </style>
+</body>
+</html>

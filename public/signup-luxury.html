@@ -151,7 +151,7 @@
                 <!-- Footer Link -->
                 <p style="text-align: center; font-size: var(--text-sm); color: var(--color-burgundy); margin-top: var(--space-6);">
                     Already have an account?
-                    <a href="login-v2.html" style="color: var(--color-gold); font-weight: var(--font-semibold); text-decoration: none;">Log in</a>
+                    <a href="login-luxury.html" style="color: var(--color-gold); font-weight: var(--font-semibold); text-decoration: none;">Log in</a>
                 </p>
             </main>
 
@@ -306,7 +306,7 @@
 
                 // Redirect to onboarding after a short delay
                 setTimeout(() => {
-                    window.location.href = 'onboarding-v2.html';
+                    window.location.href = 'onboarding-luxury.html';
                 }, 1500);
 
             } catch (error) {
@@ -323,7 +323,7 @@
                 const { data, error } = await supabase.auth.signInWithOAuth({
                     provider: 'google',
                     options: {
-                        redirectTo: window.location.origin + '/onboarding-v2.html'
+                        redirectTo: window.location.origin + '/onboarding-luxury.html'
                     }
                 });
 
