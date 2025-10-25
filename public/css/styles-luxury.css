@@ -291,55 +291,12 @@ pre {
 /* Stained Glass Mosaic Background (Full Viewport) */
 .bg-stained-glass {
   position: relative;
-  background: var(--gradient-stained-glass);
-  min-height: 100vh;
-}
-
-.bg-stained-glass::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-image:
-    /* Geometric tile pattern */
-    repeating-linear-gradient(
-      45deg,
-      transparent,
-      transparent 10px,
-      var(--color-white) 10px,
-      var(--color-white) 11px
-    ),
-    repeating-linear-gradient(
-      -45deg,
-      transparent,
-      transparent 10px,
-      var(--color-white) 10px,
-      var(--color-white) 11px
-    );
-  opacity: 0.05;
-  pointer-events: none;
-}
-
-.bg-stained-glass::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: radial-gradient(
-    circle at 20% 30%,
-    var(--color-burgundy-10) 0%,
-    transparent 50%
-  ),
-  radial-gradient(
-    circle at 80% 70%,
-    var(--color-gold-10) 0%,
-    transparent 50%
+  background: linear-gradient(
+    180deg,
+    #FFE4D6 0%,     /* Light champagne peachy coral */
+    #2B1B3D 100%    /* Deep purple indigo */
   );
-  pointer-events: none;
+  min-height: 100vh;
 }
 
 /* Subtle Background Pattern (for Dashboard pages) */
