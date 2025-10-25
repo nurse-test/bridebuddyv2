@@ -96,91 +96,49 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script>
-        // Supabase client
-        const supabase = window.supabase.createClient(
-            'https://nluvnjydydotsrpluhey.supabase.co',
-            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5sdXZuanlkeWRvdHNycGx1aGV5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA3NjE5MjAsImV4cCI6MjA3NjMzNzkyMH0.p5S8vYtZeYqp24avigifhjEDRaKv8TxJTaTkeLoE5mY'
-        );
+    <script type="module">
+        // Import shared utilities
+        import {
+            initSupabase,
+            getSupabase,
+            loadWeddingData,
+            loadChatHistory,
+            displayChatHistory,
+            displayMessage,
+            loadingIndicator,
+            navigateTo,
+            logout,
+            toggleMenu,
+            updateTrialBadge
+        } from '/js/shared.js';
+
+        // Initialize Supabase
+        const supabase = initSupabase();
 
         // Get wedding_id from URL
-        const urlParams = new URLSearchParams(window.location.search);
-        let weddingId = urlParams.get('wedding_id');
-
+        let weddingId = null;
         let conversationHistory = [];
 
         // Load wedding data and check subscription
-        async function loadWeddingData() {
+        async function initializeDashboard() {
             try {
-                const { data: { user } } = await supabase.auth.getUser();
+                // Use shared loadWeddingData function
+                const { wedding, weddingId: loadedWeddingId } = await loadWeddingData();
+                weddingId = loadedWeddingId;
 
-                if (!user) {
-                    window.location.href = 'welcome-v2.html';
-                    return;
-                }
+                // Update trial badge using shared helper
+                updateTrialBadge(wedding, 'trialBadge');
 
-                // If no wedding_id in URL, get it from user's membership
-                if (!weddingId) {
-                    const { data: membership, error: memberError } = await supabase
-                        .from('wedding_members')
-                        .select('wedding_id')
-                        .eq('user_id', user.id)
-                        .single();
-
-                    console.log('Membership query result:', { membership, memberError, userId: user.id });
-
-                    if (memberError || !membership) {
-                        console.error('No wedding membership found for user:', user.id);
-                        console.error('Member error:', memberError);
-                        alert('You need to create or join a wedding first.');
-                        window.location.href = 'welcome-v2.html';
-                        return;
-                    }
-
-                    weddingId = membership.wedding_id;
-                    console.log('Set weddingId to:', weddingId);
-
-                    // Update URL with wedding_id
-                    window.history.replaceState({}, '', `?wedding_id=${weddingId}`);
-                }
-
-                // Extra safety check before querying
-                if (!weddingId || weddingId === 'undefined' || weddingId === 'null') {
-                    console.error('Invalid wedding_id:', weddingId);
-                    alert('Unable to load wedding. Please create or join a wedding.');
-                    window.location.href = 'welcome-v2.html';
-                    return;
-                }
-
-                console.log('Querying wedding_profiles with id:', weddingId);
-
-                // Get wedding profile
-                const { data: wedding, error } = await supabase
-                    .from('wedding_profiles')
-                    .select('*')
-                    .eq('id', weddingId)
-                    .single();
-
-                if (error) throw error;
-
-                // Update trial badge
+                // Show pay modal ONLY on day 5 of 7-day trial (exactly 3 days remaining)
                 if (wedding.subscription_status === 'trialing') {
                     const trialEndDate = new Date(wedding.trial_end_date);
                     const now = new Date();
                     const daysLeft = Math.ceil((trialEndDate - now) / (1000 * 60 * 60 * 24));
 
-                    document.getElementById('trialBadge').textContent = `VIP Trial • ${daysLeft} days left`;
-
-                    if (daysLeft <= 2) {
-                        document.getElementById('trialBadge').classList.remove('badge-trial');
-                        document.getElementById('trialBadge').classList.add('badge-warning');
-                    }
-
-                    // Show pay modal ONLY on day 5 of 7-day trial (exactly 3 days remaining)
                     const modalKey = `payModalShown_${weddingId}`;
                     if (daysLeft === 3 && !localStorage.getItem(modalKey)) {
                         localStorage.setItem(modalKey, 'true');
-                        setTimeout(() => showSubscribeModal(), 1000); // Show after 1 second delay
+                        setTimeout(() => showSubscribeModal(), 1000);
                     }
                 }
 
@@ -189,98 +147,34 @@
                     document.getElementById('bestieBtn').style.display = 'block';
                 }
 
-                // Load chat history
-                loadChatHistory();
+                // Load chat history using shared function
+                await loadAndDisplayChatHistory();
             } catch (error) {
                 console.error('Error loading wedding data:', error);
             }
         }
 
-        // Load chat history
-        async function loadChatHistory() {
+        // Load and display chat history
+        async function loadAndDisplayChatHistory() {
             try {
-                const { data: { user } } = await supabase.auth.getUser();
-                
-                const { data: messages, error } = await supabase
-                    .from('chat_messages')
-                    .select('*')
-                    .eq('wedding_id', weddingId)
-                    .eq('user_id', user.id)
-                    .eq('message_type', 'main')
-                    .order('created_at', { ascending: true })
-                    .limit(20);
-
-                if (error) throw error;
-
-                conversationHistory = messages || [];
-
-                // Display messages
-                messages.forEach(msg => {
-                    if (msg.role === 'user' || msg.role === 'assistant') {
-                        displayMessage(msg.message, msg.role);
-                    }
+                const messages = await loadChatHistory({
+                    weddingId,
+                    messageType: 'main',
+                    limit: 20
                 });
+
+                conversationHistory = messages;
+
+                // Display messages using shared function
+                displayChatHistory(messages, 'chatMessages');
             } catch (error) {
                 console.error('Error loading chat history:', error);
             }
         }
 
-        // Lazy Susan icon cycling
-        const icons = ['/i.png', '/i-2.png', '/i-3.png', '/i-4.png'];
-        let currentIconIndex = 0;
-        let iconInterval = null;
-
-        function startIconCycle(imgElement) {
-            currentIconIndex = 0;
-            imgElement.src = icons[currentIconIndex];
-
-            iconInterval = setInterval(() => {
-                currentIconIndex = (currentIconIndex + 1) % icons.length;
-                imgElement.src = icons[currentIconIndex];
-            }, 1000); // Change icon every 1 second
-        }
-
-        function stopIconCycle() {
-            if (iconInterval) {
-                clearInterval(iconInterval);
-                iconInterval = null;
-            }
-        }
-
-        // Show loading indicator
-        function showLoading() {
-            const messagesContainer = document.getElementById('chatMessages');
-
-            const loadingDiv = document.createElement('div');
-            loadingDiv.id = 'loadingIndicator';
-            loadingDiv.className = 'chat-loading';
-
-            const lazySusan = document.createElement('div');
-            lazySusan.className = 'lazy-susan';
-
-            const icon = document.createElement('img');
-            icon.className = 'lazy-susan-icon';
-            icon.alt = 'Loading...';
-
-            lazySusan.appendChild(icon);
-            loadingDiv.appendChild(lazySusan);
-            messagesContainer.appendChild(loadingDiv);
-
-            // Start cycling through icons
-            startIconCycle(icon);
-
-            // Scroll to bottom
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
-        }
-
-        // Hide loading indicator
-        function hideLoading() {
-            stopIconCycle();
-            const loadingIndicator = document.getElementById('loadingIndicator');
-            if (loadingIndicator) {
-                loadingIndicator.remove();
-            }
-        }
+        // Loading indicators now use shared loadingIndicator object
+        const showLoading = () => loadingIndicator.show('chatMessages');
+        const hideLoading = () => loadingIndicator.hide();
 
         // Send message
         async function sendMessage(event) {
@@ -343,55 +237,22 @@
             }
         }
 
-        // Display message in chat
-        function displayMessage(content, role) {
-            const messagesContainer = document.getElementById('chatMessages');
-            
-            const messageDiv = document.createElement('div');
-            messageDiv.className = `chat-message ${role}`;
-            
-            const bubbleDiv = document.createElement('div');
-            bubbleDiv.className = 'chat-bubble';
-            bubbleDiv.innerHTML = content.replace(/\n/g, '<br>');
-            
-            messageDiv.appendChild(bubbleDiv);
-            messagesContainer.appendChild(messageDiv);
-            
-            // Scroll to bottom
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
-        }
-
-        // Toggle menu
-        function toggleMenu() {
-            const menu = document.getElementById('menuOverlay');
-            menu.classList.toggle('hidden');
-        }
-
-        // Navigate to page
-        function navigateTo(page) {
-            window.location.href = `${page}?wedding_id=${weddingId}`;
-        }
+        // displayMessage, toggleMenu, navigateTo, and logout are now imported from shared.js
 
         // Show subscribe modal
         function showSubscribeModal() {
-            window.location.href = `subscribe-v2.html?wedding_id=${weddingId}`;
-        }
-
-        // Logout
-        async function logout() {
-            await supabase.auth.signOut();
-            window.location.href = 'welcome-v2.html';
+            navigateTo('subscribe-v2.html', weddingId);
         }
 
         // Close menu when clicking overlay
         document.getElementById('menuOverlay').addEventListener('click', (e) => {
             if (e.target.id === 'menuOverlay') {
-                toggleMenu();
+                toggleMenu('menuOverlay');
             }
         });
 
-        // Initialize
-        loadWeddingData();
+        // Initialize dashboard
+        initializeDashboard();
     </script>
 </body>
 </html>
