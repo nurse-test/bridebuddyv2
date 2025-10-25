@@ -1,0 +1,744 @@
+/**
+ * BRIDE BUDDY - Luxury Botanical-Tech UI System
+ * Design Language: Art Nouveau botanicals merged with circuit board motifs
+ * Aesthetic: Stained glass mosaic with geometric patterns
+ * Philosophy: Intentional technology - natural wisdom meets intelligent systems
+ */
+
+/* ================================================================
+   CSS CUSTOM PROPERTIES - Design Tokens
+   ================================================================ */
+
+:root {
+  /* ===== COLOR PALETTE ===== */
+
+  /* Primary Colors */
+  --color-navy: #2B1B3D;          /* Deep Purple/Navy - primary text, headers */
+  --color-burgundy: #7D3A5A;      /* Burgundy/Wine - secondary text, accents */
+  --color-rust: #B85C3F;          /* Warm Rust - tertiary accents */
+  --color-gold: #D4AF37;          /* Champagne Gold - CTAs, highlights, circuit lines */
+  --color-cream: #F5F1E8;         /* Cream/Ivory - card backgrounds */
+  --color-white: #FFFFFF;         /* White - text on dark, line art */
+
+  /* Gradient Variations */
+  --gradient-gold: linear-gradient(135deg, #D4AF37 0%, #F4D03F 100%);
+  --gradient-purple: linear-gradient(135deg, #2B1B3D 0%, #7D3A5A 100%);
+  --gradient-stained-glass: linear-gradient(135deg,
+    #2B1B3D 0%,
+    #7D3A5A 35%,
+    #B85C3F 70%,
+    #D4AF37 100%);
+
+  /* Alpha Variations */
+  --color-navy-10: rgba(43, 27, 61, 0.1);
+  --color-navy-20: rgba(43, 27, 61, 0.2);
+  --color-navy-80: rgba(43, 27, 61, 0.8);
+  --color-navy-95: rgba(43, 27, 61, 0.95);
+
+  --color-burgundy-10: rgba(125, 58, 90, 0.1);
+  --color-burgundy-20: rgba(125, 58, 90, 0.2);
+
+  --color-gold-10: rgba(212, 175, 55, 0.1);
+  --color-gold-20: rgba(212, 175, 55, 0.2);
+  --color-gold-30: rgba(212, 175, 55, 0.3);
+
+  --color-cream-50: rgba(245, 241, 232, 0.5);
+  --color-cream-80: rgba(245, 241, 232, 0.8);
+  --color-cream-90: rgba(245, 241, 232, 0.9);
+  --color-cream-98: rgba(245, 241, 232, 0.98);
+
+  /* ===== TYPOGRAPHY ===== */
+
+  /* Font Families */
+  --font-heading: 'Playfair Display', Georgia, serif;
+  --font-body: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono: 'SF Mono', Monaco, 'Cascadia Code', Consolas, monospace;
+
+  /* Font Sizes */
+  --text-xs: 0.75rem;      /* 12px */
+  --text-sm: 0.875rem;     /* 14px */
+  --text-base: 1rem;       /* 16px */
+  --text-lg: 1.125rem;     /* 18px */
+  --text-xl: 1.25rem;      /* 20px */
+  --text-2xl: 1.5rem;      /* 24px */
+  --text-3xl: 1.875rem;    /* 30px */
+  --text-4xl: 2.25rem;     /* 36px */
+  --text-5xl: 3rem;        /* 48px */
+  --text-6xl: 3.75rem;     /* 60px */
+
+  /* Font Weights */
+  --font-light: 300;
+  --font-normal: 400;
+  --font-medium: 500;
+  --font-semibold: 600;
+  --font-bold: 700;
+
+  /* Line Heights */
+  --leading-tight: 1.25;
+  --leading-snug: 1.375;
+  --leading-normal: 1.5;
+  --leading-relaxed: 1.625;
+  --leading-loose: 2;
+
+  /* ===== SPACING ===== */
+
+  --space-0: 0;
+  --space-1: 0.25rem;    /* 4px */
+  --space-2: 0.5rem;     /* 8px */
+  --space-3: 0.75rem;    /* 12px */
+  --space-4: 1rem;       /* 16px */
+  --space-5: 1.25rem;    /* 20px */
+  --space-6: 1.5rem;     /* 24px */
+  --space-8: 2rem;       /* 32px */
+  --space-10: 2.5rem;    /* 40px */
+  --space-12: 3rem;      /* 48px */
+  --space-16: 4rem;      /* 64px */
+  --space-20: 5rem;      /* 80px */
+  --space-24: 6rem;      /* 96px */
+
+  /* ===== BORDERS & RADII ===== */
+
+  --radius-sm: 0.25rem;    /* 4px */
+  --radius-md: 0.5rem;     /* 8px */
+  --radius-lg: 0.75rem;    /* 12px */
+  --radius-xl: 1rem;       /* 16px */
+  --radius-2xl: 1.5rem;    /* 24px */
+  --radius-full: 9999px;   /* Fully rounded */
+
+  --border-width: 1px;
+  --border-width-2: 2px;
+  --border-width-4: 4px;
+
+  /* ===== SHADOWS ===== */
+
+  --shadow-sm: 0 1px 2px 0 rgba(43, 27, 61, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(43, 27, 61, 0.1),
+               0 2px 4px -1px rgba(43, 27, 61, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(43, 27, 61, 0.1),
+               0 4px 6px -2px rgba(43, 27, 61, 0.05);
+  --shadow-xl: 0 20px 25px -5px rgba(43, 27, 61, 0.1),
+               0 10px 10px -5px rgba(43, 27, 61, 0.04);
+  --shadow-2xl: 0 25px 50px -12px rgba(43, 27, 61, 0.25);
+
+  /* Glow Effects */
+  --glow-gold: 0 0 20px rgba(212, 175, 55, 0.3),
+               0 0 40px rgba(212, 175, 55, 0.15);
+  --glow-gold-strong: 0 0 30px rgba(212, 175, 55, 0.5),
+                      0 0 60px rgba(212, 175, 55, 0.25);
+
+  /* ===== TRANSITIONS ===== */
+
+  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-base: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 350ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-bounce: 400ms cubic-bezier(0.68, -0.55, 0.265, 1.55);
+
+  /* ===== Z-INDEX LAYERS ===== */
+
+  --z-base: 0;
+  --z-dropdown: 1000;
+  --z-sticky: 1100;
+  --z-fixed: 1200;
+  --z-modal-backdrop: 1300;
+  --z-modal: 1400;
+  --z-popover: 1500;
+  --z-toast: 1600;
+
+  /* ===== BREAKPOINTS ===== */
+
+  --screen-sm: 480px;
+  --screen-md: 768px;
+  --screen-lg: 1024px;
+  --screen-xl: 1440px;
+
+  /* ===== FROSTED GLASS EFFECT ===== */
+
+  --glass-bg: var(--color-cream-98);
+  --glass-backdrop-filter: blur(20px) saturate(180%);
+  --glass-border: 1px solid var(--color-gold-20);
+
+  /* ===== STAINED GLASS BACKGROUND ===== */
+
+  --stained-glass-overlay: rgba(43, 27, 61, 0.02);
+}
+
+/* ================================================================
+   CSS RESET & BASE STYLES
+   ================================================================ */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  font-size: 16px;
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  font-weight: var(--font-normal);
+  line-height: var(--leading-normal);
+  color: var(--color-navy);
+  background-color: var(--color-navy);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ================================================================
+   TYPOGRAPHY STYLES
+   ================================================================ */
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+  font-weight: var(--font-bold);
+  line-height: var(--leading-tight);
+  color: var(--color-navy);
+  margin-bottom: var(--space-4);
+}
+
+h1 {
+  font-size: var(--text-4xl);
+  letter-spacing: -0.02em;
+}
+
+h2 {
+  font-size: var(--text-3xl);
+  letter-spacing: -0.01em;
+}
+
+h3 {
+  font-size: var(--text-2xl);
+}
+
+h4 {
+  font-size: var(--text-xl);
+}
+
+h5 {
+  font-size: var(--text-lg);
+}
+
+h6 {
+  font-size: var(--text-base);
+}
+
+p {
+  margin-bottom: var(--space-4);
+  color: var(--color-burgundy);
+}
+
+a {
+  color: var(--color-gold);
+  text-decoration: none;
+  transition: color var(--transition-fast);
+}
+
+a:hover {
+  color: var(--color-rust);
+}
+
+a:focus-visible {
+  outline: 2px solid var(--color-gold);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+strong, b {
+  font-weight: var(--font-bold);
+}
+
+em, i {
+  font-style: italic;
+}
+
+small {
+  font-size: var(--text-sm);
+}
+
+code {
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+  padding: 0.125rem 0.25rem;
+  background-color: var(--color-cream);
+  border-radius: var(--radius-sm);
+  color: var(--color-burgundy);
+}
+
+pre {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  padding: var(--space-4);
+  background-color: var(--color-cream);
+  border-radius: var(--radius-lg);
+  overflow-x: auto;
+  margin-bottom: var(--space-4);
+}
+
+/* ================================================================
+   BACKGROUND PATTERNS
+   ================================================================ */
+
+/* Stained Glass Mosaic Background (Full Viewport) */
+.bg-stained-glass {
+  position: relative;
+  background: var(--gradient-stained-glass);
+  min-height: 100vh;
+}
+
+.bg-stained-glass::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image:
+    /* Geometric tile pattern */
+    repeating-linear-gradient(
+      45deg,
+      transparent,
+      transparent 10px,
+      var(--color-white) 10px,
+      var(--color-white) 11px
+    ),
+    repeating-linear-gradient(
+      -45deg,
+      transparent,
+      transparent 10px,
+      var(--color-white) 10px,
+      var(--color-white) 11px
+    );
+  opacity: 0.05;
+  pointer-events: none;
+}
+
+.bg-stained-glass::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(
+    circle at 20% 30%,
+    var(--color-burgundy-10) 0%,
+    transparent 50%
+  ),
+  radial-gradient(
+    circle at 80% 70%,
+    var(--color-gold-10) 0%,
+    transparent 50%
+  );
+  pointer-events: none;
+}
+
+/* Subtle Background Pattern (for Dashboard pages) */
+.bg-subtle-pattern {
+  position: relative;
+  background: linear-gradient(135deg,
+    var(--color-navy) 0%,
+    #3a2a50 100%);
+  min-height: 100vh;
+}
+
+.bg-subtle-pattern::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image:
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      var(--color-burgundy-10) 2px,
+      var(--color-burgundy-10) 4px
+    );
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+/* ================================================================
+   LAYOUT UTILITIES
+   ================================================================ */
+
+.container {
+  width: 100%;
+  max-width: 1440px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: var(--space-4);
+  padding-right: var(--space-4);
+}
+
+@media (min-width: 768px) {
+  .container {
+    padding-left: var(--space-6);
+    padding-right: var(--space-6);
+  }
+}
+
+@media (min-width: 1024px) {
+  .container {
+    padding-left: var(--space-8);
+    padding-right: var(--space-8);
+  }
+}
+
+/* Flexbox Utilities */
+.flex {
+  display: flex;
+}
+
+.flex-col {
+  flex-direction: column;
+}
+
+.items-center {
+  align-items: center;
+}
+
+.items-start {
+  align-items: flex-start;
+}
+
+.items-end {
+  align-items: flex-end;
+}
+
+.justify-center {
+  justify-content: center;
+}
+
+.justify-between {
+  justify-content: space-between;
+}
+
+.justify-end {
+  justify-content: flex-end;
+}
+
+.flex-1 {
+  flex: 1 1 0%;
+}
+
+.flex-wrap {
+  flex-wrap: wrap;
+}
+
+/* Grid Utilities */
+.grid {
+  display: grid;
+}
+
+.grid-cols-1 {
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+}
+
+.grid-cols-2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.grid-cols-3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.grid-cols-4 {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.gap-2 {
+  gap: var(--space-2);
+}
+
+.gap-4 {
+  gap: var(--space-4);
+}
+
+.gap-6 {
+  gap: var(--space-6);
+}
+
+.gap-8 {
+  gap: var(--space-8);
+}
+
+/* Spacing Utilities */
+.mt-4 { margin-top: var(--space-4); }
+.mt-6 { margin-top: var(--space-6); }
+.mt-8 { margin-top: var(--space-8); }
+.mb-4 { margin-bottom: var(--space-4); }
+.mb-6 { margin-bottom: var(--space-6); }
+.mb-8 { margin-bottom: var(--space-8); }
+.ml-4 { margin-left: var(--space-4); }
+.mr-4 { margin-right: var(--space-4); }
+
+.p-4 { padding: var(--space-4); }
+.p-6 { padding: var(--space-6); }
+.p-8 { padding: var(--space-8); }
+
+.px-4 {
+  padding-left: var(--space-4);
+  padding-right: var(--space-4);
+}
+
+.py-4 {
+  padding-top: var(--space-4);
+  padding-bottom: var(--space-4);
+}
+
+/* Text Utilities */
+.text-center {
+  text-align: center;
+}
+
+.text-left {
+  text-align: left;
+}
+
+.text-right {
+  text-align: right;
+}
+
+.text-navy {
+  color: var(--color-navy);
+}
+
+.text-burgundy {
+  color: var(--color-burgundy);
+}
+
+.text-gold {
+  color: var(--color-gold);
+}
+
+.text-white {
+  color: var(--color-white);
+}
+
+/* ================================================================
+   ANIMATIONS
+   ================================================================ */
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes glow {
+  0%, 100% {
+    box-shadow: var(--glow-gold);
+  }
+  50% {
+    box-shadow: var(--glow-gold-strong);
+  }
+}
+
+/* Animation Classes */
+.animate-fade-in {
+  animation: fadeIn var(--transition-slow) ease-out;
+}
+
+.animate-fade-in-scale {
+  animation: fadeInScale var(--transition-slow) ease-out;
+}
+
+.animate-slide-in-right {
+  animation: slideInRight var(--transition-base) ease-out;
+}
+
+.animate-slide-in-left {
+  animation: slideInLeft var(--transition-base) ease-out;
+}
+
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+.animate-glow {
+  animation: glow 3s ease-in-out infinite;
+}
+
+/* ================================================================
+   RESPONSIVE UTILITIES
+   ================================================================ */
+
+.hidden {
+  display: none !important;
+}
+
+/* Mobile-specific */
+@media (max-width: 767px) {
+  .hidden-mobile {
+    display: none !important;
+  }
+}
+
+/* Tablet and up */
+@media (min-width: 768px) {
+  .hidden-tablet {
+    display: none !important;
+  }
+}
+
+/* Desktop and up */
+@media (min-width: 1024px) {
+  .hidden-desktop {
+    display: none !important;
+  }
+}
+
+/* ================================================================
+   ACCESSIBILITY
+   ================================================================ */
+
+/* Focus visible for keyboard navigation */
+*:focus-visible {
+  outline: 2px solid var(--color-gold);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+/* Screen reader only */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* Skip to main content link */
+.skip-to-main {
+  position: absolute;
+  top: -40px;
+  left: 0;
+  background: var(--color-gold);
+  color: var(--color-navy);
+  padding: var(--space-2) var(--space-4);
+  text-decoration: none;
+  border-radius: var(--radius-md);
+  font-weight: var(--font-semibold);
+  z-index: var(--z-toast);
+  transition: top var(--transition-fast);
+}
+
+.skip-to-main:focus {
+  top: var(--space-4);
+}
+
+/* Reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ================================================================
+   PRINT STYLES
+   ================================================================ */
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+
+  body {
+    background: white;
+    color: black;
+  }
+
+  a {
+    text-decoration: underline;
+  }
+}
