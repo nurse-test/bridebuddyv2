@@ -279,12 +279,6 @@
             planningCompleted: []
         };
 
-        // Make functions globally available
-        window.nextSlide = nextSlide;
-        window.prevSlide = prevSlide;
-        window.selectPlanningStatus = selectPlanningStatus;
-        window.showLoading = showLoading;
-
         // Update progress dots
         function updateProgress() {
             const dots = document.querySelectorAll('.progress-dot');
@@ -488,6 +482,12 @@
                 showToast('Error creating wedding profile. Please try again.', 'error');
             }
         }
+
+        // Make functions globally available (must be after function definitions)
+        window.nextSlide = nextSlide;
+        window.prevSlide = prevSlide;
+        window.selectPlanningStatus = selectPlanningStatus;
+        window.showLoading = showLoading;
 
         // Clear error messages on input
         document.querySelectorAll('.form-input').forEach(input => {

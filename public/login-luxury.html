@@ -89,27 +89,18 @@
                         Sign In
                     </button>
 
-                    <!-- Divider -->
-                    <div style="margin: var(--space-6) 0; text-align: center; position: relative;">
-                        <span style="background: var(--color-cream); padding: 0 var(--space-4); position: relative; z-index: 1; color: var(--color-burgundy); font-size: var(--text-sm);">or</span>
-                        <div style="position: absolute; top: 50%; left: 0; right: 0; height: 1px; background: var(--color-champagne);"></div>
-                    </div>
+                    <!-- Forgot Password Link -->
+                    <p style="text-align: center; margin-top: var(--space-4); font-size: var(--text-sm);">
+                        <a href="#" id="forgotPasswordLink" style="color: var(--color-burgundy); text-decoration: none; opacity: 0.8;">
+                            Forgot password?
+                        </a>
+                    </p>
 
-                    <!-- Google Sign In -->
-                    <button type="button" class="btn btn-secondary btn-lg btn-full" id="googleBtn">
-                        <svg style="width: 20px; height: 20px; margin-right: var(--space-2);" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-                            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-                        </svg>
-                        Continue with Google
-                    </button>
-
-                    <!-- Back Link -->
+                    <!-- Sign Up Link -->
                     <p style="text-align: center; margin-top: var(--space-6); font-size: var(--text-sm); color: var(--color-burgundy);">
-                        <a href="index-luxury.html" style="color: var(--color-gold); text-decoration: none; font-weight: 500;">
-                            ← Back to Home
+                        Don't have an account?
+                        <a href="onboarding-luxury.html" style="color: var(--color-gold); text-decoration: none; font-weight: 500;">
+                            Start your wedding
                         </a>
                     </p>
                 </form>
@@ -188,52 +179,86 @@
             loginBtn.innerHTML = '<span class="loading-spinner"></span> Signing in...';
 
             try {
+                console.log('🔐 Login attempt:', { email });
+
                 const { data, error } = await supabase.auth.signInWithPassword({
                     email: email,
                     password: password,
                 });
 
-                if (error) throw error;
+                // Debug logging
+                console.log('📊 Supabase response:', { data, error });
 
+                if (error) {
+                    console.error('❌ Supabase auth error:', {
+                        message: error.message,
+                        status: error.status,
+                        name: error.name
+                    });
+                    throw error;
+                }
+
+                console.log('✅ Authentication successful:', data.user.email);
                 showToast('Welcome back!', 'success');
 
                 // Get user's wedding
+                console.log('🔍 Looking up wedding for user:', data.user.id);
                 const { data: member, error: memberError } = await supabase
                     .from('wedding_members')
                     .select('wedding_id')
                     .eq('user_id', data.user.id)
                     .single();
 
-                if (memberError) throw memberError;
+                console.log('📊 Wedding lookup result:', { member, memberError });
+
+                if (memberError) {
+                    console.error('❌ Wedding lookup error:', memberError);
+                    throw memberError;
+                }
+
+                console.log('✅ Found wedding:', member.wedding_id);
+                console.log('🚀 Redirecting to dashboard...');
 
                 // Redirect to dashboard
                 window.location.href = `dashboard-luxury.html?wedding_id=${member.wedding_id}`;
             } catch (error) {
-                console.error('Login error:', error);
-                showToast('Invalid email or password. Please try again.', 'error');
+                console.error('❌ Login error:', error);
+
+                // Show detailed error message for debugging
+                let errorMessage = 'Invalid email or password. Please try again.';
+                if (error.message) {
+                    console.error('Error details:', error.message);
+                    // Show actual error temporarily for debugging
+                    errorMessage = `Login failed: ${error.message}`;
+                }
+
+                showToast(errorMessage, 'error');
                 loginBtn.disabled = false;
                 loginBtn.textContent = 'Sign In';
             }
         });
 
-        // Handle Google sign in
-        document.getElementById('googleBtn').addEventListener('click', async () => {
-            const googleBtn = document.getElementById('googleBtn');
-            googleBtn.disabled = true;
+        // Handle forgot password
+        document.getElementById('forgotPasswordLink').addEventListener('click', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('email').value.trim();
+
+            if (!email) {
+                showToast('Please enter your email address first', 'warning');
+                return;
+            }
 
             try {
-                const { data, error } = await supabase.auth.signInWithOAuth({
-                    provider: 'google',
-                    options: {
-                        redirectTo: `${window.location.origin}/dashboard-luxury.html`
-                    }
+                const { error } = await supabase.auth.resetPasswordForEmail(email, {
+                    redirectTo: `${window.location.origin}/reset-password.html`
                 });
 
                 if (error) throw error;
+
+                showToast('Password reset email sent! Check your inbox.', 'success');
             } catch (error) {
-                console.error('Google sign in error:', error);
-                showToast('Error signing in with Google. Please try again.', 'error');
-                googleBtn.disabled = false;
+                console.error('Password reset error:', error);
+                showToast('Error sending password reset email', 'error');
             }
         });
 
