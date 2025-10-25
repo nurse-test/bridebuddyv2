@@ -119,12 +119,12 @@
                 <a href="invite-luxury.html" class="btn btn-primary btn-full">
                     👥 Add a User
                 </a>
-                <button class="btn btn-secondary btn-full" onclick="viewNotifications()">
+                <a href="notifications-luxury.html" class="btn btn-secondary btn-full">
                     🔔 Notifications
-                </button>
-                <button class="btn btn-secondary btn-full" onclick="viewAccountSettings()">
+                </a>
+                <a href="settings-luxury.html" class="btn btn-secondary btn-full">
                     ⚙️ Account Settings
-                </button>
+                </a>
                 <button class="btn btn-ghost btn-full" onclick="logout()">
                     🚪 Sign Out
                 </button>
@@ -164,27 +164,6 @@
         };
 
         window.logout = logout;
-
-        window.viewBestieChat = function() {
-            if (weddingId) {
-                window.location.href = `bestie-luxury.html?wedding_id=${weddingId}`;
-            } else {
-                window.location.href = 'bestie-luxury.html';
-            }
-        };
-
-        window.viewNotifications = function() {
-            if (weddingId) {
-                window.location.href = `notifications-luxury.html?wedding_id=${weddingId}`;
-            } else {
-                window.location.href = 'notifications-luxury.html';
-            }
-        };
-
-        window.viewAccountSettings = function() {
-            showToast('Account settings coming soon!', 'info');
-            toggleMenu();
-        };
 
         // Load wedding data
         async function initializeChat() {
