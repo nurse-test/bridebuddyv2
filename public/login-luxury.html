@@ -206,21 +206,80 @@
 
                 // Get user's wedding(s)
                 console.log('🔍 Looking up wedding for user:', data.user.id);
-                const { data: members, error: memberError } = await supabase
+
+                // Try progressively simpler queries to handle different table structures
+                let members = null;
+                let memberError = null;
+
+                // Attempt 1: With created_at ordering and role
+                let result = await supabase
                     .from('wedding_members')
                     .select('wedding_id, role')
                     .eq('user_id', data.user.id)
                     .order('created_at', { ascending: false });
 
+                members = result.data;
+                memberError = result.error;
+
+                // Attempt 2: If created_at fails, try without ordering
+                if (memberError && (memberError.message?.includes('created_at') || memberError.code === '42703')) {
+                    console.log('⚠️ Retrying without created_at ordering...');
+                    result = await supabase
+                        .from('wedding_members')
+                        .select('wedding_id, role')
+                        .eq('user_id', data.user.id);
+                    members = result.data;
+                    memberError = result.error;
+                }
+
+                // Attempt 3: If role fails, try just wedding_id
+                if (memberError && (memberError.message?.includes('role') || memberError.code === '42703')) {
+                    console.log('⚠️ Retrying with just wedding_id...');
+                    result = await supabase
+                        .from('wedding_members')
+                        .select('wedding_id')
+                        .eq('user_id', data.user.id);
+                    members = result.data;
+                    memberError = result.error;
+                }
+
+                // Attempt 4: If all else fails, try select *
+                if (memberError) {
+                    console.log('⚠️ Last attempt: selecting all columns...');
+                    result = await supabase
+                        .from('wedding_members')
+                        .select('*')
+                        .eq('user_id', data.user.id);
+                    members = result.data;
+                    memberError = result.error;
+                }
+
                 console.log('📊 Wedding lookup result:', {
                     members,
                     memberError,
+                    memberErrorDetails: memberError ? {
+                        message: memberError.message,
+                        code: memberError.code,
+                        details: memberError.details,
+                        hint: memberError.hint
+                    } : null,
                     count: members?.length
                 });
 
                 if (memberError) {
                     console.error('❌ Wedding lookup error:', memberError);
-                    showToast('Error loading your wedding. Please try again.', 'error');
+                    console.error('Full error object:', JSON.stringify(memberError, null, 2));
+
+                    // Show more detailed error message
+                    let errorMsg = 'Error loading your wedding. ';
+                    if (memberError.message) {
+                        errorMsg += memberError.message;
+                    }
+                    if (memberError.hint) {
+                        errorMsg += ' Hint: ' + memberError.hint;
+                    }
+
+                    showToast(errorMsg, 'error', 7000);
                     loginBtn.disabled = false;
                     loginBtn.textContent = 'Sign In';
                     return;
