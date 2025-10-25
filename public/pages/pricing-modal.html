@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pricing Modal · Bride Buddy</title>
+  <link rel="stylesheet" href="../css/components.css" />
+  <link rel="stylesheet" href="../css/styles.css" />
+  <link rel="icon" type="image/svg+xml" href="../images/logo.svg" />
+  <style>
+    body {
+      display: grid;
+      place-items: center;
+      min-height: 100vh;
+      margin: 0;
+    }
+  </style>
+</head>
+<body class="subtle-background">
+  <div class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="pricing-title">
+    <div class="modal-card">
+      <button class="btn-text" type="button" aria-label="Close" style="position: absolute; top: 1rem; right: 1rem;">✕</button>
+      <h1 id="pricing-title" style="margin-top: 0; text-align: center;">Choose Your Plan</h1>
+      <p class="section-subtitle" style="text-align: center;">All plans include unlimited AI chat, collaborative planning, and Bestie mode.</p>
+
+      <div class="pricing-grid">
+        <article class="pricing-card" aria-label="Free Trial plan">
+          <h2>Free Trial</h2>
+          <p class="card-subtitle">7-Day VIP Access</p>
+          <p style="font-size: 2.4rem; margin: 0; font-weight: 700;">$0</p>
+          <ul>
+            <li>Unlimited AI chat</li>
+            <li>Collaborative planning</li>
+            <li>All roles &amp; permissions</li>
+            <li>Bestie mode</li>
+            <li>No credit card required</li>
+          </ul>
+          <button class="btn btn-outline" type="button">Start Free Trial</button>
+        </article>
+
+        <article class="pricing-card" aria-label="Monthly plan">
+          <h2>Monthly Plan</h2>
+          <p class="card-subtitle">For ongoing planning</p>
+          <p style="font-size: 2.4rem; margin: 0; font-weight: 700;">$29<span style="font-size: 1rem;">/mo</span></p>
+          <ul>
+            <li>Unlimited AI chat</li>
+            <li>Collaborative planning</li>
+            <li>All roles &amp; permissions</li>
+            <li>Bestie mode</li>
+            <li>Priority support</li>
+          </ul>
+          <button class="btn btn-outline" type="button">Start Monthly</button>
+        </article>
+
+        <article class="pricing-card featured" aria-label="Until I Do plan">
+          <span class="badge gold">Most Popular</span>
+          <h2>Until I Do</h2>
+          <p class="card-subtitle">Best value - pay once</p>
+          <p style="font-size: 2.4rem; margin: 0; font-weight: 700;">$199</p>
+          <ul>
+            <li>All premium features</li>
+            <li>Lifetime access to planning</li>
+            <li>Export all data after wedding</li>
+            <li>Concierge onboarding session</li>
+          </ul>
+          <button class="btn btn-primary" type="button">Get Lifetime Access</button>
+        </article>
+      </div>
+    </div>
+  </div>
+  <script src="../js/main.js" type="module"></script>
+</body>
+</html>

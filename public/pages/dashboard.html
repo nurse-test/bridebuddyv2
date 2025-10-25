@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bride Buddy Dashboard</title>
+  <link rel="stylesheet" href="../css/components.css" />
+  <link rel="stylesheet" href="../css/styles.css" />
+  <link rel="icon" type="image/svg+xml" href="../images/logo.svg" />
+</head>
+<body class="subtle-background">
+  <button class="mobile-nav-toggle" aria-label="Toggle navigation" data-sidebar-toggle>☰</button>
+  <div class="dashboard-layout">
+    <aside class="sidebar" role="navigation" aria-label="Primary">
+      <div class="brand">
+        <img src="../images/logo.svg" alt="Bride Buddy" width="42" height="42" />
+        <span class="brand-logo"><span class="accent">Bride</span> Buddy</span>
+      </div>
+      <nav class="nav-links" aria-label="Main navigation">
+        <a class="active" href="dashboard.html"><span class="icon">🏠</span><span>Dashboard</span></a>
+        <a href="chat.html"><span class="icon">💬</span><span>AI Chat</span></a>
+        <a href="team.html"><span class="icon">👥</span><span>Team</span></a>
+        <a href="invite.html"><span class="icon">✉️</span><span>Invites</span></a>
+        <a href="#"><span class="icon">📋</span><span>Tasks</span></a>
+        <a href="#"><span class="icon">💰</span><span>Budget</span></a>
+        <a href="settings.html"><span class="icon">⚙️</span><span>Settings</span></a>
+      </nav>
+    </aside>
+
+    <div>
+      <header class="top-nav">
+        <div class="brand hide-mobile">
+          <img src="../images/logo.svg" alt="Bride Buddy" width="44" height="44" />
+        </div>
+        <div class="wedding-meta" aria-live="polite">
+          <span class="wedding-name">Amelia &amp; Noah</span>
+          <span class="badge">June 21, 2025 · Napa Valley, CA</span>
+        </div>
+        <div class="user-menu">
+          <div class="avatar gold" aria-hidden="true">A</div>
+          <div class="dropdown" role="button" aria-haspopup="menu" aria-expanded="false">
+            Amelia <span class="chevron">▾</span>
+          </div>
+        </div>
+      </header>
+
+      <main class="main-content" role="main">
+        <section class="card welcome-banner" aria-labelledby="welcome-title">
+          <div>
+            <h1 id="welcome-title">Welcome back, Amelia!</h1>
+            <p class="section-subtitle">You're 142 days away from "I do." Here's where your planning stands today.</p>
+          </div>
+          <div class="quick-actions">
+            <a class="btn btn-primary" href="chat.html">Chat with AI</a>
+            <a class="btn btn-outline" href="invite.html">Invite Someone</a>
+            <a class="btn btn-outline" href="#">Add Task</a>
+          </div>
+        </section>
+
+        <section class="grid three" aria-label="Planning stats">
+          <article class="card">
+            <h2 class="card-title">Days Until Wedding</h2>
+            <p style="font-size: 3rem; font-weight: 700; margin: 0;">142</p>
+            <p class="card-subtitle">Mark your countdown milestones with AI reminders.</p>
+          </article>
+          <article class="card">
+            <h2 class="card-title">Team Members</h2>
+            <p style="font-size: 2.4rem; font-weight: 700; margin: 0;">8</p>
+            <div style="display: flex; gap: 0.5rem; margin-top: 0.5rem;">
+              <span class="avatar gold">A</span>
+              <span class="avatar">N</span>
+              <span class="avatar">P</span>
+              <span class="avatar">Z</span>
+            </div>
+            <p class="card-subtitle">Collaborators across Owner, Partner, Co-planner &amp; Bestie roles.</p>
+          </article>
+          <article class="card">
+            <h2 class="card-title">Tasks Completed</h2>
+            <p class="card-subtitle">18 of 32 major milestones complete</p>
+            <div class="progress" aria-hidden="true">
+              <div class="progress-bar" style="width: 56%;"></div>
+            </div>
+            <span class="badge">56% Complete</span>
+          </article>
+        </section>
+
+        <section class="grid two">
+          <article class="card" aria-labelledby="activity-title">
+            <div class="card-header">
+              <h2 class="card-title" id="activity-title">Recent Activity</h2>
+              <a class="link" href="#">View all</a>
+            </div>
+            <div class="activity-feed">
+              <div class="activity-item">
+                <span><strong>Priya</strong> added vendor <strong>Floral Atelier</strong></span>
+                <span class="badge">2h ago</span>
+              </div>
+              <div class="activity-item">
+                <span><strong>Zara (Bestie)</strong> updated the guest list</span>
+                <span class="badge">4h ago</span>
+              </div>
+              <div class="activity-item">
+                <span><strong>Noah</strong> approved budget item Venue décor</span>
+                <span class="badge">Yesterday</span>
+              </div>
+              <div class="activity-item">
+                <span><strong>AI Assistant</strong> suggested vendor shortlist</span>
+                <span class="badge">Yesterday</span>
+              </div>
+            </div>
+          </article>
+
+          <article class="card" aria-labelledby="ai-suggestions-title">
+            <div class="card-header">
+              <h2 class="card-title" id="ai-suggestions-title">AI Suggestions</h2>
+              <span class="badge gold">Smart Focus</span>
+            </div>
+            <ul class="list-clean">
+              <li>✨ Finalize floral designer mood board and confirm availability.</li>
+              <li>📋 Send collaborative task list to co-planners for weekend review.</li>
+              <li>🤝 Schedule tasting with top two caterers recommended by AI.</li>
+              <li>💌 Draft "Save the Date" invite copy with AI tone suggestions.</li>
+            </ul>
+          </article>
+        </section>
+
+        <section class="card" aria-labelledby="timeline-title">
+          <h2 class="card-title" id="timeline-title">Upcoming Timeline Highlights</h2>
+          <div class="timeline">
+            <div class="timeline-item">
+              <h3>Venue walkthrough</h3>
+              <p class="card-subtitle">Saturday · With Amelia, Noah, and Priya</p>
+            </div>
+            <div class="timeline-item">
+              <h3>Bachelorette planning sync</h3>
+              <p class="card-subtitle">Monday · Bestie-only AI briefing</p>
+            </div>
+            <div class="timeline-item">
+              <h3>Budget checkpoint</h3>
+              <p class="card-subtitle">In 10 days · AI-generated projection report</p>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+  <script src="../js/main.js" type="module"></script>
+</body>
+</html>

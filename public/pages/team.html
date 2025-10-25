@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Planning Team · Bride Buddy</title>
+  <link rel="stylesheet" href="../css/components.css" />
+  <link rel="stylesheet" href="../css/styles.css" />
+  <link rel="icon" type="image/svg+xml" href="../images/logo.svg" />
+</head>
+<body class="subtle-background">
+  <button class="mobile-nav-toggle" aria-label="Toggle navigation" data-sidebar-toggle>☰</button>
+  <div class="dashboard-layout">
+    <aside class="sidebar" role="navigation" aria-label="Primary">
+      <div class="brand">
+        <img src="../images/logo.svg" alt="Bride Buddy" width="42" height="42" />
+        <span class="brand-logo"><span class="accent">Bride</span> Buddy</span>
+      </div>
+      <nav class="nav-links">
+        <a href="dashboard.html"><span class="icon">🏠</span><span>Dashboard</span></a>
+        <a href="chat.html"><span class="icon">💬</span><span>AI Chat</span></a>
+        <a class="active" href="team.html"><span class="icon">👥</span><span>Team</span></a>
+        <a href="invite.html"><span class="icon">✉️</span><span>Invites</span></a>
+        <a href="#"><span class="icon">📋</span><span>Tasks</span></a>
+        <a href="#"><span class="icon">💰</span><span>Budget</span></a>
+        <a href="settings.html"><span class="icon">⚙️</span><span>Settings</span></a>
+      </nav>
+    </aside>
+
+    <div>
+      <header class="top-nav">
+        <div class="brand hide-mobile">
+          <img src="../images/logo.svg" alt="Bride Buddy" width="44" height="44" />
+        </div>
+        <div class="wedding-meta">
+          <span class="wedding-name">Your Planning Team</span>
+          <span class="badge">Collaborators &amp; permissions</span>
+        </div>
+        <div class="user-menu">
+          <div class="avatar gold" aria-hidden="true">A</div>
+          <div class="dropdown" role="button" aria-haspopup="menu" aria-expanded="false">
+            Amelia <span class="chevron">▾</span>
+          </div>
+        </div>
+      </header>
+
+      <main class="main-content" role="main">
+        <section class="card" aria-labelledby="team-heading">
+          <div class="welcome-banner">
+            <div>
+              <h1 id="team-heading">Your Planning Team</h1>
+              <p class="section-subtitle">Every collaborator plays a distinct role. Adjust permissions with confidence.</p>
+            </div>
+            <a class="btn btn-primary" href="invite.html">Invite New Member</a>
+          </div>
+        </section>
+
+        <section class="team-grid" aria-label="Team members">
+          <article class="team-card">
+            <div class="actions"><button class="btn-text" type="button">⋮</button></div>
+            <div style="display: flex; gap: 1rem; align-items: center;">
+              <div class="avatar gold" aria-hidden="true">A</div>
+              <div>
+                <strong>Amelia Hartford</strong>
+                <div class="role-badge role-owner">Owner</div>
+              </div>
+            </div>
+            <p class="card-subtitle">Can view and edit everything.</p>
+            <p class="card-subtitle">Active 2 hours ago</p>
+          </article>
+
+          <article class="team-card">
+            <div class="actions"><button class="btn-text" type="button">⋮</button></div>
+            <div style="display: flex; gap: 1rem; align-items: center;">
+              <div class="avatar" aria-hidden="true">N</div>
+              <div>
+                <strong>Noah Sinclair</strong>
+                <div class="role-badge role-partner">Partner</div>
+              </div>
+            </div>
+            <p class="card-subtitle">Can view and edit everything.</p>
+            <p class="card-subtitle">Active 30 minutes ago</p>
+          </article>
+
+          <article class="team-card">
+            <div class="actions"><button class="btn-text" type="button">⋮</button></div>
+            <div style="display: flex; gap: 1rem; align-items: center;">
+              <div class="avatar" aria-hidden="true">P</div>
+              <div>
+                <strong>Priya Das</strong>
+                <div class="role-badge role-co-planner">Co-planner</div>
+              </div>
+            </div>
+            <p class="card-subtitle">Can view and edit tasks &amp; vendors.</p>
+            <p class="card-subtitle">Active 1 hour ago</p>
+          </article>
+
+          <article class="team-card">
+            <div class="actions"><button class="btn-text" type="button">⋮</button></div>
+            <div style="display: flex; gap: 1rem; align-items: center;">
+              <div class="avatar gold" aria-hidden="true">Z</div>
+              <div>
+                <strong>Zara Lee</strong>
+                <div class="role-badge role-bestie">Bestie</div>
+              </div>
+            </div>
+            <p class="card-subtitle">Private planning access. Owner cannot view surprise boards.</p>
+            <p class="card-subtitle">Active 12 minutes ago</p>
+          </article>
+
+          <article class="team-card">
+            <div class="actions"><button class="btn-text" type="button">⋮</button></div>
+            <div style="display: flex; gap: 1rem; align-items: center;">
+              <div class="avatar" aria-hidden="true">L</div>
+              <div>
+                <strong>Lina Patel</strong>
+                <div class="role-badge role-co-planner">Co-planner</div>
+              </div>
+            </div>
+            <p class="card-subtitle">View only · Reviewing décor inspiration.</p>
+            <p class="card-subtitle">Active yesterday</p>
+          </article>
+
+          <article class="team-card">
+            <div class="actions"><button class="btn-text" type="button">⋮</button></div>
+            <div style="display: flex; gap: 1rem; align-items: center;">
+              <div class="avatar" aria-hidden="true">H</div>
+              <div>
+                <strong>Harper Quinn</strong>
+                <div class="role-badge role-bestie">Bestie</div>
+              </div>
+            </div>
+            <p class="card-subtitle">Bestie planning · Owner has view-only access.</p>
+            <p class="card-subtitle">Active 3 days ago</p>
+          </article>
+        </section>
+
+        <section class="card" aria-labelledby="team-empty">
+          <h2 id="team-empty" class="card-title">Need more support?</h2>
+          <p class="card-subtitle">Invite new collaborators or connect with Bride Buddy Concierge for white-glove planning assistance.</p>
+          <a class="btn btn-outline" href="invite.html">Send an invite</a>
+        </section>
+      </main>
+    </div>
+  </div>
+  <script src="../js/main.js" type="module"></script>
+</body>
+</html>

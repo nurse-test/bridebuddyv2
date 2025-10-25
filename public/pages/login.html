@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Log In · Bride Buddy</title>
+  <link rel="stylesheet" href="../css/components.css" />
+  <link rel="stylesheet" href="../css/styles.css" />
+  <link rel="icon" type="image/svg+xml" href="../images/logo.svg" />
+</head>
+<body>
+  <div class="form-page page-wrapper">
+    <header class="header-top" aria-label="Bride Buddy">
+      <a class="brand-logo" href="index.html">
+        <img src="../images/logo.svg" alt="Bride Buddy logo" width="150" height="48" />
+      </a>
+    </header>
+
+    <main class="form-layout" role="main">
+      <form class="card form-card" aria-labelledby="login-title" novalidate>
+        <h1 id="login-title">Welcome Back</h1>
+        <p class="section-subtitle">Pick up right where you left off with your curated planning timeline.</p>
+
+        <div class="form-grid">
+          <div class="input-group">
+            <label for="loginEmail">Email</label>
+            <input id="loginEmail" name="email" type="email" autocomplete="email" placeholder="you@example.com" required />
+          </div>
+          <div class="input-group input-with-icon">
+            <label for="loginPassword">Password</label>
+            <input id="loginPassword" name="password" type="password" required placeholder="Enter your password" />
+            <button type="button" data-password-toggle aria-label="Toggle password visibility">👁️</button>
+          </div>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+          <a class="link" href="#">Forgot password?</a>
+        </div>
+
+        <button class="btn btn-primary" type="submit">Log In</button>
+
+        <div class="divider" role="separator">or</div>
+
+        <div class="social-buttons">
+          <button type="button" class="social-button" aria-label="Continue with Google">🔐 Continue with Google</button>
+          <button type="button" class="social-button" aria-label="Continue with Apple"> Continue with Apple</button>
+        </div>
+
+        <p style="margin-top: 1.5rem; text-align: center;">
+          Don't have an account?
+          <a class="link" href="signup.html">Sign up</a>
+        </p>
+      </form>
+    </main>
+  </div>
+
+  <script src="../js/main.js" type="module"></script>
+  <script type="module">
+    const form = document.querySelector('form');
+    const submitButton = form.querySelector('button[type="submit"]');
+
+    form.addEventListener('submit', (event) => {
+      event.preventDefault();
+      submitButton.disabled = true;
+      submitButton.textContent = 'Logging in…';
+      setTimeout(() => {
+        submitButton.disabled = false;
+        submitButton.textContent = 'Log In';
+        window.showToast('You are in! Redirecting to your dashboard…', 'success');
+      }, 1200);
+    });
+  </script>
+</body>
+</html>

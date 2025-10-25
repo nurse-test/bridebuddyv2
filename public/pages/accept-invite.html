@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Accept Invitation · Bride Buddy</title>
+  <link rel="stylesheet" href="../css/components.css" />
+  <link rel="stylesheet" href="../css/styles.css" />
+  <link rel="icon" type="image/svg+xml" href="../images/logo.svg" />
+</head>
+<body>
+  <div class="page-wrapper full-height">
+    <header class="header-top" aria-label="Bride Buddy">
+      <img src="../images/logo.svg" alt="Bride Buddy logo" width="190" height="60" />
+    </header>
+
+    <main class="hero" role="main">
+      <section class="card hero-card" style="max-width: 680px; text-align: left;" aria-labelledby="invite-heading">
+        <div class="confetti" aria-hidden="true"></div>
+        <h1 id="invite-heading">You've Been Invited!</h1>
+        <p class="section-subtitle">Noah has invited you to join the "Amelia &amp; Noah" wedding planning workspace.</p>
+
+        <div class="card" style="background: rgba(255,255,255,0.75);">
+          <h2 style="margin-top: 0;">Invitation Details</h2>
+          <ul class="list-clean">
+            <li><strong>Host:</strong> Noah Sinclair</li>
+            <li><strong>Wedding:</strong> Amelia &amp; Noah · June 21, 2025</li>
+            <li><strong>Your role:</strong> Bestie 🤫</li>
+            <li><strong>Permissions:</strong> You start with <strong>Read &amp; Edit</strong> access to planning boards.</li>
+          </ul>
+        </div>
+
+        <section aria-labelledby="auth-options" style="margin-top: 1.5rem;">
+          <h2 id="auth-options">Join the Celebration</h2>
+          <div class="grid two">
+            <a class="btn btn-primary" href="signup.html">Sign up to accept</a>
+            <a class="btn btn-outline" href="login.html">Already have an account? Log in</a>
+          </div>
+        </section>
+
+        <section aria-labelledby="bestie-permissions" class="card" style="margin-top: 2rem;" data-role-dependent="bestie">
+          <h2 id="bestie-permissions">Set Amelia's Access to Your Bestie Plans</h2>
+          <p class="card-subtitle">You control what Amelia can view once you start planning surprises.</p>
+          <label class="toggle">
+            <input type="checkbox" checked />
+            <span>Allow Amelia to view my surprise planning</span>
+          </label>
+          <label class="toggle">
+            <input type="checkbox" />
+            <span>Allow Amelia to edit my surprise planning</span>
+          </label>
+        </section>
+
+        <button class="btn btn-primary" type="button" style="margin-top: 1.5rem;">Accept Invitation</button>
+        <p class="card-subtitle">A confetti moment awaits—then you'll be redirected to your personalized dashboard.</p>
+      </section>
+    </main>
+  </div>
+  <script src="../js/main.js" type="module"></script>
+  <script type="module">
+    const acceptButton = document.querySelector('button[type="button"]');
+    acceptButton.addEventListener('click', () => {
+      acceptButton.textContent = 'Joining…';
+      acceptButton.disabled = true;
+      window.showToast('You are now part of the planning team! Redirecting…', 'success');
+      setTimeout(() => {
+        acceptButton.textContent = 'Accept Invitation';
+        acceptButton.disabled = false;
+      }, 2000);
+    });
+  </script>
+</body>
+</html>

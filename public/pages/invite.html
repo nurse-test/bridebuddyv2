@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Invite Collaborators · Bride Buddy</title>
+  <link rel="stylesheet" href="../css/components.css" />
+  <link rel="stylesheet" href="../css/styles.css" />
+  <link rel="icon" type="image/svg+xml" href="../images/logo.svg" />
+</head>
+<body class="subtle-background">
+  <button class="mobile-nav-toggle" aria-label="Toggle navigation" data-sidebar-toggle>☰</button>
+  <div class="dashboard-layout">
+    <aside class="sidebar" role="navigation" aria-label="Primary">
+      <div class="brand">
+        <img src="../images/logo.svg" alt="Bride Buddy" width="42" height="42" />
+        <span class="brand-logo"><span class="accent">Bride</span> Buddy</span>
+      </div>
+      <nav class="nav-links">
+        <a href="dashboard.html"><span class="icon">🏠</span><span>Dashboard</span></a>
+        <a href="chat.html"><span class="icon">💬</span><span>AI Chat</span></a>
+        <a href="team.html"><span class="icon">👥</span><span>Team</span></a>
+        <a class="active" href="invite.html"><span class="icon">✉️</span><span>Invites</span></a>
+        <a href="#"><span class="icon">📋</span><span>Tasks</span></a>
+        <a href="#"><span class="icon">💰</span><span>Budget</span></a>
+        <a href="settings.html"><span class="icon">⚙️</span><span>Settings</span></a>
+      </nav>
+    </aside>
+
+    <div>
+      <header class="top-nav">
+        <div class="brand hide-mobile">
+          <img src="../images/logo.svg" alt="Bride Buddy" width="44" height="44" />
+        </div>
+        <div class="wedding-meta">
+          <span class="wedding-name">Invite Collaborators</span>
+          <span class="badge">Role-based access</span>
+        </div>
+        <div class="user-menu">
+          <div class="avatar gold" aria-hidden="true">A</div>
+          <div class="dropdown" role="button" aria-haspopup="menu" aria-expanded="false">
+            Amelia <span class="chevron">▾</span>
+          </div>
+        </div>
+      </header>
+
+      <main class="main-content" role="main">
+        <section class="card" aria-labelledby="invite-title">
+          <h1 id="invite-title">Invite Someone to Your Wedding Planning</h1>
+          <p class="section-subtitle">Select their role, fine-tune permissions, and share a secure invite link.</p>
+
+          <div class="invite-steps" aria-hidden="true">
+            <span class="invite-step">1 · Choose role</span>
+            <span class="invite-step">2 · Set permissions</span>
+            <span class="invite-step">3 · Share link</span>
+          </div>
+
+          <section aria-labelledby="role-heading" style="margin-bottom: 2rem;">
+            <h2 id="role-heading" class="card-title">Who are you inviting?</h2>
+            <div class="role-options">
+              <article class="role-option selected" data-role-select="partner" data-role-name="Partner 💍">
+                <h3>Partner 💍</h3>
+                <p>Your fiancé/fiancée joins the core planning experience.</p>
+              </article>
+              <article class="role-option" data-role-select="co-planner" data-role-name="Co-planner 👥">
+                <h3>Co-planner 👥</h3>
+                <p>Family or friends who help manage tasks and vendors.</p>
+              </article>
+              <article class="role-option" data-role-select="bestie" data-role-name="Bestie 🤫">
+                <h3>Bestie 🤫</h3>
+                <p>MOH/Best Man who receives their own surprise planning space.</p>
+              </article>
+            </div>
+          </section>
+
+          <section aria-labelledby="permission-heading" style="margin-bottom: 2rem;">
+            <h2 id="permission-heading" class="card-title">Set Permissions for <span data-role-label>Partner 💍</span></h2>
+            <p class="card-subtitle">Tailor what this collaborator can see and edit.</p>
+            <div class="permission-grid">
+              <label class="toggle">
+                <input type="checkbox" checked />
+                <span>View wedding details</span>
+              </label>
+              <label class="toggle">
+                <input type="checkbox" checked />
+                <span>Edit wedding details</span>
+              </label>
+            </div>
+            <div class="card hidden" data-role-dependent="bestie" style="margin-top: 1.5rem;">
+              <h3>Bestie Permissions Note</h3>
+              <p class="card-subtitle">Bestie will set <strong>your</strong> access to their secret plans when they accept.</p>
+            </div>
+          </section>
+
+          <section aria-labelledby="generate-heading">
+            <h2 id="generate-heading" class="card-title">Generate Invite</h2>
+            <button class="btn btn-primary" type="button" id="generateInvite">Generate Invite Link</button>
+            <div class="invite-link-box hidden" id="inviteLinkBox" style="margin-top: 1.5rem;">
+              <code id="inviteLink">https://bridebuddy.ai/invite/partner-9f3a</code>
+              <button class="btn btn-outline" type="button" data-copy="#inviteLink">Copy Link</button>
+            </div>
+            <p class="card-subtitle">This link expires in 7 days. Share via text, email, or in-app message.</p>
+          </section>
+        </section>
+
+        <section class="card" aria-labelledby="previous-invites">
+          <h2 class="card-title" id="previous-invites">Previous Invites</h2>
+          <div class="invite-history">
+            <div class="activity-item">
+              <div>
+                <strong>Noah</strong> · Partner
+                <div class="card-subtitle">Sent May 1 · Accepted</div>
+              </div>
+              <span class="status-pill accepted">Accepted</span>
+            </div>
+            <div class="activity-item">
+              <div>
+                <strong>Priya</strong> · Co-planner
+                <div class="card-subtitle">Sent May 12 · Pending response</div>
+              </div>
+              <span class="status-pill pending">Pending</span>
+            </div>
+            <div class="activity-item">
+              <div>
+                <strong>Lina</strong> · Bestie
+                <div class="card-subtitle">Sent April 20 · Expired</div>
+              </div>
+              <span class="status-pill expired">Expired</span>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+  <script src="../js/main.js" type="module"></script>
+  <script type="module">
+    const generateButton = document.getElementById('generateInvite');
+    const linkBox = document.getElementById('inviteLinkBox');
+    const linkText = document.getElementById('inviteLink');
+
+    generateButton.addEventListener('click', () => {
+      linkBox.classList.remove('hidden');
+      const random = Math.random().toString(36).slice(2, 8);
+      linkText.textContent = `https://bridebuddy.ai/invite/${random}`;
+      window.showToast('Invite link ready to share!', 'success');
+    });
+  </script>
+</body>
+</html>

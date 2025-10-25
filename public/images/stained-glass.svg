@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2B1B3D" />
+      <stop offset="45%" stop-color="#7D3A5A" />
+      <stop offset="100%" stop-color="#B85C3F" />
+    </linearGradient>
+    <pattern id="tiles" width="160" height="160" patternUnits="userSpaceOnUse" patternTransform="rotate(2)">
+      <rect width="160" height="160" fill="none" stroke="rgba(255,255,255,0.28)" stroke-width="2" />
+      <path d="M0 80 L80 0 L160 80 L80 160 Z" fill="none" stroke="rgba(255,255,255,0.35)" stroke-width="1.4" />
+      <circle cx="80" cy="80" r="28" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="1.3" />
+    </pattern>
+    <filter id="noise">
+      <feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="4" stitchTiles="stitch" />
+      <feColorMatrix type="saturate" values="0" />
+      <feComponentTransfer>
+        <feFuncA type="linear" slope="0.08" />
+      </feComponentTransfer>
+    </filter>
+  </defs>
+  <rect width="1600" height="900" fill="url(#grad)" />
+  <rect width="1600" height="900" fill="url(#tiles)" opacity="0.55" />
+  <g filter="url(#noise)">
+    <rect width="1600" height="900" fill="#fff" opacity="0.08" />
+  </g>
+  <g opacity="0.24" stroke="#F5F1E8" stroke-width="2" stroke-linecap="round">
+    <path d="M50 120 C200 40, 420 140, 560 60" />
+    <path d="M1280 780 C1340 680, 1440 640, 1550 700" />
+    <path d="M320 640 C380 520, 520 540, 620 420" />
+  </g>
+  <g opacity="0.28" stroke="#D4AF37" stroke-width="2" stroke-linecap="round">
+    <path d="M180 840 L340 680 L520 860 L720 600 L960 820 L1240 580" />
+    <path d="M40 340 L240 180 L420 360 L600 140 L780 320 L960 120 L1180 320 L1360 140" />
+  </g>
+</svg>
