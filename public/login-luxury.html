@@ -204,26 +204,50 @@
                 console.log('✅ Authentication successful:', data.user.email);
                 showToast('Welcome back!', 'success');
 
-                // Get user's wedding
+                // Get user's wedding(s)
                 console.log('🔍 Looking up wedding for user:', data.user.id);
-                const { data: member, error: memberError } = await supabase
+                const { data: members, error: memberError } = await supabase
                     .from('wedding_members')
-                    .select('wedding_id')
+                    .select('wedding_id, role')
                     .eq('user_id', data.user.id)
-                    .single();
+                    .order('created_at', { ascending: false });
 
-                console.log('📊 Wedding lookup result:', { member, memberError });
+                console.log('📊 Wedding lookup result:', {
+                    members,
+                    memberError,
+                    count: members?.length
+                });
 
                 if (memberError) {
                     console.error('❌ Wedding lookup error:', memberError);
-                    throw memberError;
+                    showToast('Error loading your wedding. Please try again.', 'error');
+                    loginBtn.disabled = false;
+                    loginBtn.textContent = 'Sign In';
+                    return;
                 }
 
-                console.log('✅ Found wedding:', member.wedding_id);
+                // Check if user has any weddings
+                if (!members || members.length === 0) {
+                    console.log('⚠️ No wedding found for user - redirecting to onboarding');
+                    showToast('Please complete your wedding setup', 'info', 3000);
+                    setTimeout(() => {
+                        window.location.href = 'onboarding-luxury.html';
+                    }, 1000);
+                    return;
+                }
+
+                // Use the first wedding (most recent)
+                const weddingId = members[0].wedding_id;
+                console.log('✅ Found wedding:', weddingId);
+
+                if (members.length > 1) {
+                    console.log('ℹ️ User has multiple weddings, using most recent');
+                }
+
                 console.log('🚀 Redirecting to dashboard...');
 
                 // Redirect to dashboard
-                window.location.href = `dashboard-luxury.html?wedding_id=${member.wedding_id}`;
+                window.location.href = `dashboard-luxury.html?wedding_id=${weddingId}`;
             } catch (error) {
                 console.error('❌ Login error:', error);
 
