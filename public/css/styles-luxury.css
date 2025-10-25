@@ -16,18 +16,19 @@
   --color-navy: #2B1B3D;          /* Deep Purple/Navy - primary text, headers */
   --color-burgundy: #7D3A5A;      /* Burgundy/Wine - secondary text, accents */
   --color-rust: #B85C3F;          /* Warm Rust - tertiary accents */
-  --color-gold: #D4AF37;          /* Champagne Gold - CTAs, highlights, circuit lines */
+  --color-gold: #C9A961;          /* Elegant Champagne Gold - CTAs, highlights, circuit lines */
+  --color-gold-hover: #B8933D;    /* Richer gold for hover states */
   --color-cream: #F5F1E8;         /* Cream/Ivory - card backgrounds */
   --color-white: #FFFFFF;         /* White - text on dark, line art */
 
   /* Gradient Variations */
-  --gradient-gold: linear-gradient(135deg, #D4AF37 0%, #F4D03F 100%);
+  --gradient-gold: linear-gradient(135deg, #C9A961 0%, #E6C878 100%);
   --gradient-purple: linear-gradient(135deg, #2B1B3D 0%, #7D3A5A 100%);
   --gradient-stained-glass: linear-gradient(135deg,
     #2B1B3D 0%,
     #7D3A5A 35%,
     #B85C3F 70%,
-    #D4AF37 100%);
+    #C9A961 100%);
 
   /* Alpha Variations */
   --color-navy-10: rgba(43, 27, 61, 0.1);
@@ -38,9 +39,9 @@
   --color-burgundy-10: rgba(125, 58, 90, 0.1);
   --color-burgundy-20: rgba(125, 58, 90, 0.2);
 
-  --color-gold-10: rgba(212, 175, 55, 0.1);
-  --color-gold-20: rgba(212, 175, 55, 0.2);
-  --color-gold-30: rgba(212, 175, 55, 0.3);
+  --color-gold-10: rgba(201, 169, 97, 0.1);
+  --color-gold-20: rgba(201, 169, 97, 0.2);
+  --color-gold-30: rgba(201, 169, 97, 0.3);
 
   --color-cream-50: rgba(245, 241, 232, 0.5);
   --color-cream-80: rgba(245, 241, 232, 0.8);
