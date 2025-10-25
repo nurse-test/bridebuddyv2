@@ -25,12 +25,12 @@
     <a href="#main-content" class="skip-to-main">Skip to main content</a>
 
     <!-- Invite Page Container -->
-    <div class="bg-stained-glass">
+    <div class="bg-sunset">
         <div class="container" style="min-height: 100vh; padding-top: var(--space-8); padding-bottom: var(--space-8);">
 
             <!-- Header -->
             <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--space-8);" class="animate-fade-in">
-                <button onclick="goBack()" class="btn btn-icon-only" style="background: rgba(212, 175, 55, 0.2); border-color: var(--color-gold);">
+                <button onclick="goBack()" class="btn btn-icon-only" style="background: rgba(201, 169, 97, 0.2); border-color: var(--color-gold);">
                     <svg style="width: 24px; height: 24px; fill: currentColor;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
                 </button>
                 <h2 style="font-family: var(--font-heading); font-size: var(--text-2xl); color: var(--color-navy); margin: 0;">
@@ -84,8 +84,8 @@
                     </form>
 
                     <!-- Generated Link Display -->
-                    <div id="generatedLinkSection" class="hidden" style="margin-top: var(--space-6); padding-top: var(--space-6); border-top: 2px solid var(--color-champagne);">
-                        <div style="background: rgba(212, 175, 55, 0.1); border: 2px dashed var(--color-gold); border-radius: var(--radius-md); padding: var(--space-4); margin-bottom: var(--space-4);">
+                    <div id="generatedLinkSection" class="hidden" style="margin-top: var(--space-6); padding-top: var(--space-6); border-top: 2px solid var(--color-accent);">
+                        <div style="background: rgba(201, 169, 97, 0.1); border: 2px dashed var(--color-gold); border-radius: var(--radius-md); padding: var(--space-4); margin-bottom: var(--space-4);">
                             <p style="font-weight: 600; color: var(--color-navy); margin-bottom: var(--space-2);">Share this link:</p>
                             <p id="inviteLink" style="font-size: var(--text-sm); color: var(--color-navy); word-break: break-all; margin-bottom: var(--space-3);"></p>
                             <button class="btn btn-secondary btn-full" onclick="copyLink()" id="copyBtn">
@@ -393,7 +393,7 @@
                                 : 'No access';
 
                     return `
-                        <div style="background: rgba(156, 118, 198, 0.1); padding: var(--space-3); border-radius: var(--radius-md); margin-bottom: var(--space-2);">
+                        <div style="background: rgba(201, 169, 97, 0.12); padding: var(--space-3); border-radius: var(--radius-md); margin-bottom: var(--space-2);">
                             <div style="color: var(--color-navy); font-weight: 600;">${roleDisplay}</div>
                             <div style="color: var(--color-navy); opacity: 0.8; font-size: var(--text-sm); margin-top: var(--space-1);">
                                 ${permissionsText}
@@ -419,7 +419,7 @@
             display: flex;
             align-items: center;
             padding: var(--space-3);
-            background: rgba(156, 118, 198, 0.1);
+            background: rgba(201, 169, 97, 0.12);
             border: 2px solid transparent;
             border-radius: var(--radius-md);
             cursor: pointer;
@@ -427,8 +427,8 @@
         }
 
         .checkbox-item:hover {
-            background: rgba(156, 118, 198, 0.15);
-            border-color: var(--color-champagne);
+            background: rgba(201, 169, 97, 0.18);
+            border-color: var(--color-accent);
         }
 
         .checkbox-item input[type="checkbox"] {

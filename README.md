@@ -10,9 +10,7 @@ public/
     components.css      # Reusable UI tokens, buttons, cards, badges, utilities
     styles.css          # Global layout, page styles, responsive rules
   images/
-    logo.svg            # Bride Buddy logotype with botanical circuitry
-    stained-glass.svg   # Hero stained glass mosaic background
-    stained-glass-soft.svg # Subtle variation for interior pages
+    logo.svg            # Bride Buddy logotype
   js/
     api.js              # Placeholder API helpers demonstrating integration points
     auth.js             # Form helpers for validation and loading states
@@ -33,7 +31,7 @@ public/
 
 ## Working With the UI
 
-Each page includes references to the shared component and layout styles as well as the `main.js` helper script. The CSS makes heavy use of custom properties (CSS variables) so you can adjust colors or spacing from a central location. Cards employ a frosted glass technique to maintain readability on top of the stained-glass artwork.
+Each page includes references to the shared component and layout styles as well as the `main.js` helper script. The CSS makes heavy use of custom properties (CSS variables) so you can adjust colors or spacing from a central location. Cards employ a frosted glass technique with a warm champagne glow that stands out against the twilight gradient.
 
 ### Connecting to APIs
 
@@ -47,12 +45,13 @@ To attach real data:
 
 ### Color Palette Reference
 
-- Deep Purple / Navy: `#2B1B3D`
-- Burgundy / Wine: `#7D3A5A`
-- Warm Rust: `#B85C3F`
-- Champagne Gold: `#D4AF37`
-- Cream / Ivory: `#F5F1E8`
-- White: `#FFFFFF`
+- Deep Twilight: `#1A0B2E`
+- Midnight Plum: `#4A1942`
+- Sunset Ember: `#8B4513`
+- Champagne Glow: `#C9A961`
+- Amber Depth: `#B8933D`
+- Luminous Cream: `#FFF9E6`
+- Soft Cream: `#F5E6D3`
 
 ### Component Usage Guide
 

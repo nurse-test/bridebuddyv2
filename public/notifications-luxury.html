@@ -25,12 +25,12 @@
     <a href="#main-content" class="skip-to-main">Skip to main content</a>
 
     <!-- Notifications Page Container -->
-    <div class="bg-stained-glass">
+    <div class="bg-sunset">
         <div class="container" style="min-height: 100vh; padding-top: var(--space-8); padding-bottom: var(--space-8);">
 
             <!-- Header -->
             <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--space-8);" class="animate-fade-in">
-                <button onclick="goBack()" class="btn btn-icon-only" style="background: rgba(212, 175, 55, 0.2); border-color: var(--color-gold);">
+                <button onclick="goBack()" class="btn btn-icon-only" style="background: rgba(201, 169, 97, 0.2); border-color: var(--color-gold);">
                     <svg style="width: 24px; height: 24px; fill: currentColor;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
                 </button>
                 <h2 style="font-family: var(--font-heading); font-size: var(--text-2xl); color: var(--color-navy); margin: 0;">
@@ -68,7 +68,7 @@
                         <h3 style="font-family: var(--font-heading); font-size: var(--text-xl); color: var(--color-navy); margin: 0;">
                             Update Request
                         </h3>
-                        <button class="btn btn-icon-only" onclick="closeModal()" style="background: rgba(212, 175, 55, 0.2); border-color: var(--color-gold);">
+                        <button class="btn btn-icon-only" onclick="closeModal()" style="background: rgba(201, 169, 97, 0.2); border-color: var(--color-gold);">
                             <svg style="width: 24px; height: 24px; fill: currentColor;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
                         </button>
                     </div>
@@ -192,7 +192,7 @@
 
                 const modalContent = document.getElementById('modalContent');
                 modalContent.innerHTML = `
-                    <div style="background: rgba(156, 118, 198, 0.1); padding: var(--space-4); border-radius: var(--radius-md); margin-bottom: var(--space-4);">
+                    <div style="background: rgba(201, 169, 97, 0.12); padding: var(--space-4); border-radius: var(--radius-md); margin-bottom: var(--space-4);">
                         <div style="color: var(--color-navy); font-weight: 600; margin-bottom: var(--space-2);">Task: ${update.task_name || 'N/A'}</div>
                         <div style="color: var(--color-navy); opacity: 0.8; margin-bottom: var(--space-2);">Action: ${getUpdateTypeLabel(update.update_type)}</div>
                         ${update.amount ? `<div style="color: var(--color-navy); opacity: 0.8;">Amount: $${update.amount}</div>` : ''}
@@ -201,7 +201,7 @@
                     ${update.trigger_message ? `
                         <div style="margin-bottom: var(--space-4);">
                             <div style="color: var(--color-navy); font-weight: 600; margin-bottom: var(--space-2);">${update.profiles.full_name}'s message:</div>
-                            <div style="background: rgba(212, 175, 55, 0.1); padding: var(--space-4); border-radius: var(--radius-md); color: var(--color-navy);">
+                            <div style="background: rgba(201, 169, 97, 0.1); padding: var(--space-4); border-radius: var(--radius-md); color: var(--color-navy);">
                                 "${update.trigger_message}"
                             </div>
                         </div>
@@ -210,7 +210,7 @@
                     ${update.ai_response ? `
                         <div>
                             <div style="color: var(--color-navy); font-weight: 600; margin-bottom: var(--space-2);">AI response:</div>
-                            <div style="background: rgba(156, 118, 198, 0.1); padding: var(--space-4); border-radius: var(--radius-md); color: var(--color-navy);">
+                            <div style="background: rgba(201, 169, 97, 0.12); padding: var(--space-4); border-radius: var(--radius-md); color: var(--color-navy);">
                                 "${update.ai_response}"
                             </div>
                         </div>

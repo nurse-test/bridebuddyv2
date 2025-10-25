@@ -1,8 +1,7 @@
 /**
- * BRIDE BUDDY - Luxury Botanical-Tech UI System
- * Design Language: Art Nouveau botanicals merged with circuit board motifs
- * Aesthetic: Stained glass mosaic with geometric patterns
- * Philosophy: Intentional technology - natural wisdom meets intelligent systems
+ * BRIDE BUDDY - Sunset Glow UI System
+ * Design Language: Sunset gradients with glowing frosted glass
+ * Aesthetic: LED-lit luxury with warm champagne highlights
  */
 
 /* ================================================================
@@ -12,69 +11,87 @@
 :root {
   /* ===== COLOR PALETTE ===== */
 
-  /* Primary Colors */
-  --color-navy: #2B1B3D;          /* Deep Purple/Navy - primary text, headers */
-  --color-burgundy: #7D3A5A;      /* Burgundy/Wine - secondary text, accents */
-  --color-rust: #B85C3F;          /* Warm Rust - tertiary accents */
-  --color-gold: #C9A961;          /* Elegant Champagne Gold - CTAs, highlights, circuit lines */
-  --color-gold-hover: #B8933D;    /* Richer gold for hover states */
-  --color-cream: #F5F1E8;         /* Cream/Ivory - card backgrounds */
-  --color-white: #FFFFFF;         /* White - text on dark, line art */
+  --color-background-top: #1a0b2e;
+  --color-background-middle: #4a1942;
+  --color-background-bottom: #8b4513;
 
-  /* Gradient Variations */
-  --gradient-gold: linear-gradient(135deg, #C9A961 0%, #E6C878 100%);
-  --gradient-purple: linear-gradient(135deg, #2B1B3D 0%, #7D3A5A 100%);
-  --gradient-stained-glass: linear-gradient(135deg,
-    #2B1B3D 0%,
-    #7D3A5A 35%,
-    #B85C3F 70%,
-    #C9A961 100%);
+  --color-heading: #fff9e6;
+  --color-body: #f5e6d3;
+  --color-body-muted: rgba(245, 230, 211, 0.75);
+  --color-accent: #c9a961;
+  --color-accent-dark: #b8933d;
+  --color-accent-soft: rgba(201, 169, 97, 0.4);
+  --color-warm: #8b4513;
+  --color-white: #ffffff;
+
+  --color-surface: rgba(255, 235, 205, 0.15);
+  --color-surface-strong: rgba(255, 235, 205, 0.25);
+  --color-surface-subtle: rgba(255, 235, 205, 0.08);
+  --color-border: rgba(201, 169, 97, 0.3);
+  --color-border-strong: rgba(201, 169, 97, 0.45);
+
+  --gradient-sunset: linear-gradient(
+    180deg,
+    var(--color-background-top) 0%,
+    var(--color-background-middle) 50%,
+    var(--color-background-bottom) 100%
+  );
+  --gradient-gold: linear-gradient(135deg, #c9a961 0%, #b8933d 100%);
+  --gradient-gold-bright: linear-gradient(135deg, #f6e7b2 0%, #c9a961 100%);
+
+  /* Compatibility tokens for legacy utility usage */
+  --color-navy: var(--color-heading);
+  --color-burgundy: var(--color-body);
+  --color-rust: var(--color-warm);
+  --color-gold: var(--color-accent);
+  --color-gold-hover: var(--color-accent-dark);
+  --color-cream: rgba(255, 235, 205, 0.35);
 
   /* Alpha Variations */
-  --color-navy-10: rgba(43, 27, 61, 0.1);
-  --color-navy-20: rgba(43, 27, 61, 0.2);
-  --color-navy-80: rgba(43, 27, 61, 0.8);
-  --color-navy-95: rgba(43, 27, 61, 0.95);
+  --color-navy-10: rgba(255, 249, 230, 0.1);
+  --color-navy-20: rgba(255, 249, 230, 0.2);
+  --color-navy-80: rgba(26, 11, 46, 0.8);
+  --color-navy-95: rgba(26, 11, 46, 0.95);
 
-  --color-burgundy-10: rgba(125, 58, 90, 0.1);
-  --color-burgundy-20: rgba(125, 58, 90, 0.2);
+  --color-burgundy-10: rgba(245, 230, 211, 0.1);
+  --color-burgundy-20: rgba(245, 230, 211, 0.2);
 
   --color-gold-10: rgba(201, 169, 97, 0.1);
   --color-gold-20: rgba(201, 169, 97, 0.2);
   --color-gold-30: rgba(201, 169, 97, 0.3);
+  --color-gold-40: rgba(201, 169, 97, 0.4);
 
-  --color-cream-50: rgba(245, 241, 232, 0.5);
-  --color-cream-80: rgba(245, 241, 232, 0.8);
-  --color-cream-90: rgba(245, 241, 232, 0.9);
-  --color-cream-98: rgba(245, 241, 232, 0.98);
+  --color-cream-50: rgba(255, 235, 205, 0.5);
+  --color-cream-80: rgba(255, 235, 205, 0.8);
+  --color-cream-90: rgba(255, 235, 205, 0.9);
+  --color-cream-98: rgba(255, 235, 205, 0.98);
+
+  --color-rust-10: rgba(139, 69, 19, 0.1);
+  --color-rust-20: rgba(139, 69, 19, 0.2);
 
   /* ===== TYPOGRAPHY ===== */
 
-  /* Font Families */
   --font-heading: 'Playfair Display', Georgia, serif;
   --font-body: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --font-mono: 'SF Mono', Monaco, 'Cascadia Code', Consolas, monospace;
 
-  /* Font Sizes */
-  --text-xs: 0.75rem;      /* 12px */
-  --text-sm: 0.875rem;     /* 14px */
-  --text-base: 1rem;       /* 16px */
-  --text-lg: 1.125rem;     /* 18px */
-  --text-xl: 1.25rem;      /* 20px */
-  --text-2xl: 1.5rem;      /* 24px */
-  --text-3xl: 1.875rem;    /* 30px */
-  --text-4xl: 2.25rem;     /* 36px */
-  --text-5xl: 3rem;        /* 48px */
-  --text-6xl: 3.75rem;     /* 60px */
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.25rem;
+  --text-2xl: 1.5rem;
+  --text-3xl: 1.875rem;
+  --text-4xl: 2.25rem;
+  --text-5xl: 3rem;
+  --text-6xl: 3.75rem;
 
-  /* Font Weights */
   --font-light: 300;
   --font-normal: 400;
   --font-medium: 500;
   --font-semibold: 600;
   --font-bold: 700;
 
-  /* Line Heights */
   --leading-tight: 1.25;
   --leading-snug: 1.375;
   --leading-normal: 1.5;
@@ -84,27 +101,27 @@
   /* ===== SPACING ===== */
 
   --space-0: 0;
-  --space-1: 0.25rem;    /* 4px */
-  --space-2: 0.5rem;     /* 8px */
-  --space-3: 0.75rem;    /* 12px */
-  --space-4: 1rem;       /* 16px */
-  --space-5: 1.25rem;    /* 20px */
-  --space-6: 1.5rem;     /* 24px */
-  --space-8: 2rem;       /* 32px */
-  --space-10: 2.5rem;    /* 40px */
-  --space-12: 3rem;      /* 48px */
-  --space-16: 4rem;      /* 64px */
-  --space-20: 5rem;      /* 80px */
-  --space-24: 6rem;      /* 96px */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+  --space-20: 5rem;
+  --space-24: 6rem;
 
   /* ===== BORDERS & RADII ===== */
 
-  --radius-sm: 0.25rem;    /* 4px */
-  --radius-md: 0.5rem;     /* 8px */
-  --radius-lg: 0.75rem;    /* 12px */
-  --radius-xl: 1rem;       /* 16px */
-  --radius-2xl: 1.5rem;    /* 24px */
-  --radius-full: 9999px;   /* Fully rounded */
+  --radius-sm: 0.25rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-2xl: 1.5rem;
+  --radius-full: 9999px;
 
   --border-width: 1px;
   --border-width-2: 2px;
@@ -112,20 +129,14 @@
 
   /* ===== SHADOWS ===== */
 
-  --shadow-sm: 0 1px 2px 0 rgba(43, 27, 61, 0.05);
-  --shadow-md: 0 4px 6px -1px rgba(43, 27, 61, 0.1),
-               0 2px 4px -1px rgba(43, 27, 61, 0.06);
-  --shadow-lg: 0 10px 15px -3px rgba(43, 27, 61, 0.1),
-               0 4px 6px -2px rgba(43, 27, 61, 0.05);
-  --shadow-xl: 0 20px 25px -5px rgba(43, 27, 61, 0.1),
-               0 10px 10px -5px rgba(43, 27, 61, 0.04);
-  --shadow-2xl: 0 25px 50px -12px rgba(43, 27, 61, 0.25);
+  --shadow-sm: 0 2px 8px rgba(10, 4, 20, 0.25);
+  --shadow-md: 0 4px 20px rgba(10, 4, 20, 0.35);
+  --shadow-lg: 0 0 40px rgba(201, 169, 97, 0.35);
+  --shadow-xl: 0 0 60px rgba(201, 169, 97, 0.45);
+  --shadow-2xl: 0 0 80px rgba(201, 169, 97, 0.6);
 
-  /* Glow Effects */
-  --glow-gold: 0 0 20px rgba(212, 175, 55, 0.3),
-               0 0 40px rgba(212, 175, 55, 0.15);
-  --glow-gold-strong: 0 0 30px rgba(212, 175, 55, 0.5),
-                      0 0 60px rgba(212, 175, 55, 0.25);
+  --glow-gold: 0 0 40px rgba(201, 169, 97, 0.4);
+  --glow-gold-strong: 0 0 60px rgba(201, 169, 97, 0.6);
 
   /* ===== TRANSITIONS ===== */
 
@@ -154,13 +165,9 @@
 
   /* ===== FROSTED GLASS EFFECT ===== */
 
-  --glass-bg: var(--color-cream-98);
-  --glass-backdrop-filter: blur(20px) saturate(180%);
-  --glass-border: 1px solid var(--color-gold-20);
-
-  /* ===== STAINED GLASS BACKGROUND ===== */
-
-  --stained-glass-overlay: rgba(43, 27, 61, 0.02);
+  --glass-bg: var(--color-surface);
+  --glass-backdrop-filter: blur(20px) saturate(170%);
+  --glass-border: 1px solid var(--color-border);
 }
 
 /* ================================================================
@@ -188,8 +195,9 @@ body {
   font-size: var(--text-base);
   font-weight: var(--font-normal);
   line-height: var(--leading-normal);
-  color: var(--color-navy);
-  background-color: var(--color-navy);
+  color: var(--color-body);
+  background: var(--gradient-sunset);
+  background-attachment: fixed;
   min-height: 100vh;
   overflow-x: hidden;
 }
@@ -202,7 +210,7 @@ h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-heading);
   font-weight: var(--font-bold);
   line-height: var(--leading-tight);
-  color: var(--color-navy);
+  color: var(--color-heading);
   margin-bottom: var(--space-4);
 }
 
@@ -234,17 +242,23 @@ h6 {
 
 p {
   margin-bottom: var(--space-4);
-  color: var(--color-burgundy);
+  color: var(--color-body);
 }
 
 a {
-  color: var(--color-gold);
+  color: var(--color-accent);
   text-decoration: none;
   transition: color var(--transition-fast);
 }
 
 a:hover {
-  color: var(--color-rust);
+  color: var(--color-accent-dark);
+}
+
+.logo,
+.logo-led {
+  color: var(--color-accent);
+  text-shadow: 0 0 30px rgba(201, 169, 97, 0.6);
 }
 
 a:focus-visible {
@@ -269,104 +283,46 @@ code {
   font-family: var(--font-mono);
   font-size: 0.9em;
   padding: 0.125rem 0.25rem;
-  background-color: var(--color-cream);
+  background-color: var(--color-surface-strong);
   border-radius: var(--radius-sm);
-  color: var(--color-burgundy);
+  color: var(--color-background-top);
 }
 
 pre {
   font-family: var(--font-mono);
   font-size: var(--text-sm);
   padding: var(--space-4);
-  background-color: var(--color-cream);
+  background-color: var(--color-surface-strong);
   border-radius: var(--radius-lg);
   overflow-x: auto;
   margin-bottom: var(--space-4);
 }
 
 /* ================================================================
-   BACKGROUND PATTERNS
+   BACKGROUND WRAPPERS
    ================================================================ */
 
-/* Stained Glass Mosaic Background (Full Viewport) */
-.bg-stained-glass {
+.bg-sunset {
   position: relative;
-  background: var(--gradient-stained-glass);
   min-height: 100vh;
+  background: var(--gradient-sunset);
+  color: var(--color-body);
 }
 
-.bg-stained-glass::before {
+.bg-sunset::before {
   content: '';
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-image:
-    /* Geometric tile pattern */
-    repeating-linear-gradient(
-      45deg,
-      transparent,
-      transparent 10px,
-      var(--color-white) 10px,
-      var(--color-white) 11px
-    ),
-    repeating-linear-gradient(
-      -45deg,
-      transparent,
-      transparent 10px,
-      var(--color-white) 10px,
-      var(--color-white) 11px
-    );
-  opacity: 0.05;
-  pointer-events: none;
-}
-
-.bg-stained-glass::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  inset: 0;
   background: radial-gradient(
-    circle at 20% 30%,
-    var(--color-burgundy-10) 0%,
-    transparent 50%
-  ),
-  radial-gradient(
-    circle at 80% 70%,
-    var(--color-gold-10) 0%,
-    transparent 50%
-  );
-  pointer-events: none;
-}
-
-/* Subtle Background Pattern (for Dashboard pages) */
-.bg-subtle-pattern {
-  position: relative;
-  background: linear-gradient(135deg,
-    var(--color-navy) 0%,
-    #3a2a50 100%);
-  min-height: 100vh;
-}
-
-.bg-subtle-pattern::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-image:
-    repeating-linear-gradient(
-      0deg,
-      transparent,
-      transparent 2px,
-      var(--color-burgundy-10) 2px,
-      var(--color-burgundy-10) 4px
+      circle at 20% 20%,
+      rgba(255, 235, 205, 0.12) 0%,
+      transparent 55%
+    ),
+    radial-gradient(
+      circle at 80% 80%,
+      rgba(201, 169, 97, 0.18) 0%,
+      transparent 60%
     );
-  opacity: 0.3;
   pointer-events: none;
 }
 
