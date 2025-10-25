@@ -110,20 +110,20 @@
             </div>
 
             <div style="display: flex; flex-direction: column; gap: var(--space-3);">
+                <a href="subscribe-luxury.html" class="btn btn-primary btn-full" style="background: linear-gradient(135deg, var(--color-gold), var(--color-accent)); border-color: var(--color-gold);">
+                    ⭐ VIP Upgrade
+                </a>
                 <a href="dashboard-luxury.html" class="btn btn-primary btn-full">
                     🏠 Dashboard
                 </a>
                 <a href="invite-luxury.html" class="btn btn-primary btn-full">
-                    ✉️ Invite Team Members
+                    👥 Add a User
                 </a>
-                <a href="subscribe-luxury.html" class="btn btn-primary btn-full" style="background: linear-gradient(135deg, var(--color-gold), var(--color-accent)); border-color: var(--color-gold);">
-                    ⭐ VIP Upgrade
-                </a>
-                <button class="btn btn-secondary btn-full" onclick="viewBestieChat()">
-                    🤫 Bestie Mode
-                </button>
                 <button class="btn btn-secondary btn-full" onclick="viewNotifications()">
                     🔔 Notifications
+                </button>
+                <button class="btn btn-secondary btn-full" onclick="viewAccountSettings()">
+                    ⚙️ Account Settings
                 </button>
                 <button class="btn btn-ghost btn-full" onclick="logout()">
                     🚪 Sign Out
@@ -179,6 +179,11 @@
             } else {
                 window.location.href = 'notifications-luxury.html';
             }
+        };
+
+        window.viewAccountSettings = function() {
+            showToast('Account settings coming soon!', 'info');
+            toggleMenu();
         };
 
         // Load wedding data
