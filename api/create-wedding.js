@@ -94,8 +94,8 @@ export default async function handler(req, res) {
       trial_start_date: new Date().toISOString(),
       trial_end_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 day trial
       plan_type: 'trial',
-      subscription_status: 'trialing',
-      bestie_addon_enabled: true  // Include 1 bestie invite in free trial
+      subscription_status: 'trialing'
+      // Note: bestie_addon_enabled column removed - not in current schema
     };
 
     // Add optional fields
