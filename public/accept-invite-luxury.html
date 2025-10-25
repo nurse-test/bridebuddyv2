@@ -110,11 +110,11 @@
                         To accept this invitation, you need to create an account or sign in.
                     </p>
 
-                    <a href="signup-luxury.html" class="btn btn-primary btn-lg btn-full" style="margin-bottom: var(--space-3);">
+                    <a id="signupLink" href="signup-luxury.html" class="btn btn-primary btn-lg btn-full" style="margin-bottom: var(--space-3);">
                         Create Account
                     </a>
 
-                    <a href="login-luxury.html" class="btn btn-secondary btn-lg btn-full">
+                    <a id="loginLink" href="login-luxury.html" class="btn btn-secondary btn-lg btn-full">
                         Sign In
                     </a>
 
@@ -297,7 +297,15 @@
                 document.getElementById('acceptPrompt').classList.remove('hidden');
                 document.getElementById('acceptBtn').addEventListener('click', acceptInvite);
             } else {
-                // User not logged in - show auth prompt
+                // User not logged in - show auth prompt with invite token in links
+                const signupLink = document.getElementById('signupLink');
+                const loginLink = document.getElementById('loginLink');
+
+                if (inviteToken) {
+                    signupLink.href = `signup-luxury.html?invite_token=${inviteToken}`;
+                    loginLink.href = `login-luxury.html?invite_token=${inviteToken}`;
+                }
+
                 document.getElementById('authPrompt').classList.remove('hidden');
             }
         }

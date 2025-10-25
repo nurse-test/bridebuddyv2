@@ -120,6 +120,11 @@
         // Initialize Supabase
         const supabase = initSupabase();
 
+        // Check for invite token or return URL in query params
+        const urlParams = new URLSearchParams(window.location.search);
+        const inviteToken = urlParams.get('invite_token');
+        const returnTo = urlParams.get('return_to');
+
         // Password visibility toggle
         document.getElementById('togglePassword').addEventListener('click', function() {
             const passwordInput = document.getElementById('password');
@@ -285,6 +290,14 @@
 
                 // Check if user has any weddings
                 if (!members || members.length === 0) {
+                    // If coming from invite, return to accept-invite page
+                    if (inviteToken) {
+                        console.log('⚠️ No wedding found, but user has invite - redirecting to accept invite');
+                        window.location.href = `accept-invite-luxury.html?token=${inviteToken}`;
+                        return;
+                    }
+
+                    // Otherwise send to onboarding to create their own wedding
                     console.log('⚠️ No wedding found for user - redirecting to onboarding');
                     showToast('Please complete your wedding setup', 'info', 3000);
                     setTimeout(() => {
@@ -301,10 +314,22 @@
                     console.log('ℹ️ User has multiple weddings, using most recent');
                 }
 
-                console.log('🚀 Redirecting to dashboard...');
+                console.log('🚀 Redirecting...');
 
-                // Redirect to dashboard
-                window.location.href = `dashboard-luxury.html?wedding_id=${weddingId}`;
+                // Determine redirect URL based on context
+                if (inviteToken) {
+                    // User came from invite - return to accept-invite page
+                    console.log('Redirecting back to invite acceptance');
+                    window.location.href = `accept-invite-luxury.html?token=${inviteToken}`;
+                } else if (returnTo) {
+                    // Custom return URL provided
+                    console.log('Redirecting to custom return URL');
+                    window.location.href = returnTo;
+                } else {
+                    // Normal login - redirect to dashboard
+                    console.log('Redirecting to dashboard');
+                    window.location.href = `dashboard-luxury.html?wedding_id=${weddingId}`;
+                }
             } catch (error) {
                 console.error('❌ Login error:', error);
 

@@ -166,6 +166,11 @@
 
         const supabase = initSupabase();
 
+        // Check for invite token or return URL in query params
+        const urlParams = new URLSearchParams(window.location.search);
+        const inviteToken = urlParams.get('invite_token');
+        const returnTo = urlParams.get('return_to');
+
         // Password Toggle
         window.togglePassword = function(id) {
             const input = document.getElementById(id);
@@ -301,12 +306,25 @@
 
                 if (error) throw error;
 
-                // Show success message
-                showToast('success', 'Account Created!', 'Redirecting to onboarding...');
+                // Determine redirect URL based on context
+                let redirectUrl;
+                if (inviteToken) {
+                    // User came from invite - return to accept-invite page
+                    redirectUrl = `accept-invite-luxury.html?token=${inviteToken}`;
+                    showToast('success', 'Account Created!', 'Returning to invitation...');
+                } else if (returnTo) {
+                    // Custom return URL provided
+                    redirectUrl = returnTo;
+                    showToast('success', 'Account Created!', 'Redirecting...');
+                } else {
+                    // New wedding owner - send to onboarding
+                    redirectUrl = 'onboarding-luxury.html';
+                    showToast('success', 'Account Created!', 'Redirecting to onboarding...');
+                }
 
-                // Redirect to onboarding after a short delay
+                // Redirect after a short delay
                 setTimeout(() => {
-                    window.location.href = 'onboarding-luxury.html';
+                    window.location.href = redirectUrl;
                 }, 1500);
 
             } catch (error) {
@@ -320,10 +338,20 @@
         // Handle Google Sign In
         document.getElementById('googleSignIn').addEventListener('click', async () => {
             try {
+                // Determine redirect URL for OAuth
+                let oauthRedirect;
+                if (inviteToken) {
+                    oauthRedirect = window.location.origin + `/accept-invite-luxury.html?token=${inviteToken}`;
+                } else if (returnTo) {
+                    oauthRedirect = window.location.origin + '/' + returnTo;
+                } else {
+                    oauthRedirect = window.location.origin + '/onboarding-luxury.html';
+                }
+
                 const { data, error } = await supabase.auth.signInWithOAuth({
                     provider: 'google',
                     options: {
-                        redirectTo: window.location.origin + '/onboarding-luxury.html'
+                        redirectTo: oauthRedirect
                     }
                 });
 
