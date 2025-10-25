@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Chat with your AI wedding planning assistant">
+    <title>Bride Buddy - AI Chat</title>
+
+    <!-- Preconnect to font providers -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="/css/styles-luxury.css">
+    <link rel="stylesheet" href="/css/components-luxury.css">
+
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <!-- Skip to main content for accessibility -->
+    <a href="#main-content" class="skip-to-main">Skip to main content</a>
+
+    <!-- Chat Container -->
+    <div class="bg-sunset" style="min-height: 100vh; display: flex; flex-direction: column;">
+
+        <!-- Chat Header -->
+    <div class="navbar animate-fade-in" style="background: linear-gradient(135deg, rgba(26, 11, 46, 0.9), rgba(201, 169, 97, 0.6)); backdrop-filter: blur(20px); border-bottom: 2px solid var(--color-accent);">
+            <div class="container" style="display: flex; justify-content: space-between; align-items: center; padding: var(--space-4) var(--space-6);">
+                <div style="display: flex; align-items: center; gap: var(--space-3);">
+                    <a href="index-luxury.html" style="text-decoration: none;">
+                        <h1 class="logo-led" style="font-family: var(--font-heading); font-size: var(--text-xl); color: var(--color-white); margin: 0; line-height: 1;">
+                            <span style="font-style: italic; font-weight: 400;">Bride</span>
+                            <span style="font-weight: 700;">BUDDY</span>
+                        </h1>
+                    </a>
+                </div>
+
+                <div style="display: flex; align-items: center; gap: var(--space-3);">
+                    <span id="weddingNameHeader" style="font-size: var(--text-sm); color: var(--color-white); opacity: 0.9;"></span>
+                    <button onclick="toggleMenu()" class="btn btn-icon-only" style="background: rgba(255, 255, 255, 0.3); border-color: var(--color-white);">
+                        <svg style="width: 24px; height: 24px; fill: var(--color-white);" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chat Messages -->
+        <main id="main-content" style="flex: 1; overflow-y: auto; padding: var(--space-6) 0;">
+            <div class="container" style="max-width: 800px;">
+                <div id="chatMessages">
+                    <!-- Welcome message -->
+                    <div class="animate-fade-in" style="margin-bottom: var(--space-4);">
+                        <div class="card card-champagne-accent" style="background: linear-gradient(135deg, rgba(255, 251, 246, 0.95), rgba(255, 248, 240, 0.95));">
+                            <p style="color: var(--color-navy); margin-bottom: var(--space-3);">
+                                <strong>Welcome to your wedding planning assistant! 💍</strong>
+                            </p>
+                            <p style="color: var(--color-navy); margin-bottom: var(--space-3);">
+                                I'm here to help you plan every detail of your perfect day. I can assist with:
+                            </p>
+                            <ul style="color: var(--color-navy); padding-left: var(--space-5); margin: 0;">
+                                <li style="margin-bottom: var(--space-1);">Finding and booking vendors</li>
+                                <li style="margin-bottom: var(--space-1);">Managing your budget</li>
+                                <li style="margin-bottom: var(--space-1);">Creating timelines and checklists</li>
+                                <li style="margin-bottom: var(--space-1);">Guest list management</li>
+                                <li>Answering any wedding planning questions</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Chat Input -->
+        <div style="background: linear-gradient(180deg, transparent, rgba(201, 169, 97, 0.12)); padding: var(--space-4) 0; border-top: 2px solid var(--color-accent);">
+            <div class="container" style="max-width: 800px;">
+                <form id="chatForm" style="display: flex; gap: var(--space-3); align-items: center;">
+                    <input
+                        type="text"
+                        id="messageInput"
+                        class="form-input"
+                        placeholder="Ask me anything about your wedding..."
+                        autocomplete="off"
+                        required
+                        style="flex: 1; border-color: var(--color-gold);"
+                    >
+                    <button type="submit" class="btn btn-primary btn-icon-only" id="sendBtn" style="width: 48px; height: 48px; flex-shrink: 0;">
+                        <svg style="width: 24px; height: 24px; fill: currentColor;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+                    </button>
+                </form>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Menu Overlay -->
+    <div id="menuOverlay" class="modal hidden">
+        <div class="modal-overlay" onclick="toggleMenu()"></div>
+        <div class="modal-content card card-gold-accent" style="position: fixed; bottom: 0; left: 0; right: 0; border-radius: var(--radius-lg) var(--radius-lg) 0 0; max-height: 70vh; overflow-y: auto;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-6);">
+                <h2 style="font-family: var(--font-heading); font-size: var(--text-2xl); color: var(--color-navy); margin: 0;">
+                    Menu
+                </h2>
+                <button class="btn btn-icon-only" onclick="toggleMenu()" style="background: rgba(201, 169, 97, 0.2); border-color: var(--color-gold);">
+                    <svg style="width: 24px; height: 24px; fill: currentColor;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+                </button>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: var(--space-3);">
+                <a href="dashboard-luxury.html" class="btn btn-primary btn-full">
+                    🏠 Dashboard
+                </a>
+                <a href="invite-luxury.html" class="btn btn-primary btn-full">
+                    ✉️ Invite Team Members
+                </a>
+                <button class="btn btn-secondary btn-full" onclick="viewBestieChat()">
+                    🤫 Bestie Mode
+                </button>
+                <button class="btn btn-secondary btn-full" onclick="viewNotifications()">
+                    🔔 Notifications
+                </button>
+                <button class="btn btn-ghost btn-full" onclick="logout()">
+                    🚪 Sign Out
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <!-- Scripts -->
+    <script type="module">
+        import {
+            initSupabase,
+            getSupabase,
+            loadWeddingData,
+            loadChatHistory,
+            displayChatHistory,
+            displayMessage,
+            loadingIndicator,
+            navigateTo,
+            logout,
+            showToast
+        } from '/js/shared.js';
+
+        // Initialize Supabase
+        const supabase = initSupabase();
+
+        // Get wedding_id from URL or load from session
+        let weddingId = null;
+        let conversationHistory = [];
+
+        // Make functions globally available
+        window.toggleMenu = function() {
+            const menuOverlay = document.getElementById('menuOverlay');
+            menuOverlay.classList.toggle('hidden');
+        };
+
+        window.logout = logout;
+
+        window.viewBestieChat = function() {
+            if (weddingId) {
+                window.location.href = `bestie-luxury.html?wedding_id=${weddingId}`;
+            } else {
+                window.location.href = 'bestie-luxury.html';
+            }
+        };
+
+        window.viewNotifications = function() {
+            if (weddingId) {
+                window.location.href = `notifications-luxury.html?wedding_id=${weddingId}`;
+            } else {
+                window.location.href = 'notifications-luxury.html';
+            }
+        };
+
+        // Load wedding data
+        async function initializeChat() {
+            try {
+                // Use shared loadWeddingData function
+                const { wedding, weddingId: loadedWeddingId, member } = await loadWeddingData();
+                weddingId = loadedWeddingId;
+
+                // Update header with wedding name
+                const weddingNameHeader = document.getElementById('weddingNameHeader');
+                if (weddingNameHeader && wedding.wedding_name) {
+                    weddingNameHeader.textContent = wedding.wedding_name;
+                }
+
+                // Load chat history using shared function
+                await loadAndDisplayChatHistory();
+            } catch (error) {
+                console.error('Error loading wedding data:', error);
+                showToast('Error loading wedding data', 'error');
+            }
+        }
+
+        // Load and display chat history
+        async function loadAndDisplayChatHistory() {
+            try {
+                const messages = await loadChatHistory({
+                    weddingId,
+                    messageType: 'main',
+                    limit: 20
+                });
+
+                conversationHistory = messages;
+
+                // Display messages using shared function
+                displayChatHistory(messages, 'chatMessages');
+            } catch (error) {
+                console.error('Error loading chat history:', error);
+                showToast('Error loading chat history', 'error');
+            }
+        }
+
+        // Loading indicators
+        const showLoading = () => loadingIndicator.show('chatMessages');
+        const hideLoading = () => loadingIndicator.hide();
+
+        // Send message
+        document.getElementById('chatForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+
+            if (!message) return;
+
+            // Display user message
+            displayMessage(message, 'user');
+            input.value = '';
+
+            // Disable input while processing
+            input.disabled = true;
+            document.getElementById('sendBtn').disabled = true;
+
+            // Show loading indicator
+            showLoading();
+
+            try {
+                // Get user session token
+                const { data: { session } } = await supabase.auth.getSession();
+
+                if (!session) {
+                    throw new Error('Not authenticated');
+                }
+
+                // Call main chat API
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        message: message,
+                        userToken: session.access_token,
+                        conversationId: weddingId
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.response) {
+                    displayMessage(data.response, 'assistant');
+                } else {
+                    throw new Error('No response from AI');
+                }
+            } catch (error) {
+                console.error('Error sending message:', error);
+                displayMessage('Sorry, I had trouble processing that. Please try again!', 'assistant');
+                showToast('Error sending message', 'error');
+            } finally {
+                // Hide loading indicator
+                hideLoading();
+
+                input.disabled = false;
+                document.getElementById('sendBtn').disabled = false;
+                input.focus();
+            }
+        });
+
+        // Initialize chat interface
+        initializeChat();
+    </script>
+
+    <!-- Custom Styles -->
+    <style>
+        /* Chat message styles */
+        .chat-bubble {
+            padding: var(--space-4);
+            border-radius: var(--radius-lg);
+            margin-bottom: var(--space-3);
+            max-width: 80%;
+        }
+
+        .chat-bubble.user {
+            background: linear-gradient(135deg, var(--color-accent), var(--color-accent-dark));
+            color: var(--color-white);
+            margin-left: auto;
+            text-align: right;
+        }
+
+        .chat-bubble.assistant {
+            background: rgba(255, 255, 255, 0.9);
+            color: var(--color-navy);
+        }
+
+        @media (max-width: 768px) {
+            .chat-bubble {
+                max-width: 90%;
+            }
+
+            .navbar .container {
+                padding: var(--space-3) var(--space-4) !important;
+            }
+        }
+    </style>
+</body>
+</html>
