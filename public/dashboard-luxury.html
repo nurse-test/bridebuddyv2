@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Your Bride Buddy wedding planning dashboard">
+    <title>Dashboard - Bride Buddy</title>
+
+    <!-- Preconnect to font providers -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="/css/styles-luxury.css">
+    <link rel="stylesheet" href="/css/components-luxury.css">
+
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <!-- Skip to main content for accessibility -->
+    <a href="#main-content" class="skip-to-main">Skip to main content</a>
+
+    <div class="bg-subtle-pattern">
+
+        <!-- Top Navbar -->
+        <nav class="navbar">
+            <div class="navbar-container">
+                <!-- Logo -->
+                <a href="index-luxury.html" style="text-decoration: none;">
+                    <h1 style="font-family: var(--font-heading); font-size: var(--text-xl); color: var(--color-gold); margin: 0; line-height: 1;">
+                        <span style="font-style: italic; font-weight: 400;">Bride</span>
+                        <span style="font-weight: 700;">BUDDY</span>
+                    </h1>
+                </a>
+
+                <!-- Wedding Name -->
+                <div class="navbar-center">
+                    <div class="navbar-wedding-name" id="weddingName">Loading...</div>
+                    <span id="trialBadge" class="badge badge-gold" style="margin-left: var(--space-2);"></span>
+                </div>
+
+                <!-- User Menu -->
+                <div class="navbar-menu">
+                    <button class="navbar-user-button" id="userMenuBtn" aria-label="User menu" aria-expanded="false">
+                        <div class="navbar-avatar" id="userAvatar">?</div>
+                        <span id="userName">User</span>
+                        <svg width="16" height="16" fill="currentColor" style="margin-left: var(--space-1);">
+                            <path d="M4.5 6l3.5 3.5L11.5 6z"/>
+                        </svg>
+                    </button>
+
+                    <div class="dropdown-menu" id="userDropdown" role="menu">
+                        <a href="#" class="dropdown-item" role="menuitem">
+                            <span>👤</span> Profile
+                        </a>
+                        <a href="#" class="dropdown-item" role="menuitem">
+                            <span>⚙️</span> Settings
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <button class="dropdown-item" id="logoutBtn" role="menuitem">
+                            <span>🚪</span> Log Out
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <nav class="sidebar-nav">
+                <ul style="list-style: none; padding: 0; margin: 0;">
+                    <li class="sidebar-item">
+                        <a href="dashboard-luxury.html" class="sidebar-link is-active">
+                            <span class="sidebar-icon">🏠</span>
+                            Dashboard
+                        </a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a href="dashboard-v2.html" class="sidebar-link">
+                            <span class="sidebar-icon">💬</span>
+                            AI Chat
+                        </a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a href="#" class="sidebar-link">
+                            <span class="sidebar-icon">👥</span>
+                            Team
+                        </a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a href="invite-v2.html" class="sidebar-link">
+                            <span class="sidebar-icon">✉️</span>
+                            Invites
+                        </a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a href="bestie-v2.html" class="sidebar-link">
+                            <span class="sidebar-icon">🤫</span>
+                            Bestie Mode
+                        </a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a href="#" class="sidebar-link">
+                            <span class="sidebar-icon">⚙️</span>
+                            Settings
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main id="main-content" style="margin-left: 260px; padding: var(--space-6); min-height: calc(100vh - 72px);">
+
+            <!-- Welcome Message -->
+            <div style="margin-bottom: var(--space-8);">
+                <h1 style="font-family: var(--font-heading); font-size: var(--text-4xl); color: var(--color-navy); margin-bottom: var(--space-2);">
+                    Welcome back, <span id="welcomeName">there</span>!
+                </h1>
+                <p style="font-size: var(--text-lg); color: var(--color-burgundy);">
+                    Here's what's happening with your wedding planning
+                </p>
+            </div>
+
+            <!-- Quick Stats -->
+            <div class="grid grid-cols-3 gap-6" style="margin-bottom: var(--space-8);">
+                <!-- Days Until Wedding -->
+                <div class="card">
+                    <p style="font-size: var(--text-sm); color: var(--color-burgundy); margin-bottom: var(--space-2); font-weight: var(--font-semibold);">
+                        Days Until Wedding
+                    </p>
+                    <h2 id="daysUntil" style="font-size: var(--text-5xl); color: var(--color-gold); margin: 0; font-family: var(--font-heading);">
+                        --
+                    </h2>
+                    <p style="font-size: var(--text-xs); color: var(--color-burgundy); margin-top: var(--space-2); opacity: 0.8;" id="weddingDate">
+                        Set your date
+                    </p>
+                </div>
+
+                <!-- Team Members -->
+                <div class="card">
+                    <p style="font-size: var(--text-sm); color: var(--color-burgundy); margin-bottom: var(--space-2); font-weight: var(--font-semibold);">
+                        Team Members
+                    </p>
+                    <div style="display: flex; align-items: center; gap: var(--space-3);">
+                        <h2 id="teamCount" style="font-size: var(--text-5xl); color: var(--color-gold); margin: 0; font-family: var(--font-heading);">
+                            0
+                        </h2>
+                        <div class="avatar-group" id="teamAvatars">
+                            <!-- Dynamic avatars -->
+                        </div>
+                    </div>
+                    <p style="font-size: var(--text-xs); color: var(--color-burgundy); margin-top: var(--space-2); opacity: 0.8;">
+                        Collaborating on your big day
+                    </p>
+                </div>
+
+                <!-- AI Messages -->
+                <div class="card">
+                    <p style="font-size: var(--text-sm); color: var(--color-burgundy); margin-bottom: var(--space-2); font-weight: var(--font-semibold);">
+                        AI Conversations
+                    </p>
+                    <h2 id="messageCount" style="font-size: var(--text-5xl); color: var(--color-gold); margin: 0; font-family: var(--font-heading);">
+                        0
+                    </h2>
+                    <div class="progress" style="margin-top: var(--space-3);">
+                        <div class="progress-bar" id="messageProgress" style="width: 0%;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Wedding Details -->
+            <div class="card card-gold-accent" style="margin-bottom: var(--space-8);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-4);">
+                    <h3 style="font-family: var(--font-heading); font-size: var(--text-2xl); color: var(--color-navy); margin: 0;">
+                        Wedding Details
+                    </h3>
+                    <button class="btn btn-sm btn-secondary" id="editDetailsBtn">
+                        ✏️ Edit
+                    </button>
+                </div>
+
+                <div id="weddingDetails" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: var(--space-4);">
+                    <!-- Dynamic wedding details -->
+                    <div class="skeleton skeleton-text"></div>
+                    <div class="skeleton skeleton-text"></div>
+                    <div class="skeleton skeleton-text"></div>
+                </div>
+            </div>
+
+            <!-- Recent Activity -->
+            <div class="card" style="margin-bottom: var(--space-8);">
+                <h3 style="font-family: var(--font-heading); font-size: var(--text-2xl); color: var(--color-navy); margin-bottom: var(--space-4);">
+                    Recent Activity
+                </h3>
+
+                <div id="activityList" style="display: flex; flex-direction: column; gap: var(--space-4);">
+                    <!-- Loading state -->
+                    <div class="skeleton skeleton-text"></div>
+                    <div class="skeleton skeleton-text"></div>
+                </div>
+
+                <!-- Empty State (hidden by default) -->
+                <div class="empty-state" id="emptyActivity" style="display: none; padding: var(--space-8) var(--space-4);">
+                    <div class="empty-state-icon">📭</div>
+                    <h3 class="empty-state-title">No activity yet</h3>
+                    <p class="empty-state-description">
+                        Start chatting with your AI assistant or invite team members to see activity here.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="card">
+                <h3 style="font-family: var(--font-heading); font-size: var(--text-2xl); color: var(--color-navy); margin-bottom: var(--space-4);">
+                    Quick Actions
+                </h3>
+                <div style="display: flex; gap: var(--space-3); flex-wrap: wrap;">
+                    <a href="dashboard-v2.html" class="btn btn-primary">
+                        <svg style="width: 20px; height: 20px; fill: currentColor;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                            <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/>
+                        </svg>
+                        Chat with AI
+                    </a>
+                    <a href="invite-v2.html" class="btn btn-secondary">
+                        <svg style="width: 20px; height: 20px; fill: currentColor;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                            <path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
+                        </svg>
+                        Invite Someone
+                    </a>
+                    <button class="btn btn-secondary" id="addTaskBtn">
+                        <svg style="width: 20px; height: 20px; fill: currentColor;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                            <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+                        </svg>
+                        Add Task
+                    </button>
+                </div>
+            </div>
+        </main>
+
+        <!-- Mobile Bottom Nav -->
+        <nav class="bottom-nav">
+            <a href="dashboard-luxury.html" class="bottom-nav-item is-active">
+                <span class="bottom-nav-icon">🏠</span>
+                Home
+            </a>
+            <a href="dashboard-v2.html" class="bottom-nav-item">
+                <span class="bottom-nav-icon">💬</span>
+                Chat
+            </a>
+            <a href="#" class="bottom-nav-item">
+                <span class="bottom-nav-icon">👥</span>
+                Team
+            </a>
+            <a href="#" class="bottom-nav-item">
+                <span class="bottom-nav-icon">⚙️</span>
+                Settings
+            </a>
+        </nav>
+
+        <!-- Toast Container -->
+        <div class="toast-container" id="toastContainer"></div>
+    </div>
+
+    <!-- Scripts -->
+    <script type="module">
+        import {
+            initSupabase,
+            loadWeddingData,
+            navigateTo,
+            logout as sharedLogout
+        } from '/js/shared.js';
+
+        const supabase = initSupabase();
+        let weddingId = null;
+        let wedding = null;
+
+        // Show Toast Notification
+        function showToast(type, title, message, duration = 5000) {
+            const container = document.getElementById('toastContainer');
+
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            toast.innerHTML = `
+                <div class="toast-icon">${type === 'success' ? '✓' : type === 'error' ? '✗' : 'ℹ'}</div>
+                <div class="toast-content">
+                    <div class="toast-title">${title}</div>
+                    <p class="toast-message">${message}</p>
+                </div>
+                <button class="toast-close">×</button>
+            `;
+
+            container.appendChild(toast);
+
+            toast.querySelector('.toast-close').addEventListener('click', () => {
+                toast.remove();
+            });
+
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                setTimeout(() => toast.remove(), 300);
+            }, duration);
+        }
+
+        // Calculate days until wedding
+        function calculateDaysUntil(dateString) {
+            if (!dateString) return null;
+            const weddingDate = new Date(dateString);
+            const today = new Date();
+            const diffTime = weddingDate - today;
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            return diffDays;
+        }
+
+        // Update Trial Badge
+        function updateTrialBadge(wedding) {
+            const badge = document.getElementById('trialBadge');
+            if (!wedding) return;
+
+            if (wedding.subscription_tier === 'trial') {
+                const trialEnds = new Date(wedding.trial_ends_at);
+                const today = new Date();
+                const daysLeft = Math.ceil((trialEnds - today) / (1000 * 60 * 60 * 24));
+
+                badge.textContent = `${daysLeft} Days Left`;
+                badge.className = 'badge badge-gold';
+                badge.style.display = 'inline-flex';
+            } else if (wedding.subscription_tier === 'premium') {
+                badge.textContent = 'Premium';
+                badge.className = 'badge badge-gold';
+                badge.style.display = 'inline-flex';
+            } else {
+                badge.style.display = 'none';
+            }
+        }
+
+        // Load and display wedding data
+        async function initializeDashboard() {
+            try {
+                const result = await loadWeddingData();
+                weddingId = result.weddingId;
+                wedding = result.wedding;
+                const user = result.user;
+
+                // Update UI with user info
+                const userName = user.user_metadata?.full_name || user.email?.split('@')[0] || 'User';
+                document.getElementById('userName').textContent = userName;
+                document.getElementById('welcomeName').textContent = userName.split(' ')[0];
+
+                // Update avatar
+                const initials = userName.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
+                document.getElementById('userAvatar').textContent = initials;
+
+                // Update wedding name
+                const weddingName = wedding.wedding_name || `${wedding.partner1_name || 'Partner 1'} & ${wedding.partner2_name || 'Partner 2'}`;
+                document.getElementById('weddingName').textContent = weddingName;
+
+                // Update trial badge
+                updateTrialBadge(wedding);
+
+                // Calculate days until wedding
+                if (wedding.ceremony_date) {
+                    const days = calculateDaysUntil(wedding.ceremony_date);
+                    document.getElementById('daysUntil').textContent = days > 0 ? days : '0';
+                    const dateStr = new Date(wedding.ceremony_date).toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                    });
+                    document.getElementById('weddingDate').textContent = dateStr;
+                } else {
+                    document.getElementById('daysUntil').textContent = '--';
+                    document.getElementById('weddingDate').textContent = 'Set your date';
+                }
+
+                // Load team members
+                await loadTeamMembers();
+
+                // Load message count
+                await loadMessageCount();
+
+                // Display wedding details
+                displayWeddingDetails();
+
+                // Load recent activity
+                await loadRecentActivity();
+
+            } catch (error) {
+                console.error('Dashboard initialization error:', error);
+                showToast('error', 'Error', 'Failed to load dashboard data');
+            }
+        }
+
+        // Load team members
+        async function loadTeamMembers() {
+            try {
+                const { data: members, error } = await supabase
+                    .from('wedding_members')
+                    .select('*, profiles(full_name, email)')
+                    .eq('wedding_id', weddingId);
+
+                if (error) throw error;
+
+                document.getElementById('teamCount').textContent = members?.length || 0;
+
+                // Create avatars
+                const avatarContainer = document.getElementById('teamAvatars');
+                avatarContainer.innerHTML = '';
+
+                members?.slice(0, 3).forEach(member => {
+                    const name = member.profiles?.full_name || member.profiles?.email?.split('@')[0] || 'U';
+                    const initials = name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
+
+                    const avatar = document.createElement('div');
+                    avatar.className = 'avatar avatar-gold avatar-sm';
+                    avatar.textContent = initials;
+                    avatar.title = name;
+                    avatarContainer.appendChild(avatar);
+                });
+
+            } catch (error) {
+                console.error('Error loading team members:', error);
+            }
+        }
+
+        // Load message count
+        async function loadMessageCount() {
+            try {
+                const { count, error } = await supabase
+                    .from('chat_messages')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('wedding_id', weddingId)
+                    .eq('message_type', 'main');
+
+                if (error) throw error;
+
+                const messageCount = count || 0;
+                document.getElementById('messageCount').textContent = messageCount;
+
+                // Update progress bar (arbitrary scale, 100 messages = 100%)
+                const progress = Math.min((messageCount / 100) * 100, 100);
+                document.getElementById('messageProgress').style.width = `${progress}%`;
+
+            } catch (error) {
+                console.error('Error loading message count:', error);
+            }
+        }
+
+        // Display wedding details
+        function displayWeddingDetails() {
+            const detailsContainer = document.getElementById('weddingDetails');
+            detailsContainer.innerHTML = '';
+
+            const details = [
+                { label: 'Ceremony Location', value: wedding.ceremony_location || 'Not set', icon: '📍' },
+                { label: 'Reception Location', value: wedding.reception_location || 'Not set', icon: '🎉' },
+                { label: 'Venue Name', value: wedding.venue_name || 'Not set', icon: '🏛️' },
+                { label: 'Guest Count', value: wedding.guest_count ? `${wedding.guest_count} guests` : 'Not set', icon: '👥' },
+                { label: 'Budget', value: wedding.budget ? `$${parseInt(wedding.budget).toLocaleString()}` : 'Not set', icon: '💰' },
+                { label: 'Style', value: wedding.style || 'Not set', icon: '✨' }
+            ];
+
+            details.forEach(detail => {
+                const item = document.createElement('div');
+                item.style.cssText = 'padding: var(--space-3); background: var(--color-cream); border-radius: var(--radius-md);';
+                item.innerHTML = `
+                    <p style="font-size: var(--text-xs); color: var(--color-burgundy); margin-bottom: var(--space-1); opacity: 0.8;">
+                        ${detail.icon} ${detail.label}
+                    </p>
+                    <p style="font-size: var(--text-base); color: var(--color-navy); font-weight: var(--font-semibold); margin: 0;">
+                        ${detail.value}
+                    </p>
+                `;
+                detailsContainer.appendChild(item);
+            });
+        }
+
+        // Load recent activity
+        async function loadRecentActivity() {
+            const activityList = document.getElementById('activityList');
+            const emptyState = document.getElementById('emptyActivity');
+
+            try {
+                // Get recent messages
+                const { data: messages, error } = await supabase
+                    .from('chat_messages')
+                    .select('*, profiles(full_name, email)')
+                    .eq('wedding_id', weddingId)
+                    .eq('message_type', 'main')
+                    .eq('role', 'user')
+                    .order('created_at', { ascending: false })
+                    .limit(5);
+
+                if (error) throw error;
+
+                activityList.innerHTML = '';
+
+                if (!messages || messages.length === 0) {
+                    activityList.style.display = 'none';
+                    emptyState.style.display = 'block';
+                    return;
+                }
+
+                activityList.style.display = 'flex';
+                emptyState.style.display = 'none';
+
+                messages.forEach(msg => {
+                    const userName = msg.profiles?.full_name || msg.profiles?.email?.split('@')[0] || 'User';
+                    const initials = userName.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
+                    const timeAgo = getTimeAgo(new Date(msg.created_at));
+
+                    const activity = document.createElement('div');
+                    activity.style.cssText = 'display: flex; gap: var(--space-3); padding: var(--space-3); background: var(--color-cream); border-radius: var(--radius-md);';
+                    activity.innerHTML = `
+                        <div class="avatar avatar-gold avatar-sm">${initials}</div>
+                        <div style="flex: 1; min-width: 0;">
+                            <p style="margin: 0; font-size: var(--text-sm); color: var(--color-navy);">
+                                <strong>${userName}</strong> asked: "${msg.message.substring(0, 60)}${msg.message.length > 60 ? '...' : ''}"
+                            </p>
+                            <p style="margin: 0; font-size: var(--text-xs); color: var(--color-burgundy); opacity: 0.7; margin-top: var(--space-1);">
+                                ${timeAgo}
+                            </p>
+                        </div>
+                    `;
+                    activityList.appendChild(activity);
+                });
+
+            } catch (error) {
+                console.error('Error loading recent activity:', error);
+                activityList.innerHTML = '<p style="color: var(--color-rust); text-align: center;">Failed to load activity</p>';
+            }
+        }
+
+        // Get time ago string
+        function getTimeAgo(date) {
+            const seconds = Math.floor((new Date() - date) / 1000);
+
+            let interval = seconds / 31536000;
+            if (interval > 1) return Math.floor(interval) + ' years ago';
+
+            interval = seconds / 2592000;
+            if (interval > 1) return Math.floor(interval) + ' months ago';
+
+            interval = seconds / 86400;
+            if (interval > 1) return Math.floor(interval) + ' days ago';
+
+            interval = seconds / 3600;
+            if (interval > 1) return Math.floor(interval) + ' hours ago';
+
+            interval = seconds / 60;
+            if (interval > 1) return Math.floor(interval) + ' minutes ago';
+
+            return 'Just now';
+        }
+
+        // Dropdown toggle
+        const userMenuBtn = document.getElementById('userMenuBtn');
+        const userDropdown = document.getElementById('userDropdown');
+
+        userMenuBtn.addEventListener('click', () => {
+            const isActive = userDropdown.classList.toggle('is-active');
+            userMenuBtn.setAttribute('aria-expanded', isActive);
+        });
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!userMenuBtn.contains(e.target) && !userDropdown.contains(e.target)) {
+                userDropdown.classList.remove('is-active');
+                userMenuBtn.setAttribute('aria-expanded', 'false');
+            }
+        });
+
+        // Logout handler
+        document.getElementById('logoutBtn').addEventListener('click', async () => {
+            try {
+                await sharedLogout();
+            } catch (error) {
+                console.error('Logout error:', error);
+            }
+        });
+
+        // Edit details button
+        document.getElementById('editDetailsBtn').addEventListener('click', () => {
+            showToast('info', 'Coming Soon', 'Wedding details editing will be available soon!');
+        });
+
+        // Add task button
+        document.getElementById('addTaskBtn').addEventListener('click', () => {
+            showToast('info', 'Coming Soon', 'Task management will be available soon!');
+        });
+
+        // Initialize dashboard
+        initializeDashboard();
+
+    </script>
+
+    <!-- Responsive Styles -->
+    <style>
+        /* Hide sidebar on mobile */
+        @media (max-width: 1023px) {
+            main {
+                margin-left: 0 !important;
+                padding-bottom: 80px !important;
+            }
+        }
+
+        /* Responsive grid */
+        @media (max-width: 768px) {
+            .grid-cols-3 {
+                grid-template-columns: 1fr !important;
+            }
+
+            #weddingDetails {
+                grid-template-columns: 1fr !important;
+            }
+        }
+
+        /* Smooth animations */
+        .card {
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</body>
+</html>
