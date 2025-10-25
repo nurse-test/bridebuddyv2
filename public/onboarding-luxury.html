@@ -49,26 +49,28 @@
                         Create Your Account
                     </h2>
 
-                    <div class="form-group">
-                        <label for="email" class="form-label">Email</label>
-                        <input type="email" class="form-input" id="email" placeholder="you@example.com" required autocomplete="email">
-                        <div class="form-error" id="emailError" style="display: none;">Please enter a valid email</div>
-                    </div>
+                    <form id="slide1Form" onsubmit="event.preventDefault(); nextSlide();">
+                        <div class="form-group">
+                            <label for="email" class="form-label">Email</label>
+                            <input type="email" class="form-input" id="email" placeholder="you@example.com" required autocomplete="email">
+                            <div class="form-error" id="emailError" style="display: none;">Please enter a valid email</div>
+                        </div>
 
-                    <div class="form-group">
-                        <label for="password" class="form-label">Password</label>
-                        <input type="password" class="form-input" id="password" placeholder="Choose a secure password" required autocomplete="new-password">
-                        <div class="form-error" id="passwordError" style="display: none;">Password must be at least 6 characters</div>
-                    </div>
+                        <div class="form-group">
+                            <label for="password" class="form-label">Password</label>
+                            <input type="password" class="form-input" id="password" placeholder="Choose a secure password" required autocomplete="new-password">
+                            <div class="form-error" id="passwordError" style="display: none;">Password must be at least 6 characters</div>
+                        </div>
 
-                    <div class="nav-arrows">
-                        <button class="btn btn-icon-only" disabled>
-                            <svg style="width: 24px; height: 24px; fill: currentColor;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
-                        </button>
-                        <button class="btn btn-primary btn-icon-only" onclick="nextSlide()">
-                            <svg style="width: 24px; height: 24px; fill: currentColor;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
-                        </button>
-                    </div>
+                        <div class="nav-arrows">
+                            <button type="button" class="btn btn-icon-only" disabled>
+                                <svg style="width: 24px; height: 24px; fill: currentColor;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
+                            </button>
+                            <button type="submit" class="btn btn-primary btn-icon-only">
+                                <svg style="width: 24px; height: 24px; fill: currentColor;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
+                            </button>
+                        </div>
+                    </form>
                 </div>
             </main>
 
@@ -267,8 +269,24 @@
     <script type="module">
         import { initSupabase, showToast } from '/js/shared.js';
 
+        console.log('🎉 Onboarding page loaded');
+        console.log('🔍 Checking Supabase availability:', typeof window.supabase);
+
         // Initialize Supabase
         const supabase = initSupabase();
+        console.log('✅ Supabase initialized:', !!supabase);
+
+        // Global error handler to catch any unhandled errors
+        window.addEventListener('error', (event) => {
+            console.error('💥 Unhandled error:', event.error);
+            showToast('An unexpected error occurred. Please check the console.', 'error', 5000);
+        });
+
+        // Global unhandled rejection handler
+        window.addEventListener('unhandledrejection', (event) => {
+            console.error('💥 Unhandled promise rejection:', event.reason);
+            showToast('An unexpected error occurred. Please check the console.', 'error', 5000);
+        });
 
         // Track current slide and collected data
         let currentSlide = 1;
@@ -281,6 +299,8 @@
             startedPlanning: false,
             planningCompleted: []
         };
+
+        console.log('📋 Initial onboarding data:', onboardingData);
 
         // Update progress dots
         function updateProgress() {
@@ -423,46 +443,102 @@
         // Create Supabase account
         async function createAccount() {
             try {
+                console.log('🔐 Creating account for:', onboardingData.email);
+
                 const { data, error } = await supabase.auth.signUp({
                     email: onboardingData.email,
                     password: onboardingData.password,
                     options: {
                         data: {
                             full_name: onboardingData.fullName
-                        }
+                        },
+                        emailRedirectTo: window.location.origin + '/onboarding-luxury.html'
                     }
                 });
 
-                if (error) throw error;
+                if (error) {
+                    console.error('❌ Signup error:', error);
+                    throw error;
+                }
 
-                console.log('Account created:', data);
+                console.log('✅ Account created successfully:', {
+                    user: data.user,
+                    session: data.session,
+                    confirmationSent: data.user?.identities?.length === 0
+                });
+
+                // Check if email confirmation is required
+                if (data.user && !data.session) {
+                    console.log('📧 Email confirmation required');
+                    showToast('Please check your email to confirm your account before continuing.', 'info', 5000);
+                } else if (data.session) {
+                    console.log('✅ User automatically logged in with session');
+                } else {
+                    console.log('⚠️ Unexpected state - no session but user exists');
+                }
+
             } catch (error) {
-                console.error('Error creating account:', error);
-                showToast('Error creating account. Please try again.', 'error');
+                console.error('❌ Error creating account:', error);
+                showToast('Error creating account: ' + error.message, 'error', 5000);
+
+                // Go back to slide 1 so user can try again
+                currentSlide = 2;
+                prevSlide();
             }
         }
 
         // Create wedding profile
         async function createWedding() {
             try {
+                console.log('🏰 Creating wedding profile...');
+
                 // Get current authenticated user and session
                 const { data: { session }, error: sessionError } = await supabase.auth.getSession();
 
+                console.log('📊 Session check:', { session: !!session, sessionError });
+
                 // Handle case where user is not authenticated
                 if (sessionError || !session) {
-                    console.error('Authentication error:', sessionError);
-                    showToast('You must be logged in to create a wedding profile. Redirecting to login...', 'error');
-                    setTimeout(() => {
-                        window.location.href = 'login-luxury.html';
-                    }, 2000);
-                    return;
+                    console.error('❌ No active session - email confirmation may be required');
+                    console.error('Session error details:', sessionError);
+
+                    // Try to sign in with the credentials we have
+                    console.log('🔄 Attempting auto-login with stored credentials...');
+                    try {
+                        const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+                            email: onboardingData.email,
+                            password: onboardingData.password,
+                        });
+
+                        if (signInError || !signInData.session) {
+                            console.error('❌ Auto-login failed:', signInError);
+                            throw new Error('Email confirmation required. Please check your email and confirm your account, then login at login-luxury.html');
+                        }
+
+                        console.log('✅ Auto-login successful!');
+                        // Update session reference
+                        session = signInData.session;
+
+                    } catch (autoLoginError) {
+                        console.error('❌ Could not auto-login:', autoLoginError);
+                        showToast('Please confirm your email and then login to continue.', 'warning', 5000);
+                        setTimeout(() => {
+                            window.location.href = 'login-luxury.html';
+                        }, 5000);
+                        return;
+                    }
                 }
+
+                // Now we have a valid session, continue with wedding creation
+                console.log('✅ Valid session obtained, proceeding with wedding creation...');
 
                 // Build request with userToken for authentication
                 const requestData = {
                     ...onboardingData,
                     userToken: session.access_token
                 };
+
+                console.log('📤 Sending wedding creation request...');
 
                 const response = await fetch('/api/create-wedding', {
                     method: 'POST',
@@ -472,17 +548,22 @@
                     body: JSON.stringify(requestData)
                 });
 
+                console.log('📥 Response status:', response.status);
+
                 const data = await response.json();
+                console.log('📦 Response data:', data);
 
                 if (data.success) {
+                    console.log('✅ Wedding created successfully! ID:', data.wedding_id);
                     // Redirect to subscription page
                     window.location.href = 'subscribe-luxury.html?wedding_id=' + data.wedding_id;
                 } else {
-                    throw new Error(data.error);
+                    console.error('❌ Wedding creation failed:', data.error);
+                    throw new Error(data.error || 'Unknown error creating wedding');
                 }
             } catch (error) {
-                console.error('Error creating wedding:', error);
-                showToast('Error creating wedding profile. Please try again.', 'error');
+                console.error('❌ Error creating wedding:', error);
+                showToast('Error creating wedding profile: ' + error.message, 'error', 5000);
             }
         }
 
