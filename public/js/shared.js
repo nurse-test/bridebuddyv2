@@ -563,6 +563,64 @@ export function updateTrialBadge(wedding, badgeElementId = 'trialBadge') {
 }
 
 // ============================================================================
+// TOAST NOTIFICATIONS
+// ============================================================================
+
+/**
+ * Show toast notification
+ * @param {string} message - Message to display
+ * @param {string} type - Toast type: 'success', 'error', 'warning', 'info'
+ * @param {number} duration - Duration in milliseconds (default: 3000)
+ */
+export function showToast(message, type = 'info', duration = 3000) {
+    const container = document.getElementById('toastContainer') || createToastContainer();
+
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type} animate-fade-in-scale`;
+
+    // Icon based on type
+    const icons = {
+        success: '✓',
+        error: '✗',
+        warning: '⚠',
+        info: 'ℹ'
+    };
+
+    toast.innerHTML = `
+        <span style="font-size: 1.25rem; margin-right: 0.5rem;">${icons[type] || icons.info}</span>
+        <span>${message}</span>
+    `;
+
+    container.appendChild(toast);
+
+    // Auto remove after duration
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateY(-1rem)';
+        setTimeout(() => {
+            if (toast.parentNode) {
+                toast.parentNode.removeChild(toast);
+            }
+        }, 300);
+    }, duration);
+}
+
+/**
+ * Create toast container if it doesn't exist
+ * @returns {HTMLElement} Toast container element
+ */
+function createToastContainer() {
+    let container = document.getElementById('toastContainer');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'toastContainer';
+        container.className = 'toast-container';
+        document.body.appendChild(container);
+    }
+    return container;
+}
+
+// ============================================================================
 // EXPORTS SUMMARY
 // ============================================================================
 
@@ -612,5 +670,8 @@ export default {
 
     // Subscription helpers
     getDaysRemainingInTrial,
-    updateTrialBadge
+    updateTrialBadge,
+
+    // Toast notifications
+    showToast
 };
