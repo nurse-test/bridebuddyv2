@@ -110,15 +110,27 @@
             </div>
 
             <div style="display: flex; flex-direction: column; gap: var(--space-3);">
-                <a href="subscribe-luxury.html" class="btn btn-primary btn-full" style="background: linear-gradient(135deg, var(--color-gold), var(--color-accent)); border-color: var(--color-gold);">
+                <!-- Owner/Partner Only -->
+                <a id="menuVipUpgrade" href="subscribe-luxury.html" class="btn btn-primary btn-full hidden" style="background: linear-gradient(135deg, var(--color-gold), var(--color-accent)); border-color: var(--color-gold);">
                     ⭐ VIP Upgrade
                 </a>
+
+                <!-- Everyone -->
                 <a href="dashboard-luxury.html" class="btn btn-primary btn-full">
                     🏠 Dashboard
                 </a>
-                <a href="invite-luxury.html" class="btn btn-primary btn-full">
+
+                <!-- Owner/Partner Only -->
+                <a id="menuAddUser" href="invite-luxury.html" class="btn btn-primary btn-full hidden">
                     👥 Add a User
                 </a>
+
+                <!-- Bestie Only -->
+                <a id="menuBestieMode" href="bestie-luxury.html" class="btn btn-primary btn-full hidden" style="background: linear-gradient(135deg, #E91E63, #9C27B0); border-color: #E91E63;">
+                    🤫 Bestie Mode
+                </a>
+
+                <!-- Everyone -->
                 <a href="notifications-luxury.html" class="btn btn-secondary btn-full">
                     🔔 Notifications
                 </a>
@@ -178,11 +190,46 @@
                     weddingNameHeader.textContent = wedding.wedding_name;
                 }
 
+                // Configure menu based on user role
+                configureMenuForRole(member.role);
+
                 // Load chat history using shared function
                 await loadAndDisplayChatHistory();
             } catch (error) {
                 console.error('Error loading wedding data:', error);
                 showToast('Error loading wedding data', 'error');
+            }
+        }
+
+        // Configure menu visibility based on user role
+        function configureMenuForRole(role) {
+            const vipUpgrade = document.getElementById('menuVipUpgrade');
+            const addUser = document.getElementById('menuAddUser');
+            const bestieMode = document.getElementById('menuBestieMode');
+
+            // Owner and Partner get full access
+            if (role === 'owner' || role === 'partner') {
+                vipUpgrade.classList.remove('hidden');
+                addUser.classList.remove('hidden');
+                bestieMode.classList.add('hidden'); // Don't show bestie mode unless they're also a bestie
+            }
+            // Bestie gets bestie mode
+            else if (role === 'bestie') {
+                vipUpgrade.classList.add('hidden');
+                addUser.classList.add('hidden');
+                bestieMode.classList.remove('hidden');
+            }
+            // Co-planner gets basic access
+            else if (role === 'co_planner') {
+                vipUpgrade.classList.add('hidden');
+                addUser.classList.add('hidden');
+                bestieMode.classList.add('hidden');
+            }
+            // Default: hide all special features
+            else {
+                vipUpgrade.classList.add('hidden');
+                addUser.classList.add('hidden');
+                bestieMode.classList.add('hidden');
             }
         }
 
