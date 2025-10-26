@@ -177,24 +177,54 @@ TO service_role
 USING (true)
 WITH CHECK (true);
 
+-- FUNCTION: Helper to check wedding membership (prevents RLS recursion)
+CREATE OR REPLACE FUNCTION is_wedding_member(p_wedding_id UUID, p_user_id UUID)
+RETURNS BOOLEAN
+LANGUAGE sql
+SECURITY DEFINER
+STABLE
+AS $$
+  SELECT EXISTS (
+    SELECT 1
+    FROM wedding_members
+    WHERE wedding_id = p_wedding_id
+      AND user_id = p_user_id
+  );
+$$;
+
+-- FUNCTION: Helper to check if user is wedding owner (prevents RLS recursion)
+CREATE OR REPLACE FUNCTION is_wedding_owner(p_wedding_id UUID, p_user_id UUID)
+RETURNS BOOLEAN
+LANGUAGE sql
+SECURITY DEFINER
+STABLE
+AS $$
+  SELECT EXISTS (
+    SELECT 1
+    FROM wedding_members
+    WHERE wedding_id = p_wedding_id
+      AND user_id = p_user_id
+      AND role = 'owner'
+  );
+$$;
+
 -- TABLE: wedding_members
 ALTER TABLE wedding_members ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "Users can view members of their wedding" ON wedding_members;
+DROP POLICY IF EXISTS "Users can view wedding members" ON wedding_members;
 DROP POLICY IF EXISTS "Users can join as owner" ON wedding_members;
 DROP POLICY IF EXISTS "Users can join as member" ON wedding_members;
 DROP POLICY IF EXISTS "Owners can manage members" ON wedding_members;
 DROP POLICY IF EXISTS "Backend full access" ON wedding_members;
 
-CREATE POLICY "Users can view members of their wedding"
+CREATE POLICY "Users can view wedding members"
 ON wedding_members FOR SELECT
 TO authenticated
 USING (
-  wedding_id IN (
-    SELECT wedding_id
-    FROM wedding_members
-    WHERE user_id = auth.uid()
-  )
+  -- Users can see members of weddings they're part of
+  -- Uses security definer function to prevent recursion
+  is_wedding_member(wedding_id, auth.uid())
 );
 
 CREATE POLICY "Users can join as owner"
@@ -217,20 +247,13 @@ CREATE POLICY "Owners can manage members"
 ON wedding_members FOR UPDATE
 TO authenticated
 USING (
-  wedding_id IN (
-    SELECT wedding_id
-    FROM wedding_members
-    WHERE user_id = auth.uid()
-      AND role = 'owner'
-  )
+  -- Only owners can update members
+  -- Uses security definer function to prevent recursion
+  is_wedding_owner(wedding_id, auth.uid())
 )
 WITH CHECK (
-  wedding_id IN (
-    SELECT wedding_id
-    FROM wedding_members
-    WHERE user_id = auth.uid()
-      AND role = 'owner'
-  )
+  -- Ensure updated rows still belong to weddings the user owns
+  is_wedding_owner(wedding_id, auth.uid())
 );
 
 CREATE POLICY "Backend full access"
