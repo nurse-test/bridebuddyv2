@@ -503,6 +503,39 @@
 
     <!-- Custom Styles -->
     <style>
+        /* Modal overlay styles */
+        #menuOverlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 1000;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+        }
+
+        #menuOverlay.hidden {
+            display: none;
+        }
+
+        .modal-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(26, 11, 46, 0.7);
+            backdrop-filter: blur(4px);
+        }
+
+        .modal-content {
+            position: relative;
+            z-index: 1001;
+            width: 100%;
+        }
+
         /* Toggle button styles */
         .toggle-btn {
             background: transparent;
@@ -529,23 +562,47 @@
         }
 
         /* Chat message styles */
+        .chat-message {
+            display: flex;
+            margin-bottom: var(--space-4);
+        }
+
+        .chat-message.user {
+            justify-content: flex-end;
+        }
+
+        .chat-message.assistant {
+            justify-content: flex-start;
+        }
+
         .chat-bubble {
             padding: var(--space-4);
             border-radius: var(--radius-lg);
-            margin-bottom: var(--space-3);
             max-width: 80%;
+            position: relative;
         }
 
-        .chat-bubble.user {
-            background: linear-gradient(135deg, var(--color-accent), var(--color-accent-dark));
-            color: var(--color-white);
-            margin-left: auto;
-            text-align: right;
+        /* User/Sender message - gradient deep orange to champagne yellow with black text and LED glow */
+        .chat-message.user .chat-bubble {
+            background: linear-gradient(135deg, #FF6B35, #F7B731);
+            color: #000000;
+            text-align: left;
+            box-shadow:
+                0 0 20px rgba(255, 107, 53, 0.6),
+                0 0 40px rgba(247, 183, 49, 0.4),
+                0 4px 6px rgba(0, 0, 0, 0.1);
         }
 
-        .chat-bubble.assistant {
-            background: rgba(255, 255, 255, 0.9);
+        /* Bride Buddy/Assistant message - white frosted with LED glow */
+        .chat-message.assistant .chat-bubble {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(10px);
             color: var(--color-navy);
+            box-shadow:
+                0 0 20px rgba(201, 169, 97, 0.5),
+                0 0 40px rgba(201, 169, 97, 0.3),
+                0 4px 6px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(201, 169, 97, 0.3);
         }
 
         @media (max-width: 768px) {
