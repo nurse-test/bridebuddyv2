@@ -23,8 +23,35 @@ let supabaseClient = null;
  * @returns {Object} Supabase client instance
  */
 export function initSupabase() {
-    if (!supabaseClient && window.supabase) {
-        supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    if (!supabaseClient) {
+        // Check for Supabase global - could be window.supabase or window.supabaseJs
+        const supabaseLib = window.supabase || window.supabaseJs;
+
+        if (!supabaseLib) {
+            console.error('Supabase SDK not loaded. Make sure the Supabase CDN script is included in your HTML.');
+            console.error('Available globals:', Object.keys(window).filter(k => k.toLowerCase().includes('supabase')));
+            throw new Error('Supabase SDK not available. Please check that the Supabase CDN script is loaded.');
+        }
+
+        console.log('🔧 Creating Supabase client...');
+        console.log('Supabase URL:', SUPABASE_URL);
+        console.log('API Key present:', !!SUPABASE_ANON_KEY);
+        console.log('API Key length:', SUPABASE_ANON_KEY?.length || 0);
+
+        try {
+            supabaseClient = supabaseLib.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+            if (!supabaseClient) {
+                throw new Error('createClient returned null or undefined');
+            }
+
+            console.log('✅ Supabase client created successfully');
+            console.log('Client type:', typeof supabaseClient);
+            console.log('Client methods:', Object.keys(supabaseClient).slice(0, 10).join(', '));
+        } catch (err) {
+            console.error('Error creating Supabase client:', err);
+            throw new Error(`Failed to create Supabase client: ${err.message}`);
+        }
     }
     return supabaseClient;
 }
