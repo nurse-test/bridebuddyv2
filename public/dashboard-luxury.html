@@ -275,9 +275,18 @@
             logout as sharedLogout
         } from '/js/shared.js';
 
-        const supabase = initSupabase();
+        let supabase = null;
         let weddingId = null;
         let wedding = null;
+
+        // Initialize Supabase with error handling
+        try {
+            supabase = initSupabase();
+            console.log('✅ Supabase client initialized successfully');
+        } catch (error) {
+            console.error('❌ Failed to initialize Supabase:', error);
+            showToast('error', 'Connection Error', 'Failed to connect to database. Please refresh the page.');
+        }
 
         // Show Toast Notification
         function showToast(type, title, message, duration = 5000) {
@@ -485,6 +494,12 @@
             const emptyState = document.getElementById('emptyActivity');
 
             try {
+                // Verify Supabase client is initialized
+                if (!supabase) {
+                    console.error('Supabase client not initialized');
+                    throw new Error('Database connection not available');
+                }
+
                 // Get recent messages
                 const { data: messages, error } = await supabase
                     .from('chat_messages')
@@ -531,7 +546,11 @@
 
             } catch (error) {
                 console.error('Error loading recent activity:', error);
-                activityList.innerHTML = '<p style="color: var(--color-rust); text-align: center;">Failed to load activity</p>';
+                console.error('Error details:', JSON.stringify(error, null, 2));
+
+                // Show empty state instead of error to avoid cluttering UI
+                activityList.style.display = 'none';
+                emptyState.style.display = 'block';
             }
         }
 
@@ -593,8 +612,13 @@
             showToast('info', 'Coming Soon', 'Task management will be available soon!');
         });
 
-        // Initialize dashboard
-        initializeDashboard();
+        // Initialize dashboard when DOM is ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initializeDashboard);
+        } else {
+            // DOM already loaded
+            initializeDashboard();
+        }
 
     </script>
 
