@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Manage your Bride Buddy account settings">
+    <title>Account Settings - Bride Buddy</title>
+
+    <!-- Preconnect to font providers -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="/css/styles-luxury.css">
+    <link rel="stylesheet" href="/css/components-luxury.css">
+
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <!-- Skip to main content for accessibility -->
+    <a href="#main-content" class="skip-to-main">Skip to main content</a>
+
+    <div class="bg-sunset">
+
+        <!-- Top Navbar -->
+        <nav class="navbar">
+            <div class="navbar-container">
+                <!-- Logo -->
+                <a href="index-luxury.html" style="text-decoration: none;">
+                    <h1 class="logo-led" style="font-family: var(--font-heading); font-size: var(--text-xl); margin: 0; line-height: 1;">
+                        <span style="font-style: italic; font-weight: 400;">Bride</span>
+                        <span style="font-weight: 700;">BUDDY</span>
+                    </h1>
+                </a>
+
+                <!-- Back Button -->
+                <div style="display: flex; align-items: center; gap: var(--space-3);">
+                    <a href="chat-luxury.html" class="btn btn-secondary btn-sm">
+                        ← Back to Chat
+                    </a>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main id="main-content" style="padding: var(--space-6); max-width: 900px; margin: 0 auto; min-height: calc(100vh - 72px);">
+
+            <!-- Page Header -->
+            <div style="margin-bottom: var(--space-8);">
+                <h1 style="font-family: var(--font-heading); font-size: var(--text-4xl); color: var(--color-navy); margin-bottom: var(--space-2);">
+                    Account Settings
+                </h1>
+                <p style="font-size: var(--text-lg); color: var(--color-burgundy);">
+                    Manage your profile and account preferences
+                </p>
+            </div>
+
+            <!-- Profile Section -->
+            <div class="card card-gold-accent" style="margin-bottom: var(--space-6);">
+                <h2 style="font-family: var(--font-heading); font-size: var(--text-2xl); color: var(--color-navy); margin-bottom: var(--space-4);">
+                    Profile Information
+                </h2>
+
+                <form id="profileForm" style="display: flex; flex-direction: column; gap: var(--space-4);">
+                    <div>
+                        <label for="fullName" class="form-label">Full Name</label>
+                        <input type="text" id="fullName" class="form-input" placeholder="Your full name">
+                    </div>
+
+                    <div>
+                        <label for="email" class="form-label">Email Address</label>
+                        <input type="email" id="email" class="form-input" placeholder="your@email.com" disabled style="opacity: 0.7; cursor: not-allowed;">
+                        <p style="font-size: var(--text-sm); color: var(--color-burgundy); margin-top: var(--space-2); opacity: 0.8;">
+                            Email cannot be changed. Contact support if you need to update your email.
+                        </p>
+                    </div>
+
+                    <div style="display: flex; gap: var(--space-3); margin-top: var(--space-2);">
+                        <button type="submit" class="btn btn-primary">
+                            Save Changes
+                        </button>
+                        <button type="button" class="btn btn-secondary" onclick="window.location.reload()">
+                            Cancel
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Password Section -->
+            <div class="card" style="margin-bottom: var(--space-6);">
+                <h2 style="font-family: var(--font-heading); font-size: var(--text-2xl); color: var(--color-navy); margin-bottom: var(--space-4);">
+                    Change Password
+                </h2>
+
+                <form id="passwordForm" style="display: flex; flex-direction: column; gap: var(--space-4);">
+                    <div>
+                        <label for="currentPassword" class="form-label">Current Password</label>
+                        <input type="password" id="currentPassword" class="form-input" placeholder="Enter current password">
+                    </div>
+
+                    <div>
+                        <label for="newPassword" class="form-label">New Password</label>
+                        <input type="password" id="newPassword" class="form-input" placeholder="Enter new password">
+                    </div>
+
+                    <div>
+                        <label for="confirmPassword" class="form-label">Confirm New Password</label>
+                        <input type="password" id="confirmPassword" class="form-input" placeholder="Confirm new password">
+                    </div>
+
+                    <div style="display: flex; gap: var(--space-3); margin-top: var(--space-2);">
+                        <button type="submit" class="btn btn-primary">
+                            Update Password
+                        </button>
+                        <button type="button" class="btn btn-secondary" onclick="resetPasswordForm()">
+                            Cancel
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Subscription Status -->
+            <div class="card card-champagne-accent" style="margin-bottom: var(--space-6);">
+                <h2 style="font-family: var(--font-heading); font-size: var(--text-2xl); color: var(--color-navy); margin-bottom: var(--space-4);">
+                    Subscription
+                </h2>
+
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-4);">
+                    <div>
+                        <p style="font-size: var(--text-lg); color: var(--color-navy); margin-bottom: var(--space-1);">
+                            <strong>Current Plan:</strong> <span id="currentPlan">Loading...</span>
+                        </p>
+                        <p style="font-size: var(--text-sm); color: var(--color-burgundy); opacity: 0.8;" id="planDetails">
+                            Loading plan details...
+                        </p>
+                    </div>
+                    <a href="subscribe-luxury.html" class="btn btn-primary" style="background: linear-gradient(135deg, var(--color-gold), var(--color-accent)); border-color: var(--color-gold);">
+                        ⭐ Upgrade Plan
+                    </a>
+                </div>
+            </div>
+
+            <!-- Danger Zone -->
+            <div class="card" style="border: 2px solid var(--color-burgundy); margin-bottom: var(--space-6);">
+                <h2 style="font-family: var(--font-heading); font-size: var(--text-2xl); color: var(--color-burgundy); margin-bottom: var(--space-4);">
+                    Danger Zone
+                </h2>
+
+                <p style="color: var(--color-navy); margin-bottom: var(--space-4);">
+                    Once you delete your account, there is no going back. Please be certain.
+                </p>
+
+                <button class="btn btn-ghost" style="border-color: var(--color-burgundy); color: var(--color-burgundy);" onclick="confirmDeleteAccount()">
+                    Delete Account
+                </button>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteModal" class="modal hidden">
+        <div class="modal-overlay" onclick="closeDeleteModal()"></div>
+        <div class="modal-content card" style="max-width: 500px;">
+            <h2 style="font-family: var(--font-heading); font-size: var(--text-2xl); color: var(--color-burgundy); margin-bottom: var(--space-4);">
+                Delete Account?
+            </h2>
+            <p style="color: var(--color-navy); margin-bottom: var(--space-6);">
+                This action cannot be undone. All your wedding data, chat history, and settings will be permanently deleted.
+            </p>
+            <div style="display: flex; gap: var(--space-3); justify-content: flex-end;">
+                <button class="btn btn-secondary" onclick="closeDeleteModal()">
+                    Cancel
+                </button>
+                <button class="btn btn-ghost" style="border-color: var(--color-burgundy); color: var(--color-burgundy);" onclick="deleteAccount()">
+                    Yes, Delete My Account
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script type="module">
+        import {
+            initSupabase,
+            getSupabase,
+            loadWeddingData,
+            logout,
+            showToast
+        } from '/js/shared.js';
+
+        // Initialize Supabase
+        const supabase = initSupabase();
+
+        let weddingId = null;
+        let userId = null;
+
+        // Load user data
+        async function loadUserData() {
+            try {
+                const { data: { user } } = await supabase.auth.getUser();
+
+                if (!user) {
+                    window.location.href = 'login-luxury.html';
+                    return;
+                }
+
+                userId = user.id;
+
+                // Load profile data
+                const { data: profile, error } = await supabase
+                    .from('profiles')
+                    .select('*')
+                    .eq('id', user.id)
+                    .single();
+
+                if (!error && profile) {
+                    document.getElementById('fullName').value = profile.full_name || '';
+                    document.getElementById('email').value = profile.email || user.email || '';
+                }
+
+                // Load wedding data for subscription info
+                try {
+                    const { wedding } = await loadWeddingData();
+                    weddingId = wedding.id;
+
+                    // Display subscription status
+                    const planType = wedding.plan_type || 'trial';
+                    const isVip = wedding.is_vip || false;
+
+                    document.getElementById('currentPlan').textContent = isVip ? 'VIP' : planType.charAt(0).toUpperCase() + planType.slice(1);
+
+                    if (planType === 'trial' && wedding.trial_end_date) {
+                        const trialEnd = new Date(wedding.trial_end_date);
+                        const daysLeft = Math.ceil((trialEnd - new Date()) / (1000 * 60 * 60 * 24));
+                        document.getElementById('planDetails').textContent = `Trial ends in ${daysLeft} days`;
+                    } else {
+                        document.getElementById('planDetails').textContent = wedding.subscription_status || 'Active';
+                    }
+                } catch (error) {
+                    console.log('No wedding data found');
+                    document.getElementById('currentPlan').textContent = 'No active plan';
+                    document.getElementById('planDetails').textContent = 'Create a wedding to start planning';
+                }
+
+            } catch (error) {
+                console.error('Error loading user data:', error);
+                showToast('Error loading account data', 'error');
+            }
+        }
+
+        // Update profile
+        document.getElementById('profileForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const fullName = document.getElementById('fullName').value.trim();
+
+            if (!fullName) {
+                showToast('Please enter your full name', 'error');
+                return;
+            }
+
+            try {
+                const { error } = await supabase
+                    .from('profiles')
+                    .update({ full_name: fullName })
+                    .eq('id', userId);
+
+                if (error) throw error;
+
+                showToast('Profile updated successfully!', 'success');
+            } catch (error) {
+                console.error('Error updating profile:', error);
+                showToast('Error updating profile: ' + error.message, 'error');
+            }
+        });
+
+        // Update password
+        document.getElementById('passwordForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+
+            if (newPassword.length < 6) {
+                showToast('Password must be at least 6 characters', 'error');
+                return;
+            }
+
+            if (newPassword !== confirmPassword) {
+                showToast('Passwords do not match', 'error');
+                return;
+            }
+
+            try {
+                const { error } = await supabase.auth.updateUser({
+                    password: newPassword
+                });
+
+                if (error) throw error;
+
+                showToast('Password updated successfully!', 'success');
+                resetPasswordForm();
+            } catch (error) {
+                console.error('Error updating password:', error);
+                showToast('Error updating password: ' + error.message, 'error');
+            }
+        });
+
+        // Reset password form
+        window.resetPasswordForm = function() {
+            document.getElementById('passwordForm').reset();
+        };
+
+        // Delete account modal
+        window.confirmDeleteAccount = function() {
+            document.getElementById('deleteModal').classList.remove('hidden');
+        };
+
+        window.closeDeleteModal = function() {
+            document.getElementById('deleteModal').classList.add('hidden');
+        };
+
+        window.deleteAccount = async function() {
+            try {
+                showToast('Account deletion is not yet implemented. Please contact support.', 'info');
+                closeDeleteModal();
+
+                // TODO: Implement account deletion
+                // This should delete user data, wedding data, and the auth account
+            } catch (error) {
+                console.error('Error deleting account:', error);
+                showToast('Error deleting account', 'error');
+            }
+        };
+
+        // Initialize
+        loadUserData();
+    </script>
+</body>
+</html>

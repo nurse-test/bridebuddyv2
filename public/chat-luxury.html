@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Chat with your AI wedding planning assistant">
+    <title>Bride Buddy - AI Chat</title>
+
+    <!-- Preconnect to font providers -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="/css/styles-luxury.css">
+    <link rel="stylesheet" href="/css/components-luxury.css">
+
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <!-- Skip to main content for accessibility -->
+    <a href="#main-content" class="skip-to-main">Skip to main content</a>
+
+    <!-- Chat Container -->
+    <div class="bg-sunset" style="min-height: 100vh; display: flex; flex-direction: column;">
+
+        <!-- Chat Header -->
+    <div class="navbar animate-fade-in" style="background: linear-gradient(135deg, rgba(26, 11, 46, 0.9), rgba(201, 169, 97, 0.6)); backdrop-filter: blur(20px); border-bottom: 2px solid var(--color-accent);">
+            <div class="container" style="display: flex; justify-content: space-between; align-items: center; padding: var(--space-4) var(--space-6);">
+                <div style="display: flex; align-items: center; gap: var(--space-3);">
+                    <a href="index-luxury.html" style="text-decoration: none;">
+                        <h1 class="logo-led" style="font-family: var(--font-heading); font-size: var(--text-xl); color: var(--color-white); margin: 0; line-height: 1;">
+                            <span style="font-style: italic; font-weight: 400;">Bride</span>
+                            <span style="font-weight: 700;">BUDDY</span>
+                        </h1>
+                    </a>
+                </div>
+
+                <div style="display: flex; align-items: center; gap: var(--space-3);">
+                    <span id="weddingNameHeader" style="font-size: var(--text-sm); color: var(--color-white); opacity: 0.9;"></span>
+
+                    <!-- Bestie Toggle (only visible for besties) -->
+                    <div id="bestieToggle" class="hidden" style="display: flex; align-items: center; gap: var(--space-2); background: rgba(255, 255, 255, 0.2); padding: var(--space-1) var(--space-2); border-radius: var(--radius-full); border: 2px solid rgba(255, 255, 255, 0.4);">
+                        <button id="toggleMain" class="toggle-btn active" onclick="switchToMainChat()">
+                            💍 Wedding
+                        </button>
+                        <button id="toggleBestie" class="toggle-btn" onclick="switchToBestieChat()">
+                            🤫 Bestie
+                        </button>
+                    </div>
+
+                    <button onclick="toggleMenu()" class="btn btn-icon-only" style="background: rgba(255, 255, 255, 0.3); border-color: var(--color-white);">
+                        <svg style="width: 24px; height: 24px; fill: var(--color-white);" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chat Messages -->
+        <main id="main-content" style="flex: 1; overflow-y: auto; padding: var(--space-6) 0;">
+            <div class="container" style="max-width: 800px;">
+                <div id="chatMessages">
+                    <!-- Bestie Mode Header (only visible in bestie mode) -->
+                    <div id="bestieModeHeader" class="hidden animate-fade-in" style="margin-bottom: var(--space-4);">
+                        <div class="card" style="background: linear-gradient(135deg, rgba(233, 30, 99, 0.15), rgba(156, 39, 176, 0.15)); border: 2px solid #E91E63;">
+                            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: var(--space-2);">
+                                <div style="flex: 1;">
+                                    <p style="color: var(--color-navy); margin-bottom: var(--space-2); font-weight: var(--font-semibold);">
+                                        🤫 Bestie Mode Activated
+                                    </p>
+                                    <p style="color: var(--color-navy); font-size: var(--text-sm); margin-bottom: 0;">
+                                        This is your special bestie chat, where you track surprises, bachelor/bachelorette planning, gifts, wedding party details, and more. Everything here is kept separate from the main wedding planning.
+                                    </p>
+                                </div>
+                                <button onclick="syncWeddingInfoToBestie()" class="btn btn-secondary btn-sm" style="margin-left: var(--space-3); white-space: nowrap;">
+                                    📋 Sync Wedding Info
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Welcome message -->
+                    <div class="animate-fade-in" style="margin-bottom: var(--space-4);">
+                        <div class="card card-champagne-accent" style="background: linear-gradient(135deg, rgba(255, 251, 246, 0.95), rgba(255, 248, 240, 0.95));">
+                            <p style="color: var(--color-navy); margin-bottom: var(--space-3);">
+                                <strong>Welcome to your wedding planning assistant! 💍</strong>
+                            </p>
+                            <p style="color: var(--color-navy); margin-bottom: var(--space-3);">
+                                I'm here to help you plan every detail of your perfect day. I can assist with:
+                            </p>
+                            <ul style="color: var(--color-navy); padding-left: var(--space-5); margin: 0;">
+                                <li style="margin-bottom: var(--space-1);">Finding and booking vendors</li>
+                                <li style="margin-bottom: var(--space-1);">Managing your budget</li>
+                                <li style="margin-bottom: var(--space-1);">Creating timelines and checklists</li>
+                                <li style="margin-bottom: var(--space-1);">Guest list management</li>
+                                <li>Answering any wedding planning questions</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Chat Input -->
+        <div style="background: linear-gradient(180deg, transparent, rgba(201, 169, 97, 0.12)); padding: var(--space-4) 0; border-top: 2px solid var(--color-accent);">
+            <div class="container" style="max-width: 800px;">
+                <form id="chatForm" style="display: flex; gap: var(--space-3); align-items: center;">
+                    <input
+                        type="text"
+                        id="messageInput"
+                        class="form-input"
+                        placeholder="Ask me anything about your wedding..."
+                        autocomplete="off"
+                        required
+                        style="flex: 1; border-color: var(--color-gold);"
+                    >
+                    <button type="submit" class="btn btn-primary btn-icon-only" id="sendBtn" style="width: 48px; height: 48px; flex-shrink: 0;">
+                        <svg style="width: 24px; height: 24px; fill: currentColor;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+                    </button>
+                </form>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Menu Overlay -->
+    <div id="menuOverlay" class="modal hidden">
+        <div class="modal-overlay" onclick="toggleMenu()"></div>
+        <div class="modal-content card card-gold-accent" style="position: fixed; bottom: 0; left: 0; right: 0; border-radius: var(--radius-lg) var(--radius-lg) 0 0; max-height: 70vh; overflow-y: auto;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-6);">
+                <h2 style="font-family: var(--font-heading); font-size: var(--text-2xl); color: var(--color-navy); margin: 0;">
+                    Menu
+                </h2>
+                <button class="btn btn-icon-only" onclick="toggleMenu()" style="background: rgba(201, 169, 97, 0.2); border-color: var(--color-gold);">
+                    <svg style="width: 24px; height: 24px; fill: currentColor;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+                </button>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: var(--space-3);">
+                <!-- Owner/Partner Only -->
+                <a id="menuVipUpgrade" href="subscribe-luxury.html" class="btn btn-primary btn-full hidden" style="background: linear-gradient(135deg, var(--color-gold), var(--color-accent)); border-color: var(--color-gold);">
+                    ⭐ VIP Upgrade
+                </a>
+
+                <!-- Everyone -->
+                <a href="dashboard-luxury.html" class="btn btn-primary btn-full">
+                    🏠 Dashboard
+                </a>
+
+                <!-- Owner/Partner Only -->
+                <a id="menuAddUser" href="invite-luxury.html" class="btn btn-primary btn-full hidden">
+                    👥 Add a User
+                </a>
+
+                <!-- Bestie Only -->
+                <button id="menuBestieMode" onclick="switchToBestieModeFromMenu()" class="btn btn-primary btn-full hidden" style="background: linear-gradient(135deg, #E91E63, #9C27B0); border-color: #E91E63;">
+                    🤫 Bestie Mode
+                </button>
+
+                <!-- Everyone -->
+                <a href="notifications-luxury.html" class="btn btn-secondary btn-full">
+                    🔔 Notifications
+                </a>
+                <a href="settings-luxury.html" class="btn btn-secondary btn-full">
+                    ⚙️ Account Settings
+                </a>
+                <button class="btn btn-ghost btn-full" onclick="logout()">
+                    🚪 Sign Out
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <!-- Scripts -->
+    <script type="module">
+        import {
+            initSupabase,
+            getSupabase,
+            loadWeddingData,
+            loadChatHistory,
+            displayChatHistory,
+            displayMessage,
+            loadingIndicator,
+            navigateTo,
+            logout,
+            showToast
+        } from '/js/shared.js';
+
+        // Initialize Supabase
+        const supabase = initSupabase();
+
+        // Get wedding_id from URL or load from session
+        let weddingId = null;
+        let conversationHistory = [];
+        let currentChatMode = 'main'; // 'main' or 'bestie'
+        let userRole = null; // Will be set during initialization
+
+        // Make functions globally available
+        window.toggleMenu = function() {
+            const menuOverlay = document.getElementById('menuOverlay');
+            menuOverlay.classList.toggle('hidden');
+        };
+
+        window.logout = logout;
+
+        // Switch to Main Chat
+        window.switchToMainChat = async function() {
+            if (currentChatMode === 'main') return; // Already in main mode
+
+            currentChatMode = 'main';
+
+            // Update toggle buttons
+            document.getElementById('toggleMain').classList.add('active');
+            document.getElementById('toggleBestie').classList.remove('active');
+
+            // Hide bestie header
+            document.getElementById('bestieModeHeader').classList.add('hidden');
+
+            // Update menu button back to Bestie Mode
+            const menuBestieBtn = document.getElementById('menuBestieMode');
+            if (menuBestieBtn) {
+                menuBestieBtn.innerHTML = '🤫 Bestie Mode';
+                menuBestieBtn.onclick = switchToBestieModeFromMenu;
+            }
+
+            // Load main chat history
+            await loadAndDisplayChatHistory('main');
+
+            showToast('Switched to Wedding Planning', 'success');
+        };
+
+        // Switch to Bestie Chat
+        window.switchToBestieChat = async function() {
+            if (currentChatMode === 'bestie') return; // Already in bestie mode
+
+            currentChatMode = 'bestie';
+
+            // Update toggle buttons
+            document.getElementById('toggleMain').classList.remove('active');
+            document.getElementById('toggleBestie').classList.add('active');
+
+            // Show bestie header
+            document.getElementById('bestieModeHeader').classList.remove('hidden');
+
+            // Update menu button to show "Wedding Planning" since we're in bestie mode
+            const menuBestieBtn = document.getElementById('menuBestieMode');
+            if (menuBestieBtn) {
+                menuBestieBtn.innerHTML = '💍 Wedding Planning';
+                menuBestieBtn.onclick = async function() { toggleMenu(); await switchToMainChat(); };
+            }
+
+            // Load bestie chat history
+            await loadAndDisplayChatHistory('bestie');
+
+            showToast('Switched to Bestie Mode', 'success');
+        };
+
+        // Switch to Bestie Mode from Menu
+        window.switchToBestieModeFromMenu = async function() {
+            // Close the menu first
+            toggleMenu();
+
+            // Then switch to bestie chat
+            await switchToBestieChat();
+        };
+
+        // Sync Wedding Info to Bestie Table
+        window.syncWeddingInfoToBestie = async function() {
+            try {
+                showToast('Syncing wedding information...', 'info');
+
+                const { data: { session } } = await supabase.auth.getSession();
+
+                if (!session) {
+                    throw new Error('Not authenticated');
+                }
+
+                // Call bestie-chat API with special sync command
+                const response = await fetch('/api/bestie-chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        message: 'Please sync all wedding information from the main wedding plan to my bestie knowledge base. Include details about the venue, date, guest list, vendors, budget, and any other important wedding details.',
+                        userToken: session.access_token,
+                        conversationId: weddingId,
+                        syncMode: true // Special flag to indicate this is a sync operation
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.response) {
+                    // Display the sync confirmation message
+                    displayMessage(data.response, 'assistant');
+                    showToast('Wedding info synced to Bestie Mode!', 'success');
+                } else {
+                    throw new Error('Failed to sync wedding info');
+                }
+            } catch (error) {
+                console.error('Error syncing wedding info:', error);
+                showToast('Error syncing wedding info: ' + error.message, 'error');
+            }
+        };
+
+        // Load wedding data
+        async function initializeChat() {
+            try {
+                // Use shared loadWeddingData function
+                const { wedding, weddingId: loadedWeddingId, member } = await loadWeddingData();
+                weddingId = loadedWeddingId;
+
+                // Update header with wedding name
+                const weddingNameHeader = document.getElementById('weddingNameHeader');
+                if (weddingNameHeader && wedding.wedding_name) {
+                    weddingNameHeader.textContent = wedding.wedding_name;
+                }
+
+                // Store user role
+                userRole = member.role;
+
+                // Configure menu based on user role
+                configureMenuForRole(member.role);
+
+                // Show bestie toggle if user is a bestie
+                if (member.role === 'bestie') {
+                    document.getElementById('bestieToggle').classList.remove('hidden');
+                }
+
+                // Load chat history using shared function
+                await loadAndDisplayChatHistory();
+            } catch (error) {
+                console.error('Error loading wedding data:', error);
+                showToast('Error loading wedding data', 'error');
+            }
+        }
+
+        // Configure menu visibility based on user role
+        function configureMenuForRole(role) {
+            const vipUpgrade = document.getElementById('menuVipUpgrade');
+            const addUser = document.getElementById('menuAddUser');
+            const bestieMode = document.getElementById('menuBestieMode');
+
+            // Owner and Partner get full access
+            if (role === 'owner' || role === 'partner') {
+                vipUpgrade.classList.remove('hidden');
+                addUser.classList.remove('hidden');
+                bestieMode.classList.add('hidden'); // Don't show bestie mode unless they're also a bestie
+            }
+            // Bestie gets bestie mode
+            else if (role === 'bestie') {
+                vipUpgrade.classList.add('hidden');
+                addUser.classList.add('hidden');
+                bestieMode.classList.remove('hidden');
+            }
+            // Co-planner gets basic access
+            else if (role === 'co_planner') {
+                vipUpgrade.classList.add('hidden');
+                addUser.classList.add('hidden');
+                bestieMode.classList.add('hidden');
+            }
+            // Default: hide all special features
+            else {
+                vipUpgrade.classList.add('hidden');
+                addUser.classList.add('hidden');
+                bestieMode.classList.add('hidden');
+            }
+        }
+
+        // Load and display chat history
+        async function loadAndDisplayChatHistory(chatMode = 'main') {
+            try {
+                const messageType = chatMode === 'bestie' ? 'bestie' : 'main';
+
+                const messages = await loadChatHistory({
+                    weddingId,
+                    messageType,
+                    limit: 20
+                });
+
+                conversationHistory = messages;
+
+                // Clear and display messages using shared function
+                const chatMessages = document.getElementById('chatMessages');
+
+                // Keep the bestie header if in bestie mode
+                const bestieModeHeader = document.getElementById('bestieModeHeader');
+                const headerHTML = bestieModeHeader.outerHTML;
+
+                // Clear chat but keep welcome message structure
+                chatMessages.innerHTML = `
+                    ${headerHTML}
+                    <!-- Welcome message -->
+                    <div class="animate-fade-in" style="margin-bottom: var(--space-4);">
+                        <div class="card card-champagne-accent" style="background: linear-gradient(135deg, rgba(255, 251, 246, 0.95), rgba(255, 248, 240, 0.95));">
+                            <p style="color: var(--color-navy); margin-bottom: var(--space-3);">
+                                <strong>Welcome to your ${chatMode === 'bestie' ? 'bestie' : 'wedding planning'} assistant! ${chatMode === 'bestie' ? '🤫' : '💍'}</strong>
+                            </p>
+                            <p style="color: var(--color-navy); margin-bottom: var(--space-3);">
+                                ${chatMode === 'bestie'
+                                    ? "I'm here to help you plan surprises and special moments for the couple. I can assist with:"
+                                    : "I'm here to help you plan every detail of your perfect day. I can assist with:"}
+                            </p>
+                            <ul style="color: var(--color-navy); padding-left: var(--space-5); margin: 0;">
+                                ${chatMode === 'bestie'
+                                    ? `<li style="margin-bottom: var(--space-1);">Bachelor/Bachelorette party planning</li>
+                                       <li style="margin-bottom: var(--space-1);">Surprise gift ideas and coordination</li>
+                                       <li style="margin-bottom: var(--space-1);">Wedding party management</li>
+                                       <li style="margin-bottom: var(--space-1);">Secret planning and coordination</li>
+                                       <li>Keeping track of surprise details</li>`
+                                    : `<li style="margin-bottom: var(--space-1);">Finding and booking vendors</li>
+                                       <li style="margin-bottom: var(--space-1);">Managing your budget</li>
+                                       <li style="margin-bottom: var(--space-1);">Creating timelines and checklists</li>
+                                       <li style="margin-bottom: var(--space-1);">Guest list management</li>
+                                       <li>Answering any wedding planning questions</li>`}
+                            </ul>
+                        </div>
+                    </div>
+                `;
+
+                // Display chat history
+                displayChatHistory(messages, 'chatMessages');
+            } catch (error) {
+                console.error('Error loading chat history:', error);
+                showToast('Error loading chat history', 'error');
+            }
+        }
+
+        // Loading indicators
+        const showLoading = () => loadingIndicator.show('chatMessages');
+        const hideLoading = () => loadingIndicator.hide();
+
+        // Send message
+        document.getElementById('chatForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+
+            if (!message) return;
+
+            // Display user message
+            displayMessage(message, 'user');
+            input.value = '';
+
+            // Disable input while processing
+            input.disabled = true;
+            document.getElementById('sendBtn').disabled = true;
+
+            // Show loading indicator
+            showLoading();
+
+            try {
+                // Get user session token
+                const { data: { session } } = await supabase.auth.getSession();
+
+                if (!session) {
+                    throw new Error('Not authenticated');
+                }
+
+                // Call appropriate chat API based on mode
+                const apiEndpoint = currentChatMode === 'bestie' ? '/api/bestie-chat' : '/api/chat';
+
+                const response = await fetch(apiEndpoint, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        message: message,
+                        userToken: session.access_token,
+                        conversationId: weddingId
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.response) {
+                    displayMessage(data.response, 'assistant');
+                } else {
+                    throw new Error('No response from AI');
+                }
+            } catch (error) {
+                console.error('Error sending message:', error);
+                displayMessage('Sorry, I had trouble processing that. Please try again!', 'assistant');
+                showToast('Error sending message', 'error');
+            } finally {
+                // Hide loading indicator
+                hideLoading();
+
+                input.disabled = false;
+                document.getElementById('sendBtn').disabled = false;
+                input.focus();
+            }
+        });
+
+        // Initialize chat interface
+        initializeChat();
+    </script>
+
+    <!-- Custom Styles -->
+    <style>
+        /* Toggle button styles */
+        .toggle-btn {
+            background: transparent;
+            border: none;
+            color: var(--color-white);
+            padding: var(--space-1) var(--space-3);
+            border-radius: var(--radius-full);
+            font-size: var(--text-sm);
+            font-weight: var(--font-medium);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            opacity: 0.7;
+        }
+
+        .toggle-btn:hover {
+            opacity: 0.9;
+        }
+
+        .toggle-btn.active {
+            background: rgba(255, 255, 255, 0.9);
+            color: var(--color-navy);
+            opacity: 1;
+            font-weight: var(--font-semibold);
+        }
+
+        /* Chat message styles */
+        .chat-bubble {
+            padding: var(--space-4);
+            border-radius: var(--radius-lg);
+            margin-bottom: var(--space-3);
+            max-width: 80%;
+        }
+
+        .chat-bubble.user {
+            background: linear-gradient(135deg, var(--color-accent), var(--color-accent-dark));
+            color: var(--color-white);
+            margin-left: auto;
+            text-align: right;
+        }
+
+        .chat-bubble.assistant {
+            background: rgba(255, 255, 255, 0.9);
+            color: var(--color-navy);
+        }
+
+        @media (max-width: 768px) {
+            .chat-bubble {
+                max-width: 90%;
+            }
+
+            .navbar .container {
+                padding: var(--space-3) var(--space-4) !important;
+            }
+        }
+    </style>
+</body>
+</html>

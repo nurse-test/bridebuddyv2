@@ -632,8 +632,8 @@
 
                 if (data.success) {
                     console.log('✅ Wedding created successfully! ID:', data.wedding_id);
-                    // Redirect to subscription page
-                    window.location.href = 'subscribe-luxury.html?wedding_id=' + data.wedding_id;
+                    // Redirect to main chat
+                    window.location.href = 'chat-luxury.html?wedding_id=' + data.wedding_id;
                 } else {
                     console.error('❌ Wedding creation failed:', data.error);
                     if (data.details) {
