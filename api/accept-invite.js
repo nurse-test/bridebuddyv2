@@ -131,9 +131,10 @@ export default async function handler(req, res) {
     }
 
     // ========================================================================
-    // STEP 8: For bestie role - create bestie_profile
+    // STEP 8: Role-specific setup
     // ========================================================================
     if (invite.role === 'bestie') {
+      // Create bestie_profile for bestie role
       const { error: profileError } = await supabaseAdmin
         .from('bestie_profile')
         .insert({
@@ -147,6 +148,9 @@ export default async function handler(req, res) {
         // Don't fail the entire request - user is already a member
         // Profile can be created later
       }
+    } else if (invite.role === 'partner') {
+      // Partner joins as co-owner, no additional setup needed
+      // They will share the same wedding_profiles, vendor_tracker, budget_tracker, wedding_tasks
     }
 
     // ========================================================================
@@ -194,8 +198,15 @@ export default async function handler(req, res) {
         : `/dashboard-luxury.html?wedding_id=${invite.wedding_id}`
     };
 
-    // Add bestie-specific info
-    if (invite.role === 'bestie') {
+    // Add role-specific info
+    if (invite.role === 'partner') {
+      response.next_steps = [
+        'Welcome to your shared wedding planning space!',
+        'You and your partner can both chat with the AI to plan your wedding',
+        'All wedding details, vendors, budget, and tasks are shared between you',
+        'Start planning together in your Wedding Chat!'
+      ];
+    } else if (invite.role === 'bestie') {
       response.next_steps = [
         'You now have a private bestie planning space',
         'Chat with your AI assistant to plan bachelorette/bachelor parties',

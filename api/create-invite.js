@@ -19,13 +19,16 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { userToken } = req.body;
+  const { userToken, role } = req.body;
 
   // ========================================================================
   // STEP 1: Validate input
   // ========================================================================
-  // In the simplified model, we only create bestie invites
-  const role = 'bestie';
+  if (!role || !['partner', 'bestie'].includes(role)) {
+    return res.status(400).json({
+      error: 'Invalid role. Must be "partner" or "bestie"'
+    });
+  }
 
   if (!userToken) {
     return res.status(400).json({
@@ -72,10 +75,37 @@ export default async function handler(req, res) {
       });
     }
 
-    if (membership.role !== 'owner') {
+    // Both owner and partner can create invites
+    if (!['owner', 'partner'].includes(membership.role)) {
       return res.status(403).json({
         error: 'Only wedding owners can create invite links'
       });
+    }
+
+    // ========================================================================
+    // STEP 3.5: Check role limits before creating invite
+    // ========================================================================
+    const { data: existingMembers } = await supabaseAdmin
+      .from('wedding_members')
+      .select('role')
+      .eq('wedding_id', membership.wedding_id);
+
+    if (role === 'partner') {
+      const hasPartner = existingMembers?.some(m => m.role === 'partner');
+      if (hasPartner) {
+        return res.status(400).json({
+          error: 'This wedding already has a partner. Only 1 partner allowed per wedding.'
+        });
+      }
+    }
+
+    if (role === 'bestie') {
+      const bestieCount = existingMembers?.filter(m => m.role === 'bestie').length || 0;
+      if (bestieCount >= 2) {
+        return res.status(400).json({
+          error: 'This wedding already has 2 besties. Maximum 2 besties allowed per wedding.'
+        });
+      }
     }
 
     // ========================================================================
@@ -152,7 +182,9 @@ export default async function handler(req, res) {
       role: invite.role,
       expires_at: invite.expires_at,
       wedding_name: `${wedding.partner1_name} & ${wedding.partner2_name}`,
-      message: 'Bestie invite link created successfully. Share this with your Maid of Honor or Best Man!'
+      message: role === 'partner'
+        ? 'Partner invite link created! Share this with your fiancé(e).'
+        : 'Bestie invite link created! Share this with your Maid of Honor or Best Man.'
     });
 
   } catch (error) {
