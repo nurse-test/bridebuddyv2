@@ -193,15 +193,6 @@
                 const { wedding, weddingId: loadedWeddingId, member } = await loadWeddingData();
                 weddingId = loadedWeddingId;
 
-                // Bestie-specific checks
-                if (!wedding.bestie_addon_enabled) {
-                    showToast('Bestie planning is not included in your current plan. Please upgrade to access this feature.', 'error');
-                    setTimeout(() => {
-                        window.location.href = `dashboard-luxury.html?wedding_id=${weddingId}`;
-                    }, 3000);
-                    return;
-                }
-
                 // Verify user has bestie role
                 if (member.role !== 'bestie' && member.role !== 'owner') {
                     showToast('You do not have access to Bestie planning.', 'error');
