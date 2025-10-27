@@ -126,12 +126,12 @@
                 </p>
             </div>
 
-            <!-- Quick Stats -->
-            <div class="grid grid-cols-3 gap-6" style="margin-bottom: var(--space-8);">
-                <!-- Days Until Wedding -->
+            <!-- MVP Dashboard: 4 Core Elements -->
+            <div class="grid grid-cols-2 gap-6" style="margin-bottom: var(--space-8);">
+                <!-- 1. Wedding Countdown -->
                 <div class="card">
                     <p style="font-size: var(--text-sm); color: var(--color-burgundy); margin-bottom: var(--space-2); font-weight: var(--font-semibold);">
-                        Days Until Wedding
+                        Wedding Countdown
                     </p>
                     <h2 id="daysUntil" style="font-size: var(--text-5xl); color: var(--color-gold); margin: 0; font-family: var(--font-heading);">
                         --
@@ -141,103 +141,65 @@
                     </p>
                 </div>
 
-                <!-- Team Members -->
+                <!-- 2. Financial Tracker -->
                 <div class="card">
                     <p style="font-size: var(--text-sm); color: var(--color-burgundy); margin-bottom: var(--space-2); font-weight: var(--font-semibold);">
-                        Team Members
+                        Budget Summary
                     </p>
-                    <div style="display: flex; align-items: center; gap: var(--space-3);">
-                        <h2 id="teamCount" style="font-size: var(--text-5xl); color: var(--color-gold); margin: 0; font-family: var(--font-heading);">
-                            0
-                        </h2>
-                        <div class="avatar-group" id="teamAvatars">
-                            <!-- Dynamic avatars -->
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-3); margin-top: var(--space-3);">
+                        <div>
+                            <p style="font-size: var(--text-xs); color: var(--color-burgundy); opacity: 0.7; margin: 0;">Total Budget</p>
+                            <p id="totalBudget" style="font-size: var(--text-xl); color: var(--color-navy); font-weight: var(--font-semibold); margin: 0;">$0</p>
+                        </div>
+                        <div>
+                            <p style="font-size: var(--text-xs); color: var(--color-burgundy); opacity: 0.7; margin: 0;">Spent</p>
+                            <p id="totalSpent" style="font-size: var(--text-xl); color: var(--color-gold); font-weight: var(--font-semibold); margin: 0;">$0</p>
+                        </div>
+                        <div>
+                            <p style="font-size: var(--text-xs); color: var(--color-burgundy); opacity: 0.7; margin: 0;">Remaining</p>
+                            <p id="totalRemaining" style="font-size: var(--text-xl); color: var(--color-navy); font-weight: var(--font-semibold); margin: 0;">$0</p>
                         </div>
                     </div>
-                    <p style="font-size: var(--text-xs); color: var(--color-burgundy); margin-top: var(--space-2); opacity: 0.8;">
-                        Collaborating on your big day
-                    </p>
-                </div>
-
-                <!-- AI Messages -->
-                <div class="card">
-                    <p style="font-size: var(--text-sm); color: var(--color-burgundy); margin-bottom: var(--space-2); font-weight: var(--font-semibold);">
-                        AI Conversations
-                    </p>
-                    <h2 id="messageCount" style="font-size: var(--text-5xl); color: var(--color-gold); margin: 0; font-family: var(--font-heading);">
-                        0
-                    </h2>
-                    <div class="progress" style="margin-top: var(--space-3);">
-                        <div class="progress-bar" id="messageProgress" style="width: 0%;"></div>
-                    </div>
                 </div>
             </div>
 
-            <!-- Wedding Details -->
-            <div class="card card-gold-accent" style="margin-bottom: var(--space-8);">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-4);">
-                    <h3 style="font-family: var(--font-heading); font-size: var(--text-2xl); color: var(--color-navy); margin: 0;">
-                        Wedding Details
-                    </h3>
-                    <button class="btn btn-sm btn-secondary" id="editDetailsBtn">
-                        ✏️ Edit
-                    </button>
-                </div>
-
-                <div id="weddingDetails" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: var(--space-4);">
-                    <!-- Dynamic wedding details -->
-                    <div class="skeleton skeleton-text"></div>
-                    <div class="skeleton skeleton-text"></div>
-                    <div class="skeleton skeleton-text"></div>
-                </div>
-            </div>
-
-            <!-- Recent Activity -->
+            <!-- 3. Confirmed Vendors -->
             <div class="card" style="margin-bottom: var(--space-8);">
                 <h3 style="font-family: var(--font-heading); font-size: var(--text-2xl); color: var(--color-navy); margin-bottom: var(--space-4);">
-                    Recent Activity
+                    Confirmed Vendors
                 </h3>
-
-                <div id="activityList" style="display: flex; flex-direction: column; gap: var(--space-4);">
-                    <!-- Loading state -->
+                <div id="vendorList" style="display: flex; flex-direction: column; gap: var(--space-3);">
+                    <!-- Dynamic vendor list -->
                     <div class="skeleton skeleton-text"></div>
                     <div class="skeleton skeleton-text"></div>
                 </div>
-
-                <!-- Empty State (hidden by default) -->
-                <div class="empty-state" id="emptyActivity" style="display: none; padding: var(--space-8) var(--space-4);">
-                    <div class="empty-state-icon">📭</div>
-                    <h3 class="empty-state-title">No activity yet</h3>
+                <!-- Empty State -->
+                <div class="empty-state" id="emptyVendors" style="display: none; padding: var(--space-6) var(--space-4);">
+                    <div class="empty-state-icon">🎪</div>
+                    <h4 class="empty-state-title">No vendors booked yet</h4>
                     <p class="empty-state-description">
-                        Start chatting with your AI assistant or invite team members to see activity here.
+                        Start booking your vendors by chatting with your AI assistant.
                     </p>
                 </div>
             </div>
 
-            <!-- Quick Actions -->
+            <!-- 4. Next To-Do -->
             <div class="card">
                 <h3 style="font-family: var(--font-heading); font-size: var(--text-2xl); color: var(--color-navy); margin-bottom: var(--space-4);">
-                    Quick Actions
+                    Next To-Do
                 </h3>
-                <div style="display: flex; gap: var(--space-3); flex-wrap: wrap;">
-                    <a href="dashboard-v2.html" class="btn btn-primary">
-                        <svg style="width: 20px; height: 20px; fill: currentColor;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                            <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/>
-                        </svg>
-                        Chat with AI
-                    </a>
-                    <a href="invite-v2.html" class="btn btn-secondary">
-                        <svg style="width: 20px; height: 20px; fill: currentColor;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                            <path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
-                        </svg>
-                        Invite Someone
-                    </a>
-                    <button class="btn btn-secondary" id="addTaskBtn">
-                        <svg style="width: 20px; height: 20px; fill: currentColor;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                            <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
-                        </svg>
-                        Add Task
-                    </button>
+                <div id="taskList" style="display: flex; flex-direction: column; gap: var(--space-3);">
+                    <!-- Dynamic task list -->
+                    <div class="skeleton skeleton-text"></div>
+                    <div class="skeleton skeleton-text"></div>
+                </div>
+                <!-- Empty State -->
+                <div class="empty-state" id="emptyTasks" style="display: none; padding: var(--space-6) var(--space-4);">
+                    <div class="empty-state-icon">✅</div>
+                    <h4 class="empty-state-title">No tasks yet</h4>
+                    <p class="empty-state-description">
+                        Tasks will appear here as you plan with your AI assistant.
+                    </p>
                 </div>
             </div>
         </main>
@@ -386,17 +348,10 @@
                     document.getElementById('weddingDate').textContent = 'Set your date';
                 }
 
-                // Load team members
-                await loadTeamMembers();
-
-                // Load message count
-                await loadMessageCount();
-
-                // Display wedding details
-                displayWeddingDetails();
-
-                // Load recent activity
-                await loadRecentActivity();
+                // Load MVP dashboard sections
+                await loadFinancialTracker();
+                await loadConfirmedVendors();
+                await loadNextToDo();
 
             } catch (error) {
                 console.error('Dashboard initialization error:', error);
@@ -404,176 +359,162 @@
             }
         }
 
-        // Load team members
-        async function loadTeamMembers() {
+        // Load Financial Tracker (Budget Summary)
+        async function loadFinancialTracker() {
             try {
-                const { data: members, error } = await supabase
-                    .from('wedding_members')
-                    .select('*, profiles(full_name, email)')
+                const { data: budgetItems, error } = await supabase
+                    .from('budget_tracker')
+                    .select('budgeted_amount, spent_amount')
                     .eq('wedding_id', weddingId);
 
                 if (error) throw error;
 
-                document.getElementById('teamCount').textContent = members?.length || 0;
+                // Calculate totals
+                const totalBudget = budgetItems?.reduce((sum, item) => sum + (parseFloat(item.budgeted_amount) || 0), 0) || 0;
+                const totalSpent = budgetItems?.reduce((sum, item) => sum + (parseFloat(item.spent_amount) || 0), 0) || 0;
+                const totalRemaining = totalBudget - totalSpent;
 
-                // Create avatars
-                const avatarContainer = document.getElementById('teamAvatars');
-                avatarContainer.innerHTML = '';
-
-                members?.slice(0, 3).forEach(member => {
-                    const name = member.profiles?.full_name || member.profiles?.email?.split('@')[0] || 'U';
-                    const initials = name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
-
-                    const avatar = document.createElement('div');
-                    avatar.className = 'avatar avatar-gold avatar-sm';
-                    avatar.textContent = initials;
-                    avatar.title = name;
-                    avatarContainer.appendChild(avatar);
-                });
+                // Format and display
+                document.getElementById('totalBudget').textContent = `$${totalBudget.toLocaleString()}`;
+                document.getElementById('totalSpent').textContent = `$${totalSpent.toLocaleString()}`;
+                document.getElementById('totalRemaining').textContent = `$${totalRemaining.toLocaleString()}`;
 
             } catch (error) {
-                console.error('Error loading team members:', error);
+                console.error('Error loading financial tracker:', error);
+                document.getElementById('totalBudget').textContent = '$0';
+                document.getElementById('totalSpent').textContent = '$0';
+                document.getElementById('totalRemaining').textContent = '$0';
             }
         }
 
-        // Load message count
-        async function loadMessageCount() {
+        // Load Confirmed Vendors
+        async function loadConfirmedVendors() {
+            const vendorList = document.getElementById('vendorList');
+            const emptyState = document.getElementById('emptyVendors');
+
             try {
-                const { count, error } = await supabase
-                    .from('chat_messages')
-                    .select('*', { count: 'exact', head: true })
+                // Query vendors with booked status
+                const { data: vendors, error } = await supabase
+                    .from('vendor_tracker')
+                    .select('vendor_type, vendor_name, deposit_paid')
                     .eq('wedding_id', weddingId)
-                    .eq('message_type', 'main');
+                    .in('status', ['booked', 'contract_signed', 'deposit_paid', 'fully_paid'])
+                    .order('vendor_type');
 
                 if (error) throw error;
 
-                const messageCount = count || 0;
-                document.getElementById('messageCount').textContent = messageCount;
+                vendorList.innerHTML = '';
 
-                // Update progress bar (arbitrary scale, 100 messages = 100%)
-                const progress = Math.min((messageCount / 100) * 100, 100);
-                document.getElementById('messageProgress').style.width = `${progress}%`;
-
-            } catch (error) {
-                console.error('Error loading message count:', error);
-            }
-        }
-
-        // Display wedding details
-        function displayWeddingDetails() {
-            const detailsContainer = document.getElementById('weddingDetails');
-            detailsContainer.innerHTML = '';
-
-            const details = [
-                { label: 'Ceremony Location', value: wedding.ceremony_location || 'Not set', icon: '📍' },
-                { label: 'Reception Location', value: wedding.reception_location || 'Not set', icon: '🎉' },
-                { label: 'Venue Name', value: wedding.venue_name || 'Not set', icon: '🏛️' },
-                { label: 'Guest Count', value: wedding.guest_count ? `${wedding.guest_count} guests` : 'Not set', icon: '👥' },
-                { label: 'Budget', value: wedding.budget ? `$${parseInt(wedding.budget).toLocaleString()}` : 'Not set', icon: '💰' },
-                { label: 'Style', value: wedding.style || 'Not set', icon: '✨' }
-            ];
-
-            details.forEach(detail => {
-                const item = document.createElement('div');
-                item.style.cssText = 'padding: var(--space-3); background: var(--color-cream); border-radius: var(--radius-md);';
-                item.innerHTML = `
-                    <p style="font-size: var(--text-xs); color: var(--color-burgundy); margin-bottom: var(--space-1); opacity: 0.8;">
-                        ${detail.icon} ${detail.label}
-                    </p>
-                    <p style="font-size: var(--text-base); color: var(--color-navy); font-weight: var(--font-semibold); margin: 0;">
-                        ${detail.value}
-                    </p>
-                `;
-                detailsContainer.appendChild(item);
-            });
-        }
-
-        // Load recent activity
-        async function loadRecentActivity() {
-            const activityList = document.getElementById('activityList');
-            const emptyState = document.getElementById('emptyActivity');
-
-            try {
-                // Verify Supabase client is initialized
-                if (!supabase) {
-                    console.error('Supabase client not initialized');
-                    throw new Error('Database connection not available');
-                }
-
-                // Get recent messages
-                const { data: messages, error } = await supabase
-                    .from('chat_messages')
-                    .select('*, profiles(full_name, email)')
-                    .eq('wedding_id', weddingId)
-                    .eq('message_type', 'main')
-                    .eq('role', 'user')
-                    .order('created_at', { ascending: false })
-                    .limit(5);
-
-                if (error) throw error;
-
-                activityList.innerHTML = '';
-
-                if (!messages || messages.length === 0) {
-                    activityList.style.display = 'none';
+                if (!vendors || vendors.length === 0) {
+                    vendorList.style.display = 'none';
                     emptyState.style.display = 'block';
                     return;
                 }
 
-                activityList.style.display = 'flex';
+                vendorList.style.display = 'flex';
                 emptyState.style.display = 'none';
 
-                messages.forEach(msg => {
-                    const userName = msg.profiles?.full_name || msg.profiles?.email?.split('@')[0] || 'User';
-                    const initials = userName.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
-                    const timeAgo = getTimeAgo(new Date(msg.created_at));
+                vendors.forEach(vendor => {
+                    const vendorItem = document.createElement('div');
+                    vendorItem.style.cssText = 'display: flex; justify-content: space-between; align-items: center; padding: var(--space-3); background: var(--color-cream); border-radius: var(--radius-md);';
 
-                    const activity = document.createElement('div');
-                    activity.style.cssText = 'display: flex; gap: var(--space-3); padding: var(--space-3); background: var(--color-cream); border-radius: var(--radius-md);';
-                    activity.innerHTML = `
-                        <div class="avatar avatar-gold avatar-sm">${initials}</div>
-                        <div style="flex: 1; min-width: 0;">
-                            <p style="margin: 0; font-size: var(--text-sm); color: var(--color-navy);">
-                                <strong>${userName}</strong> asked: "${msg.message.substring(0, 60)}${msg.message.length > 60 ? '...' : ''}"
+                    const vendorTypeFormatted = vendor.vendor_type
+                        .replace(/_/g, ' ')
+                        .split(' ')
+                        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                        .join(' ');
+
+                    vendorItem.innerHTML = `
+                        <div>
+                            <p style="margin: 0; font-size: var(--text-sm); color: var(--color-navy); font-weight: var(--font-semibold);">
+                                ${vendorTypeFormatted}
                             </p>
-                            <p style="margin: 0; font-size: var(--text-xs); color: var(--color-burgundy); opacity: 0.7; margin-top: var(--space-1);">
-                                ${timeAgo}
+                            <p style="margin: 0; font-size: var(--text-xs); color: var(--color-burgundy); opacity: 0.7; margin-top: 2px;">
+                                ${vendor.vendor_name || 'Name not set'}
                             </p>
                         </div>
+                        <div style="color: ${vendor.deposit_paid ? 'var(--color-gold)' : 'var(--color-burgundy)'}; font-size: var(--text-lg);">
+                            ${vendor.deposit_paid ? '✓' : '○'}
+                        </div>
                     `;
-                    activityList.appendChild(activity);
+                    vendorList.appendChild(vendorItem);
                 });
 
             } catch (error) {
-                console.error('Error loading recent activity:', error);
-                console.error('Error details:', JSON.stringify(error, null, 2));
-
-                // Show empty state instead of error to avoid cluttering UI
-                activityList.style.display = 'none';
+                console.error('Error loading confirmed vendors:', error);
+                vendorList.style.display = 'none';
                 emptyState.style.display = 'block';
             }
         }
 
-        // Get time ago string
-        function getTimeAgo(date) {
-            const seconds = Math.floor((new Date() - date) / 1000);
+        // Load Next To-Do (Top 3 Upcoming Tasks)
+        async function loadNextToDo() {
+            const taskList = document.getElementById('taskList');
+            const emptyState = document.getElementById('emptyTasks');
 
-            let interval = seconds / 31536000;
-            if (interval > 1) return Math.floor(interval) + ' years ago';
+            try {
+                // Query tasks that are not completed, ordered by due date
+                const { data: tasks, error } = await supabase
+                    .from('wedding_tasks')
+                    .select('task_name, due_date')
+                    .eq('wedding_id', weddingId)
+                    .neq('status', 'completed')
+                    .order('due_date', { ascending: true, nullsLast: true })
+                    .limit(3);
 
-            interval = seconds / 2592000;
-            if (interval > 1) return Math.floor(interval) + ' months ago';
+                if (error) throw error;
 
-            interval = seconds / 86400;
-            if (interval > 1) return Math.floor(interval) + ' days ago';
+                taskList.innerHTML = '';
 
-            interval = seconds / 3600;
-            if (interval > 1) return Math.floor(interval) + ' hours ago';
+                if (!tasks || tasks.length === 0) {
+                    taskList.style.display = 'none';
+                    emptyState.style.display = 'block';
+                    return;
+                }
 
-            interval = seconds / 60;
-            if (interval > 1) return Math.floor(interval) + ' minutes ago';
+                taskList.style.display = 'flex';
+                emptyState.style.display = 'none';
 
-            return 'Just now';
+                tasks.forEach(task => {
+                    const taskItem = document.createElement('div');
+                    taskItem.style.cssText = 'display: flex; justify-content: space-between; align-items: center; padding: var(--space-3); background: var(--color-cream); border-radius: var(--radius-md);';
+
+                    let dueDateFormatted = 'No deadline';
+                    let dueDateColor = 'var(--color-burgundy)';
+
+                    if (task.due_date) {
+                        const dueDate = new Date(task.due_date);
+                        const today = new Date();
+                        const daysUntilDue = Math.ceil((dueDate - today) / (1000 * 60 * 60 * 24));
+
+                        dueDateFormatted = dueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+
+                        if (daysUntilDue < 0) {
+                            dueDateColor = '#dc2626'; // red for overdue
+                            dueDateFormatted += ' (overdue)';
+                        } else if (daysUntilDue <= 7) {
+                            dueDateColor = '#d97706'; // orange for urgent
+                        } else {
+                            dueDateColor = 'var(--color-burgundy)';
+                        }
+                    }
+
+                    taskItem.innerHTML = `
+                        <p style="margin: 0; font-size: var(--text-sm); color: var(--color-navy); font-weight: var(--font-semibold);">
+                            ${task.task_name}
+                        </p>
+                        <p style="margin: 0; font-size: var(--text-xs); color: ${dueDateColor}; font-weight: var(--font-medium);">
+                            ${dueDateFormatted}
+                        </p>
+                    `;
+                    taskList.appendChild(taskItem);
+                });
+
+            } catch (error) {
+                console.error('Error loading next to-do:', error);
+                taskList.style.display = 'none';
+                emptyState.style.display = 'block';
+            }
         }
 
         // Dropdown toggle
@@ -602,16 +543,6 @@
             }
         });
 
-        // Edit details button
-        document.getElementById('editDetailsBtn').addEventListener('click', () => {
-            showToast('info', 'Coming Soon', 'Wedding details editing will be available soon!');
-        });
-
-        // Add task button
-        document.getElementById('addTaskBtn').addEventListener('click', () => {
-            showToast('info', 'Coming Soon', 'Task management will be available soon!');
-        });
-
         // Initialize dashboard when DOM is ready
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', initializeDashboard);
@@ -634,11 +565,7 @@
 
         /* Responsive grid */
         @media (max-width: 768px) {
-            .grid-cols-3 {
-                grid-template-columns: 1fr !important;
-            }
-
-            #weddingDetails {
+            .grid-cols-2 {
                 grid-template-columns: 1fr !important;
             }
         }
