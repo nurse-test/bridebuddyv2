@@ -138,17 +138,7 @@ INSTRUCTIONS:
     "total_budget": number or null,
     "color_scheme_primary": "string or null",
     "color_scheme_secondary": "string or null",
-    "wedding_style": "string or null",
-    "photographer_name": "string or null",
-    "photographer_cost": number or null,
-    "caterer_name": "string or null",
-    "caterer_cost": number or null,
-    "florist_name": "string or null",
-    "florist_cost": number or null,
-    "dj_band_name": "string or null",
-    "dj_band_cost": number or null,
-    "baker_name": "string or null",
-    "cake_flavors": "string or null"
+    "wedding_style": "string or null"
   },
   "vendors": [
     {
@@ -197,7 +187,7 @@ INSTRUCTIONS:
 </extracted_data>
 
 EXTRACTION RULES:
-- wedding_info: Extract basic wedding details and main vendor info (photographer, caterer, florist, dj, baker)
+- wedding_info: Extract basic wedding details
 - vendors: Extract ANY mention of vendors with detailed tracking. Examples:
   * "I paid the florist $500 deposit" → {"vendor_type": "florist", "deposit_amount": 500, "deposit_paid": true, "deposit_date": "today's date"}
   * "We booked Sarah's Photography for $3000" → {"vendor_type": "photographer", "vendor_name": "Sarah's Photography", "total_cost": 3000, "status": "booked"}
