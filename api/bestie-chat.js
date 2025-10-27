@@ -50,18 +50,6 @@ export default async function handler(req, res) {
 
     if (weddingError || !weddingData) throw new Error('Wedding profile not found');
 
-    // Check trial/VIP status
-    const now = new Date();
-    const trialEnds = weddingData.trial_end_date ? new Date(weddingData.trial_end_date) : null;
-    const isVip = weddingData.is_vip;
-
-    if (trialEnds && now > trialEnds && !isVip) {
-      return res.status(200).json({
-        response: "Your trial has ended, bestie! 💕\n\nUpgrade to VIP to keep chatting with me!\n\nHead to the upgrade page and I'll be here waiting for you!",
-        trialExpired: true
-      });
-    }
-
     // Build wedding context for bestie chat with extraction
     let weddingContext = `You are Bestie Buddy, the AI assistant for the Maid of Honor, Best Man, or Best Friend helping plan wedding events.
 
