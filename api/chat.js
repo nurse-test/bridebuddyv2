@@ -97,7 +97,7 @@ CURRENT WEDDING INFORMATION:`;
     if (weddingData.color_scheme_primary) weddingContext += `\n- Primary Color: ${weddingData.color_scheme_primary}`;
     if (weddingData.venue_name) weddingContext += `\n- Venue: ${weddingData.venue_name}${weddingData.venue_cost ? ` ($${weddingData.venue_cost})` : ''}`;
 
-    // CALL CLAUDE with simplified extraction prompt
+    // CALL CLAUDE with enhanced extraction prompt
     const claudeResponse = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
@@ -118,7 +118,7 @@ USER MESSAGE: "${message}"
 
 INSTRUCTIONS:
 1. Respond warmly and helpfully to the user
-2. Extract wedding profile details from the message (dates, names, locations, budget, style, colors)
+2. Extract ANY wedding details from the message including: general info, vendors, budget/payments, and tasks
 3. Return your response in this EXACT format:
 
 <response>Your natural, conversational response here</response>
@@ -138,34 +138,71 @@ INSTRUCTIONS:
     "total_budget": number or null,
     "color_scheme_primary": "string or null",
     "color_scheme_secondary": "string or null",
-    "wedding_style": "string or null",
-    "photographer_name": "string or null",
-    "photographer_cost": number or null,
-    "caterer_name": "string or null",
-    "caterer_cost": number or null,
-    "florist_name": "string or null",
-    "florist_cost": number or null,
-    "dj_band_name": "string or null",
-    "dj_band_cost": number or null,
-    "baker_name": "string or null",
-    "cake_flavors": "string or null"
-  }
+    "wedding_style": "string or null"
+  },
+  "vendors": [
+    {
+      "vendor_type": "photographer|caterer|florist|dj|videographer|baker|planner|venue|decorator|hair_makeup|transportation|rentals|other",
+      "vendor_name": "string",
+      "vendor_contact_name": "string or null",
+      "vendor_email": "string or null",
+      "vendor_phone": "string or null",
+      "total_cost": number or null,
+      "deposit_amount": number or null",
+      "deposit_paid": true|false|null,
+      "deposit_date": "YYYY-MM-DD or null",
+      "balance_due": number or null,
+      "final_payment_date": "YYYY-MM-DD or null",
+      "final_payment_paid": true|false|null,
+      "status": "inquiry|pending|booked|contract_signed|deposit_paid|fully_paid|rejected|cancelled or null",
+      "contract_signed": true|false|null,
+      "contract_date": "YYYY-MM-DD or null",
+      "service_date": "YYYY-MM-DD or null",
+      "notes": "string or null"
+    }
+  ],
+  "budget_items": [
+    {
+      "category": "venue|catering|flowers|photography|videography|music|cake|decorations|attire|invitations|favors|transportation|honeymoon|other",
+      "budgeted_amount": number or null,
+      "spent_amount": number or null,
+      "transaction_date": "YYYY-MM-DD or null",
+      "transaction_amount": number or null,
+      "transaction_description": "string or null",
+      "notes": "string or null"
+    }
+  ],
+  "tasks": [
+    {
+      "task_name": "string",
+      "task_description": "string or null",
+      "category": "venue|catering|flowers|photography|attire|invitations|decorations|transportation|legal|honeymoon|day_of|other or null",
+      "due_date": "YYYY-MM-DD or null",
+      "status": "not_started|in_progress|completed|cancelled or null",
+      "priority": "low|medium|high|urgent or null",
+      "notes": "string or null"
+    }
+  ]
 }
 </extracted_data>
 
 EXTRACTION RULES:
-- wedding_info: Extract all wedding details mentioned including basic info and key vendor names/costs
-- Store vendor information directly in the wedding profile (photographer, caterer, florist, dj/band, baker)
-- Examples:
-  * "Our wedding is June 15, 2026 at The Grand Ballroom" → wedding_date, venue_name
-  * "We booked Sarah's Photography for $3000" → photographer_name, photographer_cost
-  * "Spending $2000 on flowers with Bloom Studio" → florist_name, florist_cost
-  * "200 guests, $50k budget, rustic style, blush and gold colors" → expected_guest_count, total_budget, wedding_style, color_scheme_primary, color_scheme_secondary
+- wedding_info: Extract basic wedding details
+- vendors: Extract ANY mention of vendors. Examples:
+  * "I paid the florist $500 deposit" → {"vendor_type": "florist", "deposit_amount": 500, "deposit_paid": true, "deposit_date": "today's date"}
+  * "We booked Sarah's Photography for $3000" → {"vendor_type": "photographer", "vendor_name": "Sarah's Photography", "total_cost": 3000, "status": "booked"}
+  * "Called the caterer, deposit due next week" → {"vendor_type": "caterer", "status": "pending", "deposit_paid": false}
+- budget_items: Extract payments, spending, or budget allocations
+  * "Paid $500 for flowers" → {"category": "flowers", "spent_amount": 500, "transaction_amount": 500, "transaction_date": "today's date"}
+  * "Budgeted $5000 for catering" → {"category": "catering", "budgeted_amount": 5000}
+- tasks: Extract any to-dos, deadlines, or action items
+  * "Need to mail invitations by March 15" → {"task_name": "Mail invitations", "category": "invitations", "due_date": "2025-03-15", "status": "not_started"}
+  * "Finished picking flowers!" → {"task_name": "Pick flowers", "category": "flowers", "status": "completed"}
 
 IMPORTANT:
 - Today's date is ${new Date().toISOString().split('T')[0]}
-- Only include fields that have data from the message
-- If nothing wedding-related was mentioned, return {"wedding_info": {}}`
+- Only include sections that have data. Empty arrays [] are ok if nothing was mentioned
+- If nothing wedding-related was mentioned, return {"wedding_info": {}, "vendors": [], "budget_items": [], "tasks": []}`
         }]
       })
     });
@@ -192,7 +229,7 @@ IMPORTANT:
     const dataMatch = fullResponse.match(/<extracted_data>([\s\S]*?)<\/extracted_data>/);
 
     let assistantMessage = responseMatch ? responseMatch[1].trim() : fullResponse;
-    let extractedData = { wedding_info: {} };
+    let extractedData = { wedding_info: {}, vendors: [], budget_items: [], tasks: [] };
 
     if (dataMatch) {
       try {
@@ -203,10 +240,10 @@ IMPORTANT:
       }
     }
 
-    // Update database with extracted data (simplified - only wedding_profiles)
+    // Update database with extracted data
     console.log('Extracted data:', JSON.stringify(extractedData, null, 2));
 
-    // Update wedding_profiles with all wedding info
+    // 1. Update wedding_profiles with general wedding info
     if (extractedData.wedding_info && Object.keys(extractedData.wedding_info).length > 0) {
       const weddingUpdates = {};
 
@@ -226,6 +263,134 @@ IMPORTANT:
           console.error('Failed to update wedding profile:', updateError);
         } else {
           console.log('Successfully updated wedding profile with:', weddingUpdates);
+        }
+      }
+    }
+
+    // 2. Insert/Update vendors in vendor_tracker table
+    if (extractedData.vendors && extractedData.vendors.length > 0) {
+      for (const vendor of extractedData.vendors) {
+        // Check if vendor already exists
+        const { data: existingVendor } = await supabaseService
+          .from('vendor_tracker')
+          .select('id')
+          .eq('wedding_id', membership.wedding_id)
+          .eq('vendor_type', vendor.vendor_type)
+          .ilike('vendor_name', vendor.vendor_name || '%')
+          .single();
+
+        if (existingVendor) {
+          // Update existing vendor
+          const vendorUpdates = { ...vendor };
+          delete vendorUpdates.vendor_type; // Don't change type
+          delete vendorUpdates.vendor_name; // Don't change name (unless it's a new name)
+
+          const { error: vendorUpdateError } = await supabaseService
+            .from('vendor_tracker')
+            .update(vendorUpdates)
+            .eq('id', existingVendor.id);
+
+          if (vendorUpdateError) {
+            console.error('Failed to update vendor:', vendorUpdateError);
+          } else {
+            console.log('Successfully updated vendor:', vendor.vendor_name || vendor.vendor_type);
+          }
+        } else {
+          // Insert new vendor
+          const { error: vendorInsertError } = await supabaseService
+            .from('vendor_tracker')
+            .insert({
+              wedding_id: membership.wedding_id,
+              ...vendor
+            });
+
+          if (vendorInsertError) {
+            console.error('Failed to insert vendor:', vendorInsertError);
+          } else {
+            console.log('Successfully inserted vendor:', vendor.vendor_name || vendor.vendor_type);
+          }
+        }
+      }
+    }
+
+    // 3. Insert/Update budget items in budget_tracker table
+    if (extractedData.budget_items && extractedData.budget_items.length > 0) {
+      for (const budgetItem of extractedData.budget_items) {
+        // Check if budget category already exists
+        const { data: existingBudget } = await supabaseService
+          .from('budget_tracker')
+          .select('id, spent_amount')
+          .eq('wedding_id', membership.wedding_id)
+          .eq('category', budgetItem.category)
+          .single();
+
+        if (existingBudget) {
+          // Update existing budget category
+          const budgetUpdates = {};
+
+          if (budgetItem.budgeted_amount !== null && budgetItem.budgeted_amount !== undefined) {
+            budgetUpdates.budgeted_amount = budgetItem.budgeted_amount;
+          }
+
+          if (budgetItem.spent_amount !== null && budgetItem.spent_amount !== undefined) {
+            budgetUpdates.spent_amount = (existingBudget.spent_amount || 0) + budgetItem.spent_amount;
+          }
+
+          if (budgetItem.transaction_date) budgetUpdates.last_transaction_date = budgetItem.transaction_date;
+          if (budgetItem.transaction_amount) budgetUpdates.last_transaction_amount = budgetItem.transaction_amount;
+          if (budgetItem.transaction_description) budgetUpdates.last_transaction_description = budgetItem.transaction_description;
+          if (budgetItem.notes) budgetUpdates.notes = budgetItem.notes;
+
+          if (Object.keys(budgetUpdates).length > 0) {
+            const { error: budgetUpdateError } = await supabaseService
+              .from('budget_tracker')
+              .update(budgetUpdates)
+              .eq('id', existingBudget.id);
+
+            if (budgetUpdateError) {
+              console.error('Failed to update budget:', budgetUpdateError);
+            } else {
+              console.log('Successfully updated budget category:', budgetItem.category);
+            }
+          }
+        } else {
+          // Insert new budget category
+          const { error: budgetInsertError } = await supabaseService
+            .from('budget_tracker')
+            .insert({
+              wedding_id: membership.wedding_id,
+              category: budgetItem.category,
+              budgeted_amount: budgetItem.budgeted_amount || 0,
+              spent_amount: budgetItem.spent_amount || 0,
+              last_transaction_date: budgetItem.transaction_date,
+              last_transaction_amount: budgetItem.transaction_amount,
+              last_transaction_description: budgetItem.transaction_description,
+              notes: budgetItem.notes
+            });
+
+          if (budgetInsertError) {
+            console.error('Failed to insert budget:', budgetInsertError);
+          } else {
+            console.log('Successfully inserted budget category:', budgetItem.category);
+          }
+        }
+      }
+    }
+
+    // 4. Insert tasks in wedding_tasks table
+    if (extractedData.tasks && extractedData.tasks.length > 0) {
+      for (const task of extractedData.tasks) {
+        const { error: taskInsertError } = await supabaseService
+          .from('wedding_tasks')
+          .insert({
+            wedding_id: membership.wedding_id,
+            ...task
+          });
+
+        if (taskInsertError) {
+          console.error('Failed to insert task:', taskInsertError);
+        } else {
+          console.log('Successfully inserted task:', task.task_name);
         }
       }
     }
