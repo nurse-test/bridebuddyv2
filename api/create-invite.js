@@ -1,7 +1,7 @@
 // ============================================================================
-// CREATE INVITE - SIMPLIFIED OWNER/BESTIE SYSTEM
+// CREATE INVITE - UNIFIED SYSTEM FOR ALL ROLES
 // ============================================================================
-// Creates one-time-use invite links for bestie role only
+// Creates one-time-use invite links for partner, co-planner, and bestie roles
 // Returns shareable URL that expires in 7 days
 // ============================================================================
 
@@ -19,17 +19,33 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { userToken } = req.body;
+  const {
+    userToken,
+    role,
+    wedding_profile_permissions = { read: false, edit: false }
+  } = req.body;
 
   // ========================================================================
   // STEP 1: Validate input
   // ========================================================================
-  // In the simplified model, we only create bestie invites
-  const role = 'bestie';
+  if (!role || !['partner', 'co_planner', 'bestie'].includes(role)) {
+    return res.status(400).json({
+      error: 'Invalid role. Must be "partner", "co_planner", or "bestie"'
+    });
+  }
 
   if (!userToken) {
     return res.status(400).json({
       error: 'Missing required field: userToken'
+    });
+  }
+
+  // Validate permissions structure
+  if (typeof wedding_profile_permissions !== 'object' ||
+      typeof wedding_profile_permissions.read !== 'boolean' ||
+      typeof wedding_profile_permissions.edit !== 'boolean') {
+    return res.status(400).json({
+      error: 'Invalid wedding_profile_permissions. Must be { read: boolean, edit: boolean }'
     });
   }
 
@@ -105,20 +121,16 @@ export default async function handler(req, res) {
     expiresAt.setDate(expiresAt.getDate() + 7);
 
     // ========================================================================
-    // STEP 7: Insert into database (simplified - no permissions)
+    // STEP 7: Insert into database
     // ========================================================================
-    // Generate a simple code for display (6-char readable code)
-    const displayCode = randomBytes(3).toString('hex').toUpperCase();
-
     const { data: invite, error: insertError } = await supabaseAdmin
       .from('invite_codes')
       .insert({
         wedding_id: membership.wedding_id,
-        code: displayCode,
         invite_token: inviteToken,
         created_by: user.id,
         role: role,
-        is_used: false,
+        wedding_profile_permissions: wedding_profile_permissions,
         used: false,
         expires_at: expiresAt.toISOString()
       })
@@ -143,16 +155,17 @@ export default async function handler(req, res) {
     const inviteUrl = `${baseUrl}/accept-invite.html?token=${inviteToken}`;
 
     // ========================================================================
-    // STEP 9: Return success response (simplified)
+    // STEP 9: Return success response
     // ========================================================================
     return res.status(200).json({
       success: true,
       invite_url: inviteUrl,
       invite_token: inviteToken,
       role: invite.role,
+      wedding_profile_permissions: invite.wedding_profile_permissions,
       expires_at: invite.expires_at,
       wedding_name: `${wedding.partner1_name} & ${wedding.partner2_name}`,
-      message: 'Bestie invite link created successfully. Share this with your Maid of Honor or Best Man!'
+      message: getRoleMessage(role)
     });
 
   } catch (error) {
@@ -177,3 +190,14 @@ function generateSecureToken() {
     .replace(/=/g, '');
 }
 
+// ============================================================================
+// HELPER: Get role-specific message
+// ============================================================================
+function getRoleMessage(role) {
+  const messages = {
+    partner: 'Partner invite link created successfully',
+    co_planner: 'Co-planner invite link created successfully',
+    bestie: 'Bestie invite link created successfully'
+  };
+  return messages[role] || 'Invite link created successfully';
+}

@@ -33,21 +33,14 @@ export default async function handler(req, res) {
     const { data: { user }, error: userError } = await supabase.auth.getUser();
     if (userError || !user) throw new Error('Invalid user token');
 
-    // Get user's wedding and verify they're a bestie
+    // Get user's wedding
     const { data: membership, error: memberError } = await supabase
       .from('wedding_members')
-      .select('wedding_id, role')
+      .select('wedding_id')
       .eq('user_id', user.id)
       .single();
 
     if (memberError || !membership) throw new Error('No wedding profile found');
-
-    // Verify user is a bestie
-    if (membership.role !== 'bestie') {
-      return res.status(403).json({
-        error: 'Only besties can access bestie chat'
-      });
-    }
 
     const { data: weddingData, error: weddingError } = await supabase
       .from('wedding_profiles')
@@ -87,22 +80,6 @@ CURRENT WEDDING INFORMATION:`;
     if (weddingData.total_budget) weddingContext += `\n- Total Budget: $${weddingData.total_budget}`;
     if (weddingData.wedding_style) weddingContext += `\n- Style: ${weddingData.wedding_style}`;
 
-    // Get existing bestie profile
-    const { data: bestieProfile } = await supabaseService
-      .from('bestie_profile')
-      .select('*')
-      .eq('bestie_user_id', user.id)
-      .eq('wedding_id', membership.wedding_id)
-      .single();
-
-    if (bestieProfile) {
-      weddingContext += `\n\nYOUR CURRENT BESTIE PROFILE:`;
-      if (bestieProfile.bestie_brief) weddingContext += `\n- Brief: ${bestieProfile.bestie_brief}`;
-      if (bestieProfile.event_details) weddingContext += `\n- Event Details: ${JSON.stringify(bestieProfile.event_details)}`;
-      if (bestieProfile.budget_info) weddingContext += `\n- Budget: ${JSON.stringify(bestieProfile.budget_info)}`;
-      if (bestieProfile.tasks) weddingContext += `\n- Tasks: ${JSON.stringify(bestieProfile.tasks)}`;
-    }
-
     // CALL CLAUDE with enhanced bestie extraction prompt
     const claudeResponse = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
@@ -132,70 +109,46 @@ INSTRUCTIONS:
 
 <extracted_data>
 {
-  "bestie_profile": {
-    "bestie_brief": "High-level summary of bestie responsibilities and current status (1-2 sentences)",
-    "event_details": {
-      "bachelorette_party": {
-        "date": "YYYY-MM-DD or null",
-        "location": "string or null",
-        "theme": "string or null",
-        "guest_count": number or null,
-        "notes": "string or null"
-      },
-      "bridal_shower": {
-        "date": "YYYY-MM-DD or null",
-        "location": "string or null",
-        "theme": "string or null",
-        "guest_count": number or null,
-        "notes": "string or null"
-      },
-      "rehearsal_dinner": {
-        "date": "YYYY-MM-DD or null",
-        "location": "string or null",
-        "notes": "string or null"
-      }
-    },
-    "guest_info": {
-      "bridesmaids": [],
-      "groomsmen": [],
-      "invitees": []
-    },
-    "budget_info": {
-      "bachelorette_budget": number or null,
-      "bridal_shower_budget": number or null,
-      "spent_so_far": number or null,
-      "breakdown": {}
-    },
-    "tasks": [
-      {
-        "task": "string",
-        "due_date": "YYYY-MM-DD or null",
-        "completed": true|false,
-        "priority": "low|medium|high",
-        "notes": "string or null"
-      }
-    ]
-  }
+  "budget_items": [
+    {
+      "category": "venue|catering|flowers|photography|videography|music|cake|decorations|attire|invitations|favors|transportation|honeymoon|other",
+      "budgeted_amount": number or null,
+      "spent_amount": number or null,
+      "transaction_date": "YYYY-MM-DD or null",
+      "transaction_amount": number or null,
+      "transaction_description": "string or null",
+      "notes": "string or null"
+    }
+  ],
+  "tasks": [
+    {
+      "task_name": "string",
+      "task_description": "string or null",
+      "category": "venue|catering|flowers|photography|attire|invitations|decorations|transportation|legal|honeymoon|day_of|other or null",
+      "due_date": "YYYY-MM-DD or null",
+      "status": "not_started|in_progress|completed|cancelled or null",
+      "priority": "low|medium|high|urgent or null",
+      "notes": "string or null"
+    }
+  ]
 }
 </extracted_data>
 
 EXTRACTION RULES FOR BESTIE CHAT:
-- bestie_brief: One-line summary of what you're currently working on
-- event_details: Extract details about bachelorette/bachelor party, bridal shower, rehearsal dinner
-  * "Planning a beach bachelorette on July 10th for 12 girls" → bachelorette_party: {date, location, guest_count}
-  * "Bridal shower theme is tea party at my house" → bridal_shower: {theme, location}
-- guest_info: Names of bridesmaids, groomsmen, who's invited to events
-- budget_info: Budget allocations and spending for bestie-hosted events
-  * "Budgeted $2000 for bachelorette" → bachelorette_budget: 2000
-  * "Spent $300 on decorations" → spent_so_far: 300, breakdown: {decorations: 300}
-- tasks: To-dos for bestie duties
-  * "Need to book venue by Friday" → {task, due_date, completed: false}
+- budget_items: Extract mentions of party expenses, bridesmaid costs, event budgets
+  * "Spent $300 on bachelorette decorations" → {"category": "decorations", "spent_amount": 300, "transaction_amount": 300, "transaction_date": "today"}
+  * "Budgeted $2000 for bridal shower venue" → {"category": "venue", "budgeted_amount": 2000}
+  * "Bridesmaids dresses cost $150 each" → {"category": "attire", "transaction_amount": 150, "notes": "per bridesmaid"}
+- tasks: Extract to-dos for MOH/Best Man duties, party planning tasks
+  * "Need to book venue by next Friday" → {"task_name": "Book venue", "due_date": "[next Friday's date]", "status": "not_started"}
+  * "Sent out invitations today!" → {"task_name": "Send bachelorette invitations", "status": "completed"}
+  * "Should I send save-the-dates for the bridal shower?" → {"task_name": "Send bridal shower save-the-dates", "status": "not_started", "priority": "medium"}
 
 IMPORTANT:
 - Today's date is ${new Date().toISOString().split('T')[0]}
-- Only update fields that are mentioned in the message
-- Merge with existing profile data, don't overwrite everything
-- Return null for fields not mentioned`
+- Focus on extracting MOH/Best Man event planning data (bachelorette, shower, rehearsal dinner, etc.)
+- Only include sections that have data. Empty arrays [] are ok if nothing was mentioned
+- If nothing actionable was mentioned, return {"budget_items": [], "tasks": []}`
         }]
       })
     });
@@ -222,7 +175,7 @@ IMPORTANT:
     const dataMatch = fullResponse.match(/<extracted_data>([\s\S]*?)<\/extracted_data>/);
 
     let assistantMessage = responseMatch ? responseMatch[1].trim() : fullResponse;
-    let extractedData = { bestie_profile: null };
+    let extractedData = { budget_items: [], tasks: [] };
 
     if (dataMatch) {
       try {
@@ -233,63 +186,87 @@ IMPORTANT:
       }
     }
 
-    // Update bestie_profile with extracted data
+    // Update database with extracted data from bestie chat
     console.log('Bestie extracted data:', JSON.stringify(extractedData, null, 2));
 
-    if (extractedData.bestie_profile) {
-      const profileData = extractedData.bestie_profile;
+    // 1. Insert/Update budget items in budget_tracker table
+    if (extractedData.budget_items && extractedData.budget_items.length > 0) {
+      for (const budgetItem of extractedData.budget_items) {
+        // Check if budget category already exists
+        const { data: existingBudget } = await supabaseService
+          .from('budget_tracker')
+          .select('id, spent_amount')
+          .eq('wedding_id', membership.wedding_id)
+          .eq('category', budgetItem.category)
+          .single();
 
-      // Build the update object (merge with existing data)
-      const profileUpdate = {};
+        if (existingBudget) {
+          // Update existing budget category
+          const budgetUpdates = {};
 
-      if (profileData.bestie_brief) {
-        profileUpdate.bestie_brief = profileData.bestie_brief;
-      }
+          if (budgetItem.budgeted_amount !== null && budgetItem.budgeted_amount !== undefined) {
+            budgetUpdates.budgeted_amount = budgetItem.budgeted_amount;
+          }
 
-      if (profileData.event_details) {
-        // Merge event details with existing
-        const existingEventDetails = bestieProfile?.event_details || {};
-        profileUpdate.event_details = {
-          ...existingEventDetails,
-          ...profileData.event_details
-        };
-      }
+          if (budgetItem.spent_amount !== null && budgetItem.spent_amount !== undefined) {
+            budgetUpdates.spent_amount = (existingBudget.spent_amount || 0) + budgetItem.spent_amount;
+          }
 
-      if (profileData.guest_info) {
-        // Merge guest info
-        const existingGuestInfo = bestieProfile?.guest_info || {};
-        profileUpdate.guest_info = {
-          ...existingGuestInfo,
-          ...profileData.guest_info
-        };
-      }
+          if (budgetItem.transaction_date) budgetUpdates.last_transaction_date = budgetItem.transaction_date;
+          if (budgetItem.transaction_amount) budgetUpdates.last_transaction_amount = budgetItem.transaction_amount;
+          if (budgetItem.transaction_description) budgetUpdates.last_transaction_description = budgetItem.transaction_description;
+          if (budgetItem.notes) budgetUpdates.notes = budgetItem.notes;
 
-      if (profileData.budget_info) {
-        // Merge budget info
-        const existingBudgetInfo = bestieProfile?.budget_info || {};
-        profileUpdate.budget_info = {
-          ...existingBudgetInfo,
-          ...profileData.budget_info
-        };
-      }
+          if (Object.keys(budgetUpdates).length > 0) {
+            const { error: budgetUpdateError } = await supabaseService
+              .from('budget_tracker')
+              .update(budgetUpdates)
+              .eq('id', existingBudget.id);
 
-      if (profileData.tasks) {
-        // Append new tasks to existing tasks
-        const existingTasks = bestieProfile?.tasks || [];
-        profileUpdate.tasks = [...existingTasks, ...profileData.tasks];
-      }
-
-      if (Object.keys(profileUpdate).length > 0) {
-        const { error: profileUpdateError } = await supabaseService
-          .from('bestie_profile')
-          .update(profileUpdate)
-          .eq('bestie_user_id', user.id)
-          .eq('wedding_id', membership.wedding_id);
-
-        if (profileUpdateError) {
-          console.error('Failed to update bestie profile:', profileUpdateError);
+            if (budgetUpdateError) {
+              console.error('Failed to update budget:', budgetUpdateError);
+            } else {
+              console.log('Successfully updated budget category:', budgetItem.category);
+            }
+          }
         } else {
-          console.log('Successfully updated bestie profile');
+          // Insert new budget category
+          const { error: budgetInsertError } = await supabaseService
+            .from('budget_tracker')
+            .insert({
+              wedding_id: membership.wedding_id,
+              category: budgetItem.category,
+              budgeted_amount: budgetItem.budgeted_amount || 0,
+              spent_amount: budgetItem.spent_amount || 0,
+              last_transaction_date: budgetItem.transaction_date,
+              last_transaction_amount: budgetItem.transaction_amount,
+              last_transaction_description: budgetItem.transaction_description,
+              notes: budgetItem.notes
+            });
+
+          if (budgetInsertError) {
+            console.error('Failed to insert budget:', budgetInsertError);
+          } else {
+            console.log('Successfully inserted budget category:', budgetItem.category);
+          }
+        }
+      }
+    }
+
+    // 2. Insert tasks in wedding_tasks table
+    if (extractedData.tasks && extractedData.tasks.length > 0) {
+      for (const task of extractedData.tasks) {
+        const { error: taskInsertError } = await supabaseService
+          .from('wedding_tasks')
+          .insert({
+            wedding_id: membership.wedding_id,
+            ...task
+          });
+
+        if (taskInsertError) {
+          console.error('Failed to insert task:', taskInsertError);
+        } else {
+          console.log('Successfully inserted task:', task.task_name);
         }
       }
     }
