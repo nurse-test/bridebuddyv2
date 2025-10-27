@@ -480,30 +480,17 @@
                     taskItem.style.cssText = 'display: flex; justify-content: space-between; align-items: center; padding: var(--space-3); background: var(--color-cream); border-radius: var(--radius-md);';
 
                     let dueDateFormatted = 'No deadline';
-                    let dueDateColor = 'var(--color-burgundy)';
 
                     if (task.due_date) {
                         const dueDate = new Date(task.due_date);
-                        const today = new Date();
-                        const daysUntilDue = Math.ceil((dueDate - today) / (1000 * 60 * 60 * 24));
-
                         dueDateFormatted = dueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-
-                        if (daysUntilDue < 0) {
-                            dueDateColor = '#dc2626'; // red for overdue
-                            dueDateFormatted += ' (overdue)';
-                        } else if (daysUntilDue <= 7) {
-                            dueDateColor = '#d97706'; // orange for urgent
-                        } else {
-                            dueDateColor = 'var(--color-burgundy)';
-                        }
                     }
 
                     taskItem.innerHTML = `
                         <p style="margin: 0; font-size: var(--text-sm); color: var(--color-navy); font-weight: var(--font-semibold);">
                             ${task.task_name}
                         </p>
-                        <p style="margin: 0; font-size: var(--text-xs); color: ${dueDateColor}; font-weight: var(--font-medium);">
+                        <p style="margin: 0; font-size: var(--text-xs); color: var(--color-burgundy); opacity: 0.7;">
                             ${dueDateFormatted}
                         </p>
                     `;
