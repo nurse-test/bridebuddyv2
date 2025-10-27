@@ -164,29 +164,25 @@ export default async function handler(req, res) {
     }
 
     // ========================================================================
-    // STEP 9: For bestie role - create bestie_permissions record
+    // STEP 8: Role-specific setup
     // ========================================================================
-    let bestiePermissions = null;
-
     if (invite.role === 'bestie') {
-      const { data: permissions, error: permissionsError } = await supabaseAdmin
-        .from('bestie_permissions')
+      // Create bestie_profile for bestie role
+      const { error: profileError } = await supabaseAdmin
+        .from('bestie_profile')
         .insert({
           bestie_user_id: user.id,
-          inviter_user_id: invite.created_by,
           wedding_id: invite.wedding_id,
-          permissions: bestie_knowledge_permissions
-        })
-        .select()
-        .single();
+          bestie_brief: 'Welcome! Chat with me to start planning your bestie duties and surprises.'
+        });
 
-      if (permissionsError) {
-        console.error('Failed to create bestie permissions:', permissionsError);
+      if (profileError) {
+        console.error('Failed to create bestie profile:', profileError);
         // Don't fail the entire request - user is already a member
-        // They can set permissions later
-      } else {
-        bestiePermissions = permissions;
       }
+    } else if (invite.role === 'partner') {
+      // Partner joins as co-owner, no additional setup needed
+      // They will share the same wedding_profiles, vendor_tracker, budget_tracker, wedding_tasks
     }
 
     // ========================================================================
@@ -233,38 +229,20 @@ export default async function handler(req, res) {
       redirect_to: `/dashboard-luxury.html?wedding_id=${invite.wedding_id}`
     };
 
-    // Add bestie-specific info
-    if (invite.role === 'bestie' && bestiePermissions) {
-      response.bestie_permissions = {
-        inviter_access_to_your_knowledge: bestie_knowledge_permissions
-      };
-      response.next_steps = [
-        'You now have a private bestie planning space',
-        `Your inviter ${bestie_knowledge_permissions.can_read ? 'CAN' : 'CANNOT'} see your bestie knowledge`,
-        'You can change their access anytime via Settings → Bestie Permissions',
-        'Start planning surprises and events in your bestie dashboard!'
-      ];
-    }
-
-    // Add partner-specific info
+    // Add role-specific info
     if (invite.role === 'partner') {
       response.next_steps = [
-        'You have full partner access to this wedding',
-        'You can edit all wedding details',
-        'You can invite additional co-planners and besties',
-        'Start planning together!'
+        'Welcome to your shared wedding planning space!',
+        'You and your partner can both chat with the AI to plan your wedding',
+        'All wedding details, vendors, budget, and tasks are shared between you',
+        'Start planning together in your Wedding Chat!'
       ];
-    }
-
-    // Add co-planner-specific info
-    if (invite.role === 'co_planner') {
+    } else if (invite.role === 'bestie') {
       response.next_steps = [
-        `You have ${invite.wedding_profile_permissions.edit ? 'edit' : 'view-only'} access to this wedding`,
-        'You can help plan and coordinate details',
-        invite.wedding_profile_permissions.edit
-          ? 'You can make changes to wedding details'
-          : 'You can request changes through the couple',
-        'Welcome to the planning team!'
+        'You now have a private bestie planning space',
+        'Use the Bestie Chat to plan bachelorette/bachelor parties and bridal showers',
+        'Your planning space is separate from the main wedding planning',
+        'Start planning surprises and events in your bestie dashboard!'
       ];
     }
 

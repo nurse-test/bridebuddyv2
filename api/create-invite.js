@@ -19,33 +19,20 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const {
-    userToken,
-    role,
-    wedding_profile_permissions = { read: false, edit: false }
-  } = req.body;
+  const { userToken, role } = req.body;
 
   // ========================================================================
   // STEP 1: Validate input
   // ========================================================================
-  if (!role || !['partner', 'co_planner', 'bestie'].includes(role)) {
+  if (!role || !['partner', 'bestie'].includes(role)) {
     return res.status(400).json({
-      error: 'Invalid role. Must be "partner", "co_planner", or "bestie"'
+      error: 'Invalid role. Must be "partner" or "bestie"'
     });
   }
 
   if (!userToken) {
     return res.status(400).json({
       error: 'Missing required field: userToken'
-    });
-  }
-
-  // Validate permissions structure
-  if (typeof wedding_profile_permissions !== 'object' ||
-      typeof wedding_profile_permissions.read !== 'boolean' ||
-      typeof wedding_profile_permissions.edit !== 'boolean') {
-    return res.status(400).json({
-      error: 'Invalid wedding_profile_permissions. Must be { read: boolean, edit: boolean }'
     });
   }
 
@@ -88,10 +75,37 @@ export default async function handler(req, res) {
       });
     }
 
-    if (membership.role !== 'owner') {
+    // Both owner and partner can create invites
+    if (!['owner', 'partner'].includes(membership.role)) {
       return res.status(403).json({
         error: 'Only wedding owners can create invite links'
       });
+    }
+
+    // ========================================================================
+    // STEP 3.5: Check role limits before creating invite
+    // ========================================================================
+    const { data: existingMembers } = await supabaseAdmin
+      .from('wedding_members')
+      .select('role')
+      .eq('wedding_id', membership.wedding_id);
+
+    if (role === 'partner') {
+      const hasPartner = existingMembers?.some(m => m.role === 'partner');
+      if (hasPartner) {
+        return res.status(400).json({
+          error: 'This wedding already has a partner. Only 1 partner allowed per wedding.'
+        });
+      }
+    }
+
+    if (role === 'bestie') {
+      const bestieCount = existingMembers?.filter(m => m.role === 'bestie').length || 0;
+      if (bestieCount >= 2) {
+        return res.status(400).json({
+          error: 'This wedding already has 2 besties. Maximum 2 besties allowed per wedding.'
+        });
+      }
     }
 
     // ========================================================================
@@ -130,7 +144,7 @@ export default async function handler(req, res) {
         invite_token: inviteToken,
         created_by: user.id,
         role: role,
-        wedding_profile_permissions: wedding_profile_permissions,
+        wedding_profile_permissions: { read: true, edit: role === 'partner' },
         used: false,
         expires_at: expiresAt.toISOString()
       })
@@ -165,7 +179,9 @@ export default async function handler(req, res) {
       wedding_profile_permissions: invite.wedding_profile_permissions,
       expires_at: invite.expires_at,
       wedding_name: `${wedding.partner1_name} & ${wedding.partner2_name}`,
-      message: getRoleMessage(role)
+      message: role === 'partner'
+        ? 'Partner invite link created! Share this with your fiancé(e).'
+        : 'Bestie invite link created! Share this with your Maid of Honor or Best Man.'
     });
 
   } catch (error) {

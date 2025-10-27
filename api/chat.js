@@ -97,7 +97,7 @@ CURRENT WEDDING INFORMATION:`;
     if (weddingData.color_scheme_primary) weddingContext += `\n- Primary Color: ${weddingData.color_scheme_primary}`;
     if (weddingData.venue_name) weddingContext += `\n- Venue: ${weddingData.venue_name}${weddingData.venue_cost ? ` ($${weddingData.venue_cost})` : ''}`;
 
-    // CALL CLAUDE with enhanced extraction prompt
+    // CALL CLAUDE with full extraction prompt (vendors, budget, tasks)
     const claudeResponse = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
@@ -148,7 +148,7 @@ INSTRUCTIONS:
       "vendor_email": "string or null",
       "vendor_phone": "string or null",
       "total_cost": number or null,
-      "deposit_amount": number or null",
+      "deposit_amount": number or null,
       "deposit_paid": true|false|null,
       "deposit_date": "YYYY-MM-DD or null",
       "balance_due": number or null,
@@ -188,7 +188,7 @@ INSTRUCTIONS:
 
 EXTRACTION RULES:
 - wedding_info: Extract basic wedding details
-- vendors: Extract ANY mention of vendors. Examples:
+- vendors: Extract ANY mention of vendors with detailed tracking. Examples:
   * "I paid the florist $500 deposit" → {"vendor_type": "florist", "deposit_amount": 500, "deposit_paid": true, "deposit_date": "today's date"}
   * "We booked Sarah's Photography for $3000" → {"vendor_type": "photographer", "vendor_name": "Sarah's Photography", "total_cost": 3000, "status": "booked"}
   * "Called the caterer, deposit due next week" → {"vendor_type": "caterer", "status": "pending", "deposit_paid": false}
@@ -240,7 +240,7 @@ IMPORTANT:
       }
     }
 
-    // Update database with extracted data
+    // Update database with extracted data (FULL extraction restored)
     console.log('Extracted data:', JSON.stringify(extractedData, null, 2));
 
     // 1. Update wedding_profiles with general wedding info
@@ -283,7 +283,7 @@ IMPORTANT:
           // Update existing vendor
           const vendorUpdates = { ...vendor };
           delete vendorUpdates.vendor_type; // Don't change type
-          delete vendorUpdates.vendor_name; // Don't change name (unless it's a new name)
+          delete vendorUpdates.vendor_name; // Don't change name
 
           const { error: vendorUpdateError } = await supabaseService
             .from('vendor_tracker')
