@@ -578,13 +578,19 @@
                     userToken: session.access_token,
                     // Map onboarding data to API expected fields
                     coupleNames: onboardingData.aboutUs || onboardingData.fullName,
-                    // Note: We don't have wedding date from onboarding, only engagement date
-                    // The API will create a wedding profile with trial status
+                    engagementDate: onboardingData.engagementDate,
+                    startedPlanning: onboardingData.startedPlanning,
+                    planningCompleted: onboardingData.planningCompleted,
+                    // Note: We collect engagement date in onboarding
+                    // Wedding date will be collected through chat conversation
                 };
 
                 // Log what we're sending (excluding sensitive data)
                 console.log('📤 Sending wedding creation request with data:', {
                     coupleNames: requestData.coupleNames,
+                    engagementDate: requestData.engagementDate,
+                    startedPlanning: requestData.startedPlanning,
+                    planningCompleted: requestData.planningCompleted,
                     userTokenPresent: !!requestData.userToken
                 });
 

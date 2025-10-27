@@ -30,7 +30,11 @@ export default async function handler(req, res) {
     expectedGuestCount,
     totalBudget,
     weddingStyle,
-    colorSchemePrimary
+    colorSchemePrimary,
+    // Onboarding fields
+    engagementDate,
+    startedPlanning,
+    planningCompleted
   } = req.body;
 
   // ========================================================================
@@ -113,6 +117,11 @@ export default async function handler(req, res) {
     if (totalBudget) weddingData.total_budget = parseFloat(totalBudget);
     if (weddingStyle) weddingData.wedding_style = weddingStyle;
     if (colorSchemePrimary) weddingData.color_scheme_primary = colorSchemePrimary;
+
+    // Add onboarding fields
+    if (engagementDate) weddingData.engagement_date = engagementDate;
+    if (startedPlanning !== undefined) weddingData.started_planning = startedPlanning;
+    if (planningCompleted) weddingData.planning_completed = JSON.stringify(planningCompleted);
 
     // ========================================================================
     // STEP 5: Create wedding profile
