@@ -62,7 +62,7 @@ export default async function handler(req, res) {
       });
     }
 
-    // Build wedding context for bestie chat
+    // Build wedding context for bestie chat with extraction
     let weddingContext = `You are Bestie Buddy, the AI assistant for the Maid of Honor, Best Man, or Best Friend helping plan wedding events.
 
 YOUR ROLE:
@@ -92,7 +92,7 @@ CURRENT WEDDING INFORMATION:`;
     if (weddingData.total_budget) weddingContext += `\n- Total Budget: $${weddingData.total_budget}`;
     if (weddingData.wedding_style) weddingContext += `\n- Style: ${weddingData.wedding_style}`;
 
-    // CALL CLAUDE with bestie prompt
+    // CALL CLAUDE with enhanced bestie extraction prompt
     const claudeResponse = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
@@ -102,26 +102,65 @@ CURRENT WEDDING INFORMATION:`;
       },
       body: JSON.stringify({
         model: 'claude-sonnet-4-20250514',
-        max_tokens: 2048,
+        max_tokens: 3072,
         messages: [{
           role: 'user',
           content: `${weddingContext}
 
-TASK: Help the Maid of Honor/Best Man with their wedding planning duties and event coordination.
+TASK: Help the Maid of Honor/Best Man with their wedding planning duties, event coordination, AND extract any structured data.
 
 USER MESSAGE: "${message}"
 
 INSTRUCTIONS:
 1. Provide practical, actionable advice for MOH/Best Man responsibilities
 2. Help plan bachelorette parties, bridal showers, and engagement parties
-3. Assist with bridesmaids/groomsmen coordination and logistics
-4. Give budget-friendly ideas and creative solutions
-5. Address common MOH/Best Man challenges (difficult bridesmaids, expenses, time management)
-6. Offer timeline recommendations and checklists when relevant
-7. Be supportive but focused on getting things done
-8. Use friendly, casual language but stay organized and practical
+3. Extract ANY planning details, budget info, or tasks from the conversation
+4. Return your response in this EXACT format:
 
-Respond directly with helpful advice and actionable next steps.`
+<response>Your natural, helpful response here</response>
+
+<extracted_data>
+{
+  "budget_items": [
+    {
+      "category": "venue|catering|flowers|photography|videography|music|cake|decorations|attire|invitations|favors|transportation|honeymoon|other",
+      "budgeted_amount": number or null,
+      "spent_amount": number or null,
+      "transaction_date": "YYYY-MM-DD or null",
+      "transaction_amount": number or null,
+      "transaction_description": "string or null",
+      "notes": "string or null"
+    }
+  ],
+  "tasks": [
+    {
+      "task_name": "string",
+      "task_description": "string or null",
+      "category": "venue|catering|flowers|photography|attire|invitations|decorations|transportation|legal|honeymoon|day_of|other or null",
+      "due_date": "YYYY-MM-DD or null",
+      "status": "not_started|in_progress|completed|cancelled or null",
+      "priority": "low|medium|high|urgent or null",
+      "notes": "string or null"
+    }
+  ]
+}
+</extracted_data>
+
+EXTRACTION RULES FOR BESTIE CHAT:
+- budget_items: Extract mentions of party expenses, bridesmaid costs, event budgets
+  * "Spent $300 on bachelorette decorations" → {"category": "decorations", "spent_amount": 300, "transaction_amount": 300, "transaction_date": "today"}
+  * "Budgeted $2000 for bridal shower venue" → {"category": "venue", "budgeted_amount": 2000}
+  * "Bridesmaids dresses cost $150 each" → {"category": "attire", "transaction_amount": 150, "notes": "per bridesmaid"}
+- tasks: Extract to-dos for MOH/Best Man duties, party planning tasks
+  * "Need to book venue by next Friday" → {"task_name": "Book venue", "due_date": "[next Friday's date]", "status": "not_started"}
+  * "Sent out invitations today!" → {"task_name": "Send bachelorette invitations", "status": "completed"}
+  * "Should I send save-the-dates for the bridal shower?" → {"task_name": "Send bridal shower save-the-dates", "status": "not_started", "priority": "medium"}
+
+IMPORTANT:
+- Today's date is ${new Date().toISOString().split('T')[0]}
+- Focus on extracting MOH/Best Man event planning data (bachelorette, shower, rehearsal dinner, etc.)
+- Only include sections that have data. Empty arrays [] are ok if nothing was mentioned
+- If nothing actionable was mentioned, return {"budget_items": [], "tasks": []}`
         }]
       })
     });
@@ -141,7 +180,108 @@ Respond directly with helpful advice and actionable next steps.`
       throw new Error('Invalid response from Claude');
     }
 
-    const assistantMessage = claudeData.content[0].text;
+    const fullResponse = claudeData.content[0].text;
+
+    // Parse response and extracted data
+    const responseMatch = fullResponse.match(/<response>([\s\S]*?)<\/response>/);
+    const dataMatch = fullResponse.match(/<extracted_data>([\s\S]*?)<\/extracted_data>/);
+
+    let assistantMessage = responseMatch ? responseMatch[1].trim() : fullResponse;
+    let extractedData = { budget_items: [], tasks: [] };
+
+    if (dataMatch) {
+      try {
+        const jsonStr = dataMatch[1].trim();
+        extractedData = JSON.parse(jsonStr);
+      } catch (e) {
+        console.error('Failed to parse extracted data:', e);
+      }
+    }
+
+    // Update database with extracted data from bestie chat
+    console.log('Bestie extracted data:', JSON.stringify(extractedData, null, 2));
+
+    // 1. Insert/Update budget items in budget_tracker table
+    if (extractedData.budget_items && extractedData.budget_items.length > 0) {
+      for (const budgetItem of extractedData.budget_items) {
+        // Check if budget category already exists
+        const { data: existingBudget } = await supabaseService
+          .from('budget_tracker')
+          .select('id, spent_amount')
+          .eq('wedding_id', membership.wedding_id)
+          .eq('category', budgetItem.category)
+          .single();
+
+        if (existingBudget) {
+          // Update existing budget category
+          const budgetUpdates = {};
+
+          if (budgetItem.budgeted_amount !== null && budgetItem.budgeted_amount !== undefined) {
+            budgetUpdates.budgeted_amount = budgetItem.budgeted_amount;
+          }
+
+          if (budgetItem.spent_amount !== null && budgetItem.spent_amount !== undefined) {
+            budgetUpdates.spent_amount = (existingBudget.spent_amount || 0) + budgetItem.spent_amount;
+          }
+
+          if (budgetItem.transaction_date) budgetUpdates.last_transaction_date = budgetItem.transaction_date;
+          if (budgetItem.transaction_amount) budgetUpdates.last_transaction_amount = budgetItem.transaction_amount;
+          if (budgetItem.transaction_description) budgetUpdates.last_transaction_description = budgetItem.transaction_description;
+          if (budgetItem.notes) budgetUpdates.notes = budgetItem.notes;
+
+          if (Object.keys(budgetUpdates).length > 0) {
+            const { error: budgetUpdateError } = await supabaseService
+              .from('budget_tracker')
+              .update(budgetUpdates)
+              .eq('id', existingBudget.id);
+
+            if (budgetUpdateError) {
+              console.error('Failed to update budget:', budgetUpdateError);
+            } else {
+              console.log('Successfully updated budget category:', budgetItem.category);
+            }
+          }
+        } else {
+          // Insert new budget category
+          const { error: budgetInsertError } = await supabaseService
+            .from('budget_tracker')
+            .insert({
+              wedding_id: membership.wedding_id,
+              category: budgetItem.category,
+              budgeted_amount: budgetItem.budgeted_amount || 0,
+              spent_amount: budgetItem.spent_amount || 0,
+              last_transaction_date: budgetItem.transaction_date,
+              last_transaction_amount: budgetItem.transaction_amount,
+              last_transaction_description: budgetItem.transaction_description,
+              notes: budgetItem.notes
+            });
+
+          if (budgetInsertError) {
+            console.error('Failed to insert budget:', budgetInsertError);
+          } else {
+            console.log('Successfully inserted budget category:', budgetItem.category);
+          }
+        }
+      }
+    }
+
+    // 2. Insert tasks in wedding_tasks table
+    if (extractedData.tasks && extractedData.tasks.length > 0) {
+      for (const task of extractedData.tasks) {
+        const { error: taskInsertError } = await supabaseService
+          .from('wedding_tasks')
+          .insert({
+            wedding_id: membership.wedding_id,
+            ...task
+          });
+
+        if (taskInsertError) {
+          console.error('Failed to insert task:', taskInsertError);
+        } else {
+          console.log('Successfully inserted task:', task.task_name);
+        }
+      }
+    }
 
     // Save messages to chat_messages table
     try {
@@ -181,7 +321,8 @@ Respond directly with helpful advice and actionable next steps.`
 
     return res.status(200).json({
       response: assistantMessage,
-      conversationId: conversationId || 'bestie-temp'
+      conversationId: conversationId || 'bestie-temp',
+      extractedData: extractedData // For debugging
     });
 
   } catch (error) {
