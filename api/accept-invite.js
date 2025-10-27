@@ -1,8 +1,9 @@
 // ============================================================================
-// ACCEPT INVITE - UNIFIED FOR ALL ROLES
+// ACCEPT INVITE - SIMPLIFIED OWNER/BESTIE MODEL
 // ============================================================================
-// Purpose: Accept invite and join wedding as partner, co-planner, or bestie
+// Purpose: Accept invite and join wedding as bestie
 // One-time use with expiration enforcement
+// Creates bestie_profile for new bestie members
 // ============================================================================
 
 import { createClient } from '@supabase/supabase-js';
@@ -18,11 +19,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const {
-    invite_token,
-    userToken,
-    bestie_knowledge_permissions = { can_read: false, can_edit: false }
-  } = req.body;
+  const { invite_token, userToken } = req.body;
 
   // ========================================================================
   // STEP 1: Validate input
@@ -30,15 +27,6 @@ export default async function handler(req, res) {
   if (!invite_token || !userToken) {
     return res.status(400).json({
       error: 'Missing required fields: invite_token and userToken'
-    });
-  }
-
-  // Validate bestie_knowledge_permissions structure
-  if (typeof bestie_knowledge_permissions !== 'object' ||
-      typeof bestie_knowledge_permissions.can_read !== 'boolean' ||
-      typeof bestie_knowledge_permissions.can_edit !== 'boolean') {
-    return res.status(400).json({
-      error: 'Invalid bestie_knowledge_permissions. Must be { can_read: boolean, can_edit: boolean }'
     });
   }
 
@@ -121,27 +109,7 @@ export default async function handler(req, res) {
     }
 
     // ========================================================================
-    // STEP 7: For bestie role - check 1:1 relationship constraint
-    // ========================================================================
-    if (invite.role === 'bestie') {
-      const { data: existingBestie } = await supabaseAdmin
-        .from('wedding_members')
-        .select('user_id')
-        .eq('wedding_id', invite.wedding_id)
-        .eq('invited_by_user_id', invite.created_by)
-        .eq('role', 'bestie')
-        .maybeSingle();
-
-      if (existingBestie) {
-        return res.status(400).json({
-          error: 'This inviter already has a bestie for this wedding. Each person can only have one bestie.',
-          details: 'The invite code may have been used by someone else.'
-        });
-      }
-    }
-
-    // ========================================================================
-    // STEP 8: Add user to wedding_members
+    // STEP 7: Add user to wedding_members (simplified - no permissions)
     // ========================================================================
     const { data: newMember, error: addMemberError } = await supabaseAdmin
       .from('wedding_members')
@@ -149,8 +117,7 @@ export default async function handler(req, res) {
         wedding_id: invite.wedding_id,
         user_id: user.id,
         role: invite.role,
-        invited_by_user_id: invite.created_by,
-        wedding_profile_permissions: invite.wedding_profile_permissions
+        invited_by_user_id: invite.created_by
       })
       .select()
       .single();
@@ -164,33 +131,26 @@ export default async function handler(req, res) {
     }
 
     // ========================================================================
-    // STEP 9: For bestie role - create bestie_permissions record
+    // STEP 8: For bestie role - create bestie_profile
     // ========================================================================
-    let bestiePermissions = null;
-
     if (invite.role === 'bestie') {
-      const { data: permissions, error: permissionsError } = await supabaseAdmin
-        .from('bestie_permissions')
+      const { error: profileError } = await supabaseAdmin
+        .from('bestie_profile')
         .insert({
           bestie_user_id: user.id,
-          inviter_user_id: invite.created_by,
           wedding_id: invite.wedding_id,
-          permissions: bestie_knowledge_permissions
-        })
-        .select()
-        .single();
+          bestie_brief: 'Welcome! Chat with me to start planning your bestie duties and surprises.'
+        });
 
-      if (permissionsError) {
-        console.error('Failed to create bestie permissions:', permissionsError);
+      if (profileError) {
+        console.error('Failed to create bestie profile:', profileError);
         // Don't fail the entire request - user is already a member
-        // They can set permissions later
-      } else {
-        bestiePermissions = permissions;
+        // Profile can be created later
       }
     }
 
     // ========================================================================
-    // STEP 10: Mark invite as used
+    // STEP 9: Mark invite as used
     // ========================================================================
     const { error: updateInviteError } = await supabaseAdmin
       .from('invite_codes')
@@ -207,7 +167,7 @@ export default async function handler(req, res) {
     }
 
     // ========================================================================
-    // STEP 11: Fetch wedding details for response
+    // STEP 10: Fetch wedding details for response
     // ========================================================================
     const { data: wedding } = await supabaseAdmin
       .from('wedding_profiles')
@@ -216,55 +176,31 @@ export default async function handler(req, res) {
       .single();
 
     // ========================================================================
-    // STEP 12: Build role-specific response
+    // STEP 11: Build simplified response
     // ========================================================================
     const response = {
       success: true,
-      message: getRoleMessage(invite.role),
+      message: invite.role === 'bestie'
+        ? 'Successfully joined as bestie!'
+        : 'Successfully joined wedding!',
       wedding: {
         id: invite.wedding_id,
         name: wedding ? `${wedding.partner1_name} & ${wedding.partner2_name}` : 'Unknown',
         date: wedding?.wedding_date || null
       },
       your_role: invite.role,
-      permissions: {
-        wedding_profile: invite.wedding_profile_permissions
-      },
-      redirect_to: `/dashboard-luxury.html?wedding_id=${invite.wedding_id}`
+      redirect_to: invite.role === 'bestie'
+        ? `/bestie-luxury.html?wedding_id=${invite.wedding_id}`
+        : `/dashboard-luxury.html?wedding_id=${invite.wedding_id}`
     };
 
     // Add bestie-specific info
-    if (invite.role === 'bestie' && bestiePermissions) {
-      response.bestie_permissions = {
-        inviter_access_to_your_knowledge: bestie_knowledge_permissions
-      };
+    if (invite.role === 'bestie') {
       response.next_steps = [
         'You now have a private bestie planning space',
-        `Your inviter ${bestie_knowledge_permissions.can_read ? 'CAN' : 'CANNOT'} see your bestie knowledge`,
-        'You can change their access anytime via Settings → Bestie Permissions',
+        'Chat with your AI assistant to plan bachelorette/bachelor parties',
+        'Your bestie profile will be auto-populated with tasks and responsibilities',
         'Start planning surprises and events in your bestie dashboard!'
-      ];
-    }
-
-    // Add partner-specific info
-    if (invite.role === 'partner') {
-      response.next_steps = [
-        'You have full partner access to this wedding',
-        'You can edit all wedding details',
-        'You can invite additional co-planners and besties',
-        'Start planning together!'
-      ];
-    }
-
-    // Add co-planner-specific info
-    if (invite.role === 'co_planner') {
-      response.next_steps = [
-        `You have ${invite.wedding_profile_permissions.edit ? 'edit' : 'view-only'} access to this wedding`,
-        'You can help plan and coordinate details',
-        invite.wedding_profile_permissions.edit
-          ? 'You can make changes to wedding details'
-          : 'You can request changes through the couple',
-        'Welcome to the planning team!'
       ];
     }
 
@@ -279,14 +215,3 @@ export default async function handler(req, res) {
   }
 }
 
-// ============================================================================
-// HELPER: Get role-specific success message
-// ============================================================================
-function getRoleMessage(role) {
-  const messages = {
-    partner: 'Successfully joined as partner!',
-    co_planner: 'Successfully joined as co-planner!',
-    bestie: 'Successfully joined as bestie!'
-  };
-  return messages[role] || 'Successfully joined wedding!';
-}
