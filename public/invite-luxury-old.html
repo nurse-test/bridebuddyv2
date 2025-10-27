@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Invite collaborators to your wedding planning">
+    <title>Bride Buddy - Invite Collaborators</title>
+
+    <!-- Preconnect to font providers -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="/css/styles-luxury.css">
+    <link rel="stylesheet" href="/css/components-luxury.css">
+
+</head>
+<body>
+    <!-- Skip to main content for accessibility -->
+    <a href="#main-content" class="skip-to-main">Skip to main content</a>
+
+    <!-- Invite Page Container -->
+    <div class="bg-sunset">
+        <div class="container" style="min-height: 100vh; padding-top: var(--space-8); padding-bottom: var(--space-8);">
+
+            <!-- Header -->
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--space-8);" class="animate-fade-in">
+                <button onclick="goBack()" class="btn btn-icon-only" style="background: rgba(201, 169, 97, 0.2); border-color: var(--color-gold);">
+                    <svg style="width: 24px; height: 24px; fill: currentColor;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
+                </button>
+                <h2 style="font-family: var(--font-heading); font-size: var(--text-2xl); color: var(--color-navy); margin: 0;">
+                    Invite Collaborators
+                </h2>
+                <div style="width: 48px;"></div>
+            </div>
+
+            <!-- Main Content -->
+            <main id="main-content" style="max-width: 800px; margin: 0 auto;">
+
+                <!-- Invite Form -->
+                <div class="card card-gold-accent animate-fade-in" style="margin-bottom: var(--space-6);">
+                    <h3 style="font-family: var(--font-heading); font-size: var(--text-xl); color: var(--color-navy); margin-bottom: var(--space-6);">
+                        Create Invite Link
+                    </h3>
+
+                    <form id="inviteForm">
+                        <div class="form-group">
+                            <label for="inviteeRole" class="form-label">Role</label>
+                            <select class="form-input" id="inviteeRole" required>
+                                <option value="">Select a role...</option>
+                                <option value="partner">Partner (Full Edit Access)</option>
+                                <option value="co_planner">Co-planner</option>
+                                <option value="bestie">Bestie (MOH/Best Man)</option>
+                            </select>
+                        </div>
+
+                        <!-- Permission options -->
+                        <div id="permissionsGroup" class="hidden" style="margin-bottom: var(--space-6);">
+                            <label class="form-label">Wedding Profile Access</label>
+
+                            <label class="checkbox-item" style="margin-bottom: var(--space-2);">
+                                <input type="checkbox" id="canRead">
+                                <span class="checkbox-label">Can view wedding details</span>
+                            </label>
+
+                            <label class="checkbox-item">
+                                <input type="checkbox" id="canEdit">
+                                <span class="checkbox-label">Can edit wedding details</span>
+                            </label>
+
+                            <p style="color: var(--color-burgundy); opacity: 0.6; font-size: var(--text-sm); margin-top: var(--space-2);">
+                                Note: Edit permission requires read permission.
+                            </p>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary btn-lg btn-full" id="inviteBtn">
+                            Generate Invite Link
+                        </button>
+                    </form>
+
+                    <!-- Generated Link Display -->
+                    <div id="generatedLinkSection" class="hidden" style="margin-top: var(--space-6); padding-top: var(--space-6); border-top: 2px solid var(--color-accent);">
+                        <div style="background: rgba(201, 169, 97, 0.1); border: 2px dashed var(--color-gold); border-radius: var(--radius-md); padding: var(--space-4); margin-bottom: var(--space-4);">
+                            <p style="font-weight: 600; color: var(--color-navy); margin-bottom: var(--space-2);">Share this link:</p>
+                            <p id="inviteLink" style="font-size: var(--text-sm); color: var(--color-navy); word-break: break-all; margin-bottom: var(--space-3);"></p>
+                            <button class="btn btn-secondary btn-full" onclick="copyLink()" id="copyBtn">
+                                Copy Link
+                            </button>
+                        </div>
+                        <p style="font-size: var(--text-sm); color: var(--color-burgundy); opacity: 0.6; text-align: center; margin-bottom: var(--space-3);">
+                            Link expires in 7 days • One-time use only
+                        </p>
+                        <button class="btn btn-ghost btn-full" onclick="resetForm()">
+                            Create Another Invite
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Active Invite Links -->
+                <div class="card card-champagne-accent animate-fade-in" style="margin-bottom: var(--space-6); animation-delay: 0.1s;">
+                    <h3 style="font-family: var(--font-heading); font-size: var(--text-xl); color: var(--color-navy); margin-bottom: var(--space-6);">
+                        Active Invite Links
+                    </h3>
+                    <div id="pendingInvites">
+                        <p style="text-align: center; color: var(--color-burgundy); opacity: 0.7;">Loading...</p>
+                    </div>
+                </div>
+
+                <!-- Current Members -->
+                <div class="card card-rust-accent animate-fade-in" style="animation-delay: 0.2s;">
+                    <h3 style="font-family: var(--font-heading); font-size: var(--text-xl); color: var(--color-navy); margin-bottom: var(--space-6);">
+                        Current Members
+                    </h3>
+                    <div id="currentMembers">
+                        <p style="text-align: center; color: var(--color-burgundy); opacity: 0.7;">Loading...</p>
+                    </div>
+                </div>
+
+            </main>
+
+            <!-- Toast Container -->
+            <div id="toastContainer" class="toast-container"></div>
+
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script type="module">
+        import { initSupabase, showToast } from '/js/shared.js';
+
+        // Initialize Supabase
+        const supabase = initSupabase();
+
+        // Get wedding_id from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const weddingId = urlParams.get('wedding_id');
+        let currentInviteUrl = '';
+
+        // Make functions globally available
+        window.goBack = function() {
+            window.location.href = `dashboard-luxury.html?wedding_id=${weddingId}`;
+        };
+
+        // Update Permission Options Based on Role
+        document.getElementById('inviteeRole').addEventListener('change', function() {
+            const role = this.value;
+            const permissionsGroup = document.getElementById('permissionsGroup');
+            const canRead = document.getElementById('canRead');
+            const canEdit = document.getElementById('canEdit');
+
+            if (!role) {
+                permissionsGroup.classList.add('hidden');
+                return;
+            }
+
+            permissionsGroup.classList.remove('hidden');
+
+            // Set defaults based on role
+            if (role === 'partner') {
+                canRead.checked = true;
+                canEdit.checked = true;
+                canRead.disabled = true;
+                canEdit.disabled = true;
+            } else if (role === 'bestie') {
+                canRead.checked = false;
+                canEdit.checked = false;
+                canRead.disabled = false;
+                canEdit.disabled = false;
+            } else { // co_planner
+                canRead.checked = true;
+                canEdit.checked = false;
+                canRead.disabled = false;
+                canEdit.disabled = false;
+            }
+        });
+
+        // Enforce edit requires read
+        document.getElementById('canEdit').addEventListener('change', function() {
+            if (this.checked) {
+                document.getElementById('canRead').checked = true;
+            }
+        });
+
+        document.getElementById('canRead').addEventListener('change', function() {
+            if (!this.checked) {
+                document.getElementById('canEdit').checked = false;
+            }
+        });
+
+        // Create Invite
+        document.getElementById('inviteForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const role = document.getElementById('inviteeRole').value;
+            const canRead = document.getElementById('canRead').checked;
+            const canEdit = document.getElementById('canEdit').checked;
+
+            const btn = document.getElementById('inviteBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loading-spinner"></span> Generating...';
+
+            try {
+                // Get user session
+                const { data: { session } } = await supabase.auth.getSession();
+
+                if (!session) {
+                    showToast('Please log in to create invites', 'error');
+                    return;
+                }
+
+                const response = await fetch('/api/create-invite', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        userToken: session.access_token,
+                        role: role,
+                        wedding_profile_permissions: {
+                            read: canRead,
+                            edit: canEdit
+                        }
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    currentInviteUrl = data.invite_url;
+                    document.getElementById('inviteLink').textContent = data.invite_url;
+                    document.getElementById('inviteForm').classList.add('hidden');
+                    document.getElementById('generatedLinkSection').classList.remove('hidden');
+                    loadPendingInvites();
+                    showToast('Invite link created!', 'success');
+                } else {
+                    throw new Error(data.error);
+                }
+            } catch (error) {
+                console.error('Error creating invite:', error);
+                showToast('Error creating invite link. Please try again.', 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Generate Invite Link';
+            }
+        });
+
+        // Copy Link
+        window.copyLink = function() {
+            navigator.clipboard.writeText(currentInviteUrl).then(() => {
+                const btn = document.getElementById('copyBtn');
+                const originalText = btn.textContent;
+                btn.textContent = 'Copied!';
+                btn.classList.add('btn-success');
+
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                    btn.classList.remove('btn-success');
+                }, 2000);
+
+                showToast('Link copied to clipboard!', 'success');
+            }).catch(err => {
+                console.error('Failed to copy:', err);
+                showToast('Failed to copy link', 'error');
+            });
+        };
+
+        // Reset Form
+        window.resetForm = function() {
+            document.getElementById('inviteForm').reset();
+            document.getElementById('inviteForm').classList.remove('hidden');
+            document.getElementById('generatedLinkSection').classList.add('hidden');
+            document.getElementById('permissionsGroup').classList.add('hidden');
+            currentInviteUrl = '';
+        };
+
+        // Load Pending Invites
+        async function loadPendingInvites() {
+            try {
+                const { data: invites, error } = await supabase
+                    .from('invite_codes')
+                    .select('*')
+                    .eq('wedding_id', weddingId)
+                    .or('used.is.null,used.eq.false')
+                    .gt('expires_at', new Date().toISOString())
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+
+                const container = document.getElementById('pendingInvites');
+
+                if (!invites || invites.length === 0) {
+                    container.innerHTML = '<p style="text-align: center; color: var(--color-burgundy); opacity: 0.7;">No active invite links</p>';
+                    return;
+                }
+
+                container.innerHTML = invites.map(invite => {
+                    const expiresAt = new Date(invite.expires_at);
+                    const now = new Date();
+                    const hoursLeft = Math.floor((expiresAt - now) / (1000 * 60 * 60));
+                    const daysLeft = Math.floor(hoursLeft / 24);
+                    const expiresText = daysLeft > 0
+                        ? `Expires in ${daysLeft} day${daysLeft !== 1 ? 's' : ''}`
+                        : `Expires in ${hoursLeft} hour${hoursLeft !== 1 ? 's' : ''}`;
+
+                    const roleDisplay = {
+                        'partner': 'Partner',
+                        'co_planner': 'Co-planner',
+                        'bestie': 'Bestie'
+                    }[invite.role] || invite.role;
+
+                    const permissions = invite.wedding_profile_permissions || {};
+                    const permissionsText = permissions.edit
+                        ? 'Can edit'
+                        : permissions.read
+                            ? 'Can view'
+                            : 'No access';
+
+                    const inviteUrl = `${window.location.origin}/accept-invite-luxury.html?token=${invite.invite_token}`;
+
+                    return `
+                        <div style="background: rgba(255, 255, 255, 0.3); padding: var(--space-4); border-radius: var(--radius-md); margin-bottom: var(--space-3);">
+                            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: var(--space-2);">
+                                <div>
+                                    <div style="color: var(--color-navy); font-weight: 600; margin-bottom: var(--space-1);">${roleDisplay}</div>
+                                    <div style="color: var(--color-navy); opacity: 0.8; font-size: var(--text-sm);">${permissionsText}</div>
+                                </div>
+                                <div style="color: var(--color-burgundy); opacity: 0.7; font-size: var(--text-xs); text-align: right;">
+                                    ${expiresText}
+                                </div>
+                            </div>
+                            <div style="background: rgba(0, 0, 0, 0.1); padding: var(--space-2); border-radius: var(--radius-sm); font-size: var(--text-xs); color: var(--color-navy); word-break: break-all; margin-bottom: var(--space-2);">
+                                ${inviteUrl}
+                            </div>
+                            <button onclick="copyInviteLink('${inviteUrl}')" class="btn btn-secondary btn-sm btn-full">
+                                Copy Link
+                            </button>
+                        </div>
+                    `;
+                }).join('');
+            } catch (error) {
+                console.error('Error loading invites:', error);
+                document.getElementById('pendingInvites').innerHTML =
+                    '<p style="text-align: center; color: var(--color-burgundy); opacity: 0.7;">Failed to load invites</p>';
+            }
+        }
+
+        // Copy Specific Invite Link
+        window.copyInviteLink = function(url) {
+            navigator.clipboard.writeText(url).then(() => {
+                showToast('Invite link copied!', 'success');
+            }).catch(err => {
+                console.error('Failed to copy:', err);
+                showToast('Failed to copy link', 'error');
+            });
+        };
+
+        // Load Current Members
+        async function loadCurrentMembers() {
+            try {
+                const { data: members, error } = await supabase
+                    .from('wedding_members')
+                    .select('role, wedding_profile_permissions, user_id')
+                    .eq('wedding_id', weddingId);
+
+                if (error) throw error;
+
+                const container = document.getElementById('currentMembers');
+
+                if (!members || members.length === 0) {
+                    container.innerHTML = '<p style="text-align: center; color: var(--color-burgundy); opacity: 0.7;">No members yet</p>';
+                    return;
+                }
+
+                container.innerHTML = members.map(member => {
+                    const roleDisplay = {
+                        'owner': 'Owner',
+                        'partner': 'Partner',
+                        'co_planner': 'Co-planner',
+                        'bestie': 'Bestie',
+                        'member': 'Member'
+                    }[member.role] || member.role;
+
+                    const permissions = member.wedding_profile_permissions || {};
+                    const permissionsText = member.role === 'owner'
+                        ? 'Full access'
+                        : permissions.edit
+                            ? 'Can edit'
+                            : permissions.read
+                                ? 'Can view'
+                                : 'No access';
+
+                    return `
+                        <div style="background: rgba(201, 169, 97, 0.12); padding: var(--space-3); border-radius: var(--radius-md); margin-bottom: var(--space-2);">
+                            <div style="color: var(--color-navy); font-weight: 600;">${roleDisplay}</div>
+                            <div style="color: var(--color-navy); opacity: 0.8; font-size: var(--text-sm); margin-top: var(--space-1);">
+                                ${permissionsText}
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            } catch (error) {
+                console.error('Error loading members:', error);
+                document.getElementById('currentMembers').innerHTML =
+                    '<p style="text-align: center; color: var(--color-burgundy); opacity: 0.7;">Failed to load members</p>';
+            }
+        }
+
+        // Initialize
+        loadPendingInvites();
+        loadCurrentMembers();
+    </script>
+
+    <!-- Custom Styles -->
+    <style>
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            padding: var(--space-3);
+            background: rgba(201, 169, 97, 0.12);
+            border: 2px solid transparent;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .checkbox-item:hover {
+            background: rgba(201, 169, 97, 0.18);
+            border-color: var(--color-accent);
+        }
+
+        .checkbox-item input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            margin-right: var(--space-3);
+            cursor: pointer;
+        }
+
+        .checkbox-label {
+            color: var(--color-navy);
+            font-weight: 500;
+            flex: 1;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid var(--color-cream);
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .btn-success {
+            background: #28a745 !important;
+            border-color: #28a745 !important;
+        }
+
+        @media (max-width: 768px) {
+            .card {
+                padding: var(--space-4) !important;
+            }
+        }
+    </style>
+</body>
+</html>
