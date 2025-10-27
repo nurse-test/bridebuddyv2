@@ -112,13 +112,28 @@ CURRENT WEDDING INFORMATION:`;
           role: 'user',
           content: `${weddingContext}
 
-TASK: Extract wedding information from the user's message and respond naturally.
+TASK: Extract wedding information from the user's message and respond proactively.
 
 USER MESSAGE: "${message}"
 
 INSTRUCTIONS:
-1. Respond warmly and helpfully to the user
-2. Extract ANY wedding details from the message including: general info, vendors, budget/payments, and tasks
+1. Respond warmly and helpfully AND proactively guide them forward:
+   - Acknowledge what they shared
+   - Calculate urgency: Wedding is ${weddingData.wedding_date ? `${Math.ceil((new Date(weddingData.wedding_date) - new Date()) / (1000*60*60*24))} days away` : 'not set yet'}
+   - Based on timeline, suggest the NEXT 1-2 concrete steps (not overwhelming list)
+   - Ask ONE follow-up question to move planning forward (not multiple questions)
+   - Timeline-based guidance:
+     * <6 months: Emphasize urgency on vendor bookings and final details
+     * 6-12 months: Focus on major decisions (venue, caterer, photographer, dress)
+     * >12 months: Focus on foundation (setting budget, defining style, initial vendor research)
+     * No wedding date set: Encourage setting one to enable timeline planning
+
+2. Extract ALL wedding details from the message including:
+   - General info (dates, location, guest count, style preferences)
+   - Vendors (name, type, cost, deposit status)
+   - Budget items (category, amount, paid/unpaid)
+   - Tasks (what needs to be done, when)
+
 3. Return your response in this EXACT format:
 
 <response>Your natural, conversational response here</response>
