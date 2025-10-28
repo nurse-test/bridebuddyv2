@@ -311,8 +311,10 @@ export async function loadWeddingData(options = {}) {
                 .single();
 
             if (memberError || !membership) {
-                console.error('No wedding membership found for user:', user.id);
-                console.error('Member error:', memberError);
+                console.error('No wedding membership found');
+                if (memberError) {
+                    console.error('Member error:', memberError.message);
+                }
                 if (redirectOnError) {
                     alert('You need to create or join a wedding first.');
                     goToWelcome();
@@ -328,7 +330,8 @@ export async function loadWeddingData(options = {}) {
 
         // Extra safety check before querying
         if (!weddingId || weddingId === 'undefined' || weddingId === 'null') {
-            console.error('Invalid wedding_id:', weddingId);
+            // Security: Don't log actual wedding_id value
+            console.error('Invalid wedding_id detected');
             if (redirectOnError) {
                 alert('Unable to load wedding. Please create or join a wedding.');
                 goToWelcome();

@@ -453,7 +453,8 @@ IMPORTANT:
     });
 
   } catch (error) {
-    console.error('Error:', error);
-    return res.status(500).json({ error: error.message });
+    // Security: Only log error message, not full error object (may contain user messages, wedding data, user/wedding IDs)
+    console.error('Chat error:', error.message || 'Unknown error');
+    return res.status(500).json({ error: error.message || 'Chat processing failed' });
   }
 }

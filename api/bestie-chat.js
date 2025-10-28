@@ -44,14 +44,22 @@ export default async function handler(req, res) {
     const { data: { user }, error: userError } = await supabase.auth.getUser();
     if (userError || !user) throw new Error('Invalid user token');
 
-    // Get user's wedding
+    // Get user's wedding and role
     const { data: membership, error: memberError } = await supabase
       .from('wedding_members')
-      .select('wedding_id')
+      .select('wedding_id, role')
       .eq('user_id', user.id)
       .single();
 
     if (memberError || !membership) throw new Error('No wedding profile found');
+
+    // Only besties can access bestie chat
+    if (membership.role !== 'bestie') {
+      return res.status(403).json({
+        error: 'Only besties can access bestie chat. Please use the main wedding chat instead.',
+        redirect: '/dashboard-luxury.html'
+      });
+    }
 
     const { data: weddingData, error: weddingError } = await supabase
       .from('wedding_profiles')
@@ -177,7 +185,8 @@ INSTRUCTIONS:
       "priority": "low|medium|high|urgent or null",
       "notes": "string or null"
     }
-  ]
+  ],
+  "profile_summary": "2-3 sentence summary of the bestie's current planning focus, events being organized, and key responsibilities. Update this each time to reflect the full conversation context."
 }
 </extracted_data>
 
@@ -190,6 +199,10 @@ EXTRACTION RULES FOR BESTIE CHAT:
   * Tasks the user mentions
   * **Tasks YOU suggest in your response** (this is key!)
   * Example: If you say "You should book the venue by March 15th", extract: {"task_name": "Book bachelorette venue", "due_date": "2025-03-15", "status": "not_started", "priority": "high"}
+- profile_summary: **ALWAYS provide** - Summarize the bestie's planning activities and responsibilities
+  * Include: Events being planned (bachelorette, shower, etc.), current focus areas, key upcoming deadlines
+  * Example: "Planning a beach bachelorette party for March with a $2000 budget. Coordinating bridesmaid dress shopping and organizing a bridal shower. Currently researching venues and creating a guest list."
+  * Keep it concise but informative (2-3 sentences max)
 
 TASK GENERATION EXAMPLES:
 - User: "I'm thinking about a beach bachelorette"
@@ -230,7 +243,7 @@ IMPORTANT:
     const dataMatch = fullResponse.match(/<extracted_data>([\s\S]*?)<\/extracted_data>/);
 
     let assistantMessage = responseMatch ? responseMatch[1].trim() : fullResponse;
-    let extractedData = { budget_items: [], tasks: [] };
+    let extractedData = { budget_items: [], tasks: [], profile_summary: null };
 
     if (dataMatch) {
       try {
@@ -319,6 +332,23 @@ IMPORTANT:
       }
     }
 
+    // 3. Update bestie_profile with conversation summary
+    if (extractedData.profile_summary && extractedData.profile_summary.trim()) {
+      const { error: profileUpdateError } = await supabaseService
+        .from('bestie_profile')
+        .update({
+          bestie_brief: extractedData.profile_summary,
+          updated_at: new Date().toISOString()
+        })
+        .eq('bestie_user_id', user.id)
+        .eq('wedding_id', membership.wedding_id);
+
+      if (profileUpdateError) {
+        console.error('Failed to update bestie profile:', profileUpdateError);
+        // Don't fail the request if profile update fails
+      }
+    }
+
     // Save messages to chat_messages table
     try {
       // Save user message
@@ -362,7 +392,8 @@ IMPORTANT:
     });
 
   } catch (error) {
-    console.error('Error:', error);
-    return res.status(500).json({ error: error.message });
+    // Security: Only log error message, not full error object (may contain user messages, bestie data, user/wedding IDs)
+    console.error('Bestie chat error:', error.message || 'Unknown error');
+    return res.status(500).json({ error: error.message || 'Chat processing failed' });
   }
 }

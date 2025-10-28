@@ -56,7 +56,7 @@ export default async function handler(req, res) {
       throw new Error('Update not found');
     }
 
-    // Verify user has access to this wedding
+    // Verify user has access to this wedding and has owner/partner role
     const { data: membership, error: memberError } = await supabaseUser
       .from('wedding_members')
       .select('wedding_id, role')
@@ -66,6 +66,13 @@ export default async function handler(req, res) {
 
     if (memberError || !membership) {
       throw new Error('You do not have access to this wedding');
+    }
+
+    // Only owners and partners can approve/reject updates
+    if (membership.role !== 'owner' && membership.role !== 'partner') {
+      return res.status(403).json({
+        error: 'Only wedding owners and partners can approve or reject updates. Besties cannot manage approvals.'
+      });
     }
 
     if (approve) {
@@ -107,7 +114,8 @@ export default async function handler(req, res) {
     }
 
   } catch (error) {
-    console.error('Error:', error);
-    return res.status(500).json({ error: error.message });
+    // Security: Only log error message, not full error object (may contain update IDs, user IDs, field data)
+    console.error('Approval error:', error.message || 'Unknown error');
+    return res.status(500).json({ error: error.message || 'Failed to process update' });
   }
 }

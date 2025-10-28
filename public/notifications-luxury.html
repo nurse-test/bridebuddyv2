@@ -229,8 +229,32 @@
 
         window.approveUpdate = async function() {
             if (!currentUpdateId) return;
-            await approveUpdateById(currentUpdateId);
-            closeModal();
+
+            // Get approve button and show loading state
+            const approveBtn = document.querySelector('#chatModal button.btn-primary');
+            const rejectBtn = document.querySelector('#chatModal button.btn-secondary');
+
+            if (approveBtn) {
+                approveBtn.disabled = true;
+                approveBtn.innerHTML = '<span class="loading-spinner"></span> Approving...';
+            }
+            if (rejectBtn) {
+                rejectBtn.disabled = true;
+            }
+
+            try {
+                await approveUpdateById(currentUpdateId);
+                closeModal();
+            } catch (error) {
+                // Re-enable buttons on error
+                if (approveBtn) {
+                    approveBtn.disabled = false;
+                    approveBtn.textContent = 'Approve';
+                }
+                if (rejectBtn) {
+                    rejectBtn.disabled = false;
+                }
+            }
         };
 
         async function approveUpdateById(updateId) {
@@ -267,6 +291,7 @@
             } catch (error) {
                 console.error('Error approving update:', error);
                 showToast('Error approving update. Please try again.', 'error');
+                throw error; // Re-throw to allow caller to handle button state
             }
         }
 
@@ -274,6 +299,18 @@
             if (!currentUpdateId) return;
 
             if (!confirm('Reject this update? The co-planner will not be notified. We recommend reaching out to them directly.')) return;
+
+            // Get buttons and show loading state
+            const approveBtn = document.querySelector('#chatModal button.btn-primary');
+            const rejectBtn = document.querySelector('#chatModal button.btn-secondary');
+
+            if (rejectBtn) {
+                rejectBtn.disabled = true;
+                rejectBtn.innerHTML = '<span class="loading-spinner"></span> Rejecting...';
+            }
+            if (approveBtn) {
+                approveBtn.disabled = true;
+            }
 
             try {
                 // Get user token from session
@@ -309,6 +346,15 @@
             } catch (error) {
                 console.error('Error rejecting update:', error);
                 showToast('Error rejecting update. Please try again.', 'error');
+
+                // Re-enable buttons on error
+                if (rejectBtn) {
+                    rejectBtn.disabled = false;
+                    rejectBtn.textContent = 'Reject';
+                }
+                if (approveBtn) {
+                    approveBtn.disabled = false;
+                }
             }
         };
 

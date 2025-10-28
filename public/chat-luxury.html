@@ -320,6 +320,14 @@
                 const { wedding, weddingId: loadedWeddingId, member } = await loadWeddingData();
                 weddingId = loadedWeddingId;
 
+                // Redirect besties to their dedicated chat interface
+                // Besties should only use bestie-luxury.html, not the main wedding chat
+                if (member && member.role === 'bestie') {
+                    console.log('Bestie user detected, redirecting to bestie chat interface');
+                    window.location.href = `bestie-luxury.html?wedding_id=${weddingId}`;
+                    return; // Stop execution while redirecting
+                }
+
                 // Update header with wedding name
                 const weddingNameHeader = document.getElementById('weddingNameHeader');
                 if (weddingNameHeader && wedding.wedding_name) {
@@ -331,11 +339,6 @@
 
                 // Configure menu based on user role
                 configureMenuForRole(member.role);
-
-                // Show bestie toggle if user is a bestie
-                if (member.role === 'bestie') {
-                    document.getElementById('bestieToggle').classList.remove('hidden');
-                }
 
                 // Load chat history using shared function
                 await loadAndDisplayChatHistory();

@@ -484,7 +484,7 @@
         // Create Supabase account
         async function createAccount() {
             try {
-                console.log('🔐 Creating account for:', onboardingData.email);
+                // Creating new user account (email redacted for security)
 
                 const { data, error } = await supabase.auth.signUp({
                     email: onboardingData.email,
@@ -498,19 +498,15 @@
                 });
 
                 if (error) {
-                    console.error('❌ Signup error:', error);
+                    console.error('Signup error:', error.message);
                     throw error;
                 }
 
-                console.log('✅ Account created successfully:', {
-                    user: data.user,
-                    session: data.session,
-                    confirmationSent: data.user?.identities?.length === 0
-                });
+                // Account created successfully (user/session data redacted for security)
 
                 // Check if email confirmation is required
                 if (data.user && !data.session) {
-                    console.log('📧 Email confirmation required');
+                    // Email confirmation required
                     showToast('Please check your email to confirm your account before continuing.', 'info', 5000);
                 } else if (data.session) {
                     console.log('✅ User automatically logged in with session');
@@ -536,12 +532,16 @@
                 // Get current authenticated user and session
                 const { data: { session }, error: sessionError } = await supabase.auth.getSession();
 
-                console.log('📊 Session check:', { session: !!session, sessionError });
+                // Security: Only log session status, not error object (may contain auth tokens)
+                console.log('📊 Session check:', { hasSession: !!session, hasError: !!sessionError });
 
                 // Handle case where user is not authenticated
                 if (sessionError || !session) {
                     console.error('❌ No active session - email confirmation may be required');
-                    console.error('Session error details:', sessionError);
+                    // Security: Only log error message, not full error object
+                    if (sessionError) {
+                        console.error('Session error:', sessionError.message || 'Unknown error');
+                    }
 
                     // Try to sign in with the credentials we have
                     console.log('🔄 Attempting auto-login with stored credentials...');
@@ -586,13 +586,7 @@
                 };
 
                 // Log what we're sending (excluding sensitive data)
-                console.log('📤 Sending wedding creation request with data:', {
-                    coupleNames: requestData.coupleNames,
-                    engagementDate: requestData.engagementDate,
-                    startedPlanning: requestData.startedPlanning,
-                    planningCompleted: requestData.planningCompleted,
-                    userTokenPresent: !!requestData.userToken
-                });
+                // Sending wedding creation request (PII redacted for security)
 
                 const response = await fetch('/api/create-wedding', {
                     method: 'POST',
@@ -602,24 +596,15 @@
                     body: JSON.stringify(requestData)
                 });
 
-                console.log('📥 Response status:', response.status, response.statusText);
-                console.log('📥 Response headers:', {
-                    contentType: response.headers.get('content-type'),
-                    ok: response.ok
-                });
-
                 // Check if response is OK (status 200-299)
                 if (!response.ok) {
-                    console.error('❌ HTTP error! Status:', response.status);
-                    // Try to get error details from response
+                    // HTTP error occurred
                     try {
                         const errorData = await response.json();
-                        console.error('Error response data:', errorData);
                         throw new Error(errorData.error || errorData.details || `HTTP ${response.status}: ${response.statusText}`);
                     } catch (e) {
                         // If JSON parsing fails, get text
                         const errorText = await response.text();
-                        console.error('Error response text:', errorText);
                         throw new Error(`HTTP ${response.status}: ${errorText || response.statusText}`);
                     }
                 }
@@ -628,23 +613,15 @@
                 let data;
                 try {
                     data = await response.json();
-                    console.log('📦 Response data:', data);
                 } catch (parseError) {
-                    console.error('❌ Failed to parse response as JSON:', parseError);
                     const textResponse = await response.text();
-                    console.error('Response text:', textResponse);
-                    throw new Error('Invalid response from server: ' + textResponse);
+                    throw new Error('Invalid response from server');
                 }
 
                 if (data.success) {
-                    console.log('✅ Wedding created successfully! ID:', data.wedding_id);
-                    // Redirect to main chat
+                    // Wedding created successfully (ID redacted for security)
                     window.location.href = 'chat-luxury.html?wedding_id=' + data.wedding_id;
                 } else {
-                    console.error('❌ Wedding creation failed:', data.error);
-                    if (data.details) {
-                        console.error('Error details:', data.details);
-                    }
                     throw new Error(data.error || 'Unknown error creating wedding');
                 }
             } catch (error) {

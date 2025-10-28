@@ -196,7 +196,8 @@ export default async function handler(req, res) {
     });
 
   } catch (error) {
-    console.error('Create invite error:', error);
+    // Security: Only log error message, not full error object (contains wedding IDs, user IDs, invite tokens, roles)
+    console.error('Create invite error:', error.message || 'Unknown error');
     return res.status(500).json({
       error: 'Internal server error',
       details: error.message
