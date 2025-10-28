@@ -1,0 +1,194 @@
+================================================================================
+CHAT EXTRACTION & DASHBOARD WIDGET ISSUES - QUICK REFERENCE
+================================================================================
+
+CRITICAL ISSUES FOUND: 3
+MEDIUM ISSUES FOUND: 1
+WORKING AS DESIGNED: 1
+
+================================================================================
+1. CRITICAL: Wedding Date Column Mismatch
+================================================================================
+
+DATABASE HAS:        wedding_profiles.wedding_date (DATE)
+DASHBOARD WANTS:     wedding.ceremony_date (DOESN'T EXIST)
+CHAT USES:          weddingData.wedding_date (CORRECT)
+
+IMPACT: Countdown widget shows "--" (never displays days)
+
+FILE TO FIX: /home/user/bridebuddyv2/public/dashboard-luxury.html
+LINES TO FIX: 337, 338, 340 (change "ceremony_date" to "wedding_date")
+
+SIMPLE DIFF:
+-  if (wedding.ceremony_date) {
+-      const days = calculateDaysUntil(wedding.ceremony_date);
++  if (wedding.wedding_date) {
++      const days = calculateDaysUntil(wedding.wedding_date);
+
+================================================================================
+2. CRITICAL: Trial/Subscription Column Mismatch
+================================================================================
+
+DATABASE HAS:        plan_type, trial_end_date
+DASHBOARD WANTS:     subscription_tier, trial_ends_at (DON'T EXIST)
+
+IMPACT: Trial badge never displays
+
+FILE TO FIX: /home/user/bridebuddyv2/public/dashboard-luxury.html
+LINES TO FIX: 295, 296, 303
+
+SIMPLE DIFF:
+-  if (wedding.subscription_tier === 'trial') {
+-      const trialEnds = new Date(wedding.trial_ends_at);
++  if (wedding.plan_type === 'trial') {
++      const trialEnds = new Date(wedding.trial_end_date);
+-  } else if (wedding.subscription_tier === 'premium') {
++  } else if (wedding.plan_type === 'premium') {
+
+================================================================================
+3. MEDIUM: RLS Permission Errors Not User-Friendly
+================================================================================
+
+CURRENT BEHAVIOR:
+- Bestie views dashboard
+- Vendor/task widgets show empty state
+- No indication they lack permission
+
+BETTER BEHAVIOR:
+- Show "🔒 You don't have permission to view vendors"
+- Instead of generic "No vendors booked"
+
+FILE TO FIX: /home/user/bridebuddyv2/public/dashboard-luxury.html
+FUNCTIONS: loadConfirmedVendors(), loadNextToDo()
+
+ENHANCEMENT:
+Check if error.code === 'PGRST116' (RLS error) and show permission message
+
+================================================================================
+4. WORKING AS DESIGNED: Bestie Cannot See Vendor/Budget/Task Data
+================================================================================
+
+This is NOT a bug - it's intentional:
+- Owner/Partner: Can see all vendor, budget, task data (shared)
+- Bestie: Cannot see extraction data (besties plan separately)
+
+RLS Policy Reference:
+/home/user/bridebuddyv2/migrations/014_correct_wedding_architecture.sql
+Lines 165-211: Vendor/Budget/Task RLS policies require role IN ('owner', 'partner')
+
+================================================================================
+DATA FLOW SUMMARY
+================================================================================
+
+WRITE PATH (Chat → Database):
+1. User sends message to /api/chat
+2. Claude extracts data (vendor, task, budget)
+3. chat.js inserts to: vendor_tracker, budget_tracker, wedding_tasks
+4. Uses SERVICE_ROLE (bypasses RLS, always succeeds)
+
+READ PATH (Database → Dashboard):
+1. Dashboard loads wedding_profiles (gets all columns)
+2. Dashboard queries vendor_tracker (RLS filters by role)
+3. RLS Policy: User must have role IN ('owner', 'partner')
+4. Bestie users get 0 rows (intentional)
+
+CHAT MESSAGE STORAGE (Separate):
+- chat_messages table stores conversation history
+- Indexed by user_id, wedding_id, message_type
+- RLS: Users only see their own messages
+
+================================================================================
+PERMISSION MATRIX
+================================================================================
+
+Role     | Max/Wedding | Vendor | Budget | Task | Chat | View Partner |
+---------|-------------|--------|--------|------|------|--------------|
+Owner    | 1           | R/W    | R/W    | R/W  | Main | Yes (all)    |
+Partner  | 1           | R/W    | R/W    | R/W  | Main | Yes (all)    |
+Bestie   | 2           | No     | No     | No   | Bes. | No           |
+
+================================================================================
+DATABASE TABLES REFERENCE
+================================================================================
+
+wedding_profiles:
+- wedding_date (DATE)
+- plan_type (TEXT: trial|free|basic|premium|enterprise)
+- trial_end_date (TIMESTAMPTZ)
+- is_vip (BOOLEAN)
+- partner1_name, partner2_name (TEXT)
+
+vendor_tracker:
+- wedding_id, vendor_type, vendor_name
+- total_cost, deposit_amount, deposit_paid
+- status (inquiry|pending|booked|...)
+
+budget_tracker:
+- wedding_id, category
+- budgeted_amount, spent_amount
+- last_transaction_date, last_transaction_amount
+
+wedding_tasks:
+- wedding_id, task_name
+- due_date, status (not_started|in_progress|completed)
+- priority (low|medium|high|urgent)
+
+chat_messages:
+- wedding_id, user_id, message, role (user|assistant)
+- message_type (main|bestie), created_at
+
+================================================================================
+TESTING CHECKLIST
+================================================================================
+
+[ ] Test 1: Wedding date displays on dashboard
+    - Go to dashboard, wedding date should show in countdown
+    - Not "--" or blank
+
+[ ] Test 2: Trial badge displays
+    - Create wedding with trial, check badge shows days remaining
+    - Not missing/blank
+
+[ ] Test 3: Vendors appear after chat
+    - Chat: "I booked John Smith as photographer for $3000"
+    - Check dashboard: Photographer - John Smith appears
+
+[ ] Test 4: Tasks appear after chat
+    - Chat: "I need to book venue by March 15"
+    - Check dashboard: Task appears in "Next To-Do"
+
+[ ] Test 5: Bestie permissions work
+    - Add user as bestie
+    - Bestie logs in to dashboard
+    - Vendor/task widgets show empty (not error)
+
+================================================================================
+FILES INVOLVED
+================================================================================
+
+DATABASE SCHEMA:
+- /home/user/bridebuddyv2/migrations/007_add_missing_wedding_profile_columns.sql
+- /home/user/bridebuddyv2/migrations/014_correct_wedding_architecture.sql
+
+CHAT EXTRACTION:
+- /home/user/bridebuddyv2/api/chat.js (lines 269-422)
+- /home/user/bridebuddyv2/api/bestie-chat.js (lines 225-305)
+
+DASHBOARD WIDGETS:
+- /home/user/bridebuddyv2/public/dashboard-luxury.html (lines 290-505)
+
+RLS POLICIES:
+- /home/user/bridebuddyv2/database_init.sql (chat_messages section)
+- /home/user/bridebuddyv2/migrations/014_correct_wedding_architecture.sql (vendor/budget/task)
+
+================================================================================
+DETAILED ANALYSIS AVAILABLE AT:
+/home/user/bridebuddyv2/CHAT_DASHBOARD_ANALYSIS.md
+================================================================================
+
+Full documentation includes:
+- Issue deep-dives with code examples
+- Root cause analysis
+- Impact assessment
+- Verification steps
+- Schema reference

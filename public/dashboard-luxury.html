@@ -292,16 +292,16 @@
             const badge = document.getElementById('trialBadge');
             if (!wedding) return;
 
-            if (wedding.subscription_tier === 'trial') {
-                const trialEnds = new Date(wedding.trial_ends_at);
+            if (wedding.subscription_status === 'trialing' && wedding.trial_end_date) {
+                const trialEnds = new Date(wedding.trial_end_date);
                 const today = new Date();
                 const daysLeft = Math.ceil((trialEnds - today) / (1000 * 60 * 60 * 24));
 
                 badge.textContent = `${daysLeft} Days Left`;
                 badge.className = 'badge badge-gold';
                 badge.style.display = 'inline-flex';
-            } else if (wedding.subscription_tier === 'premium') {
-                badge.textContent = 'Premium';
+            } else if (wedding.is_vip) {
+                badge.textContent = 'VIP';
                 badge.className = 'badge badge-gold';
                 badge.style.display = 'inline-flex';
             } else {
@@ -334,10 +334,10 @@
                 updateTrialBadge(wedding);
 
                 // Calculate days until wedding
-                if (wedding.ceremony_date) {
-                    const days = calculateDaysUntil(wedding.ceremony_date);
+                if (wedding.wedding_date) {
+                    const days = calculateDaysUntil(wedding.wedding_date);
                     document.getElementById('daysUntil').textContent = days > 0 ? days : '0';
-                    const dateStr = new Date(wedding.ceremony_date).toLocaleDateString('en-US', {
+                    const dateStr = new Date(wedding.wedding_date).toLocaleDateString('en-US', {
                         year: 'numeric',
                         month: 'long',
                         day: 'numeric'

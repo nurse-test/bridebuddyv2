@@ -147,6 +147,7 @@
 
         // Get wedding_id from URL
         let weddingId = null;
+        let userRole = null;
         let conversationHistory = [];
 
         // Make functions globally available
@@ -192,6 +193,7 @@
                 // Use shared loadWeddingData function
                 const { wedding, weddingId: loadedWeddingId, member } = await loadWeddingData();
                 weddingId = loadedWeddingId;
+                userRole = member.role;
 
                 // Verify user has bestie role
                 if (member.role !== 'bestie' && member.role !== 'owner') {
@@ -216,7 +218,8 @@
                 const messages = await loadChatHistory({
                     weddingId,
                     messageType: 'bestie',
-                    limit: 20
+                    limit: 20,
+                    userRole: userRole
                 });
 
                 conversationHistory = messages;

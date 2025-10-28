@@ -383,7 +383,8 @@ export async function loadChatHistory(options = {}) {
     const {
         weddingId,
         messageType = 'main',
-        limit = 20
+        limit = 20,
+        userRole = null
     } = options;
 
     if (!weddingId) {
@@ -398,14 +399,25 @@ export async function loadChatHistory(options = {}) {
             throw new Error('User not authenticated');
         }
 
-        const { data: messages, error } = await supabase
+        // Build query
+        let query = supabase
             .from('chat_messages')
             .select('*')
             .eq('wedding_id', weddingId)
-            .eq('user_id', user.id)
-            .eq('message_type', messageType)
+            .eq('message_type', messageType);
+
+        // For 'main' messages: owner/partner see all wedding messages
+        // For 'bestie' messages: only see own messages
+        // For other roles: only see own messages
+        if (messageType === 'bestie' || (userRole && !['owner', 'partner'].includes(userRole))) {
+            query = query.eq('user_id', user.id);
+        }
+
+        query = query
             .order('created_at', { ascending: true })
             .limit(limit);
+
+        const { data: messages, error } = await query;
 
         if (error) {
             console.error('Error loading chat history:', error);
