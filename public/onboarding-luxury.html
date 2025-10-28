@@ -532,12 +532,16 @@
                 // Get current authenticated user and session
                 const { data: { session }, error: sessionError } = await supabase.auth.getSession();
 
-                console.log('📊 Session check:', { session: !!session, sessionError });
+                // Security: Only log session status, not error object (may contain auth tokens)
+                console.log('📊 Session check:', { hasSession: !!session, hasError: !!sessionError });
 
                 // Handle case where user is not authenticated
                 if (sessionError || !session) {
                     console.error('❌ No active session - email confirmation may be required');
-                    console.error('Session error details:', sessionError);
+                    // Security: Only log error message, not full error object
+                    if (sessionError) {
+                        console.error('Session error:', sessionError.message || 'Unknown error');
+                    }
 
                     // Try to sign in with the credentials we have
                     console.log('🔄 Attempting auto-login with stored credentials...');
