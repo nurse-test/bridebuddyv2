@@ -101,7 +101,8 @@ export default async function handler(req, res) {
         .insert({
           id: userId,
           email: user.email,
-          full_name: user.user_metadata?.full_name || ''
+          full_name: user.user_metadata?.full_name || '',
+          is_owner: false  // Will be set to true after wedding creation
         });
 
       if (profileError) {
@@ -206,7 +207,21 @@ export default async function handler(req, res) {
     }
 
     // ========================================================================
-    // STEP 8: Return success response
+    // STEP 8: Set is_owner = true in profile
+    // ========================================================================
+    const { error: profileUpdateError } = await supabaseAdmin
+      .from('profiles')
+      .update({ is_owner: true })
+      .eq('id', userId);
+
+    if (profileUpdateError) {
+      console.error('Profile update error:', profileUpdateError);
+      // Don't fail the request - wedding is already created
+      // Just log the error and continue
+    }
+
+    // ========================================================================
+    // STEP 9: Return success response
     // ========================================================================
     return res.status(200).json({
       success: true,
