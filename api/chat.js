@@ -43,25 +43,26 @@ export default async function handler(req, res) {
   try {
     const { data: { user }, error: userError } = await supabase.auth.getUser();
     if (userError || !user) {
-      console.error('User authentication error:', userError);
       throw new Error('Invalid user token');
     }
 
-    console.log('Authenticated user:', user.id);
-
-    // Get user's wedding
+    // Get user's wedding and role
     const { data: membership, error: memberError } = await supabase
       .from('wedding_members')
-      .select('wedding_id')
+      .select('wedding_id, role')
       .eq('user_id', user.id)
       .single();
 
-    console.log('Wedding membership query result:', { membership, memberError });
-
     if (memberError || !membership) {
-      console.error('No wedding membership found for user:', user.id);
-      console.error('Member error:', memberError);
       throw new Error('No wedding profile found');
+    }
+
+    // Block bestie access to wedding chat - they should use bestie chat
+    if (membership.role === 'bestie') {
+      return res.status(403).json({
+        error: 'Besties cannot access wedding chat. Please use the bestie planning chat instead.',
+        redirect: '/bestie-luxury.html'
+      });
     }
 
     const { data: weddingData, error: weddingError } = await supabase
@@ -267,7 +268,6 @@ IMPORTANT:
     }
 
     // Update database with extracted data (FULL extraction restored)
-    console.log('Extracted data:', JSON.stringify(extractedData, null, 2));
 
     // 1. Update wedding_profiles with general wedding info
     if (extractedData.wedding_info && Object.keys(extractedData.wedding_info).length > 0) {
@@ -287,8 +287,6 @@ IMPORTANT:
 
         if (updateError) {
           console.error('Failed to update wedding profile:', updateError);
-        } else {
-          console.log('Successfully updated wedding profile with:', weddingUpdates);
         }
       }
     }
@@ -318,8 +316,6 @@ IMPORTANT:
 
           if (vendorUpdateError) {
             console.error('Failed to update vendor:', vendorUpdateError);
-          } else {
-            console.log('Successfully updated vendor:', vendor.vendor_name || vendor.vendor_type);
           }
         } else {
           // Insert new vendor
@@ -332,8 +328,6 @@ IMPORTANT:
 
           if (vendorInsertError) {
             console.error('Failed to insert vendor:', vendorInsertError);
-          } else {
-            console.log('Successfully inserted vendor:', vendor.vendor_name || vendor.vendor_type);
           }
         }
       }
@@ -375,8 +369,6 @@ IMPORTANT:
 
             if (budgetUpdateError) {
               console.error('Failed to update budget:', budgetUpdateError);
-            } else {
-              console.log('Successfully updated budget category:', budgetItem.category);
             }
           }
         } else {
@@ -396,8 +388,6 @@ IMPORTANT:
 
           if (budgetInsertError) {
             console.error('Failed to insert budget:', budgetInsertError);
-          } else {
-            console.log('Successfully inserted budget category:', budgetItem.category);
           }
         }
       }
@@ -415,8 +405,6 @@ IMPORTANT:
 
         if (taskInsertError) {
           console.error('Failed to insert task:', taskInsertError);
-        } else {
-          console.log('Successfully inserted task:', task.task_name);
         }
       }
     }

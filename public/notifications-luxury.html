@@ -235,13 +235,19 @@
 
         async function approveUpdateById(updateId) {
             try {
+                // Get user token from session
+                const { data: { session } } = await supabase.auth.getSession();
+                if (!session) {
+                    throw new Error('Not authenticated');
+                }
+
                 const response = await fetch('/api/approve-update', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        update_id: updateId,
-                        action: 'approve',
-                        wedding_id: weddingId
+                        userToken: session.access_token,
+                        updateId: updateId,
+                        approve: true
                     })
                 });
 
@@ -270,13 +276,19 @@
             if (!confirm('Reject this update? The co-planner will not be notified. We recommend reaching out to them directly.')) return;
 
             try {
+                // Get user token from session
+                const { data: { session } } = await supabase.auth.getSession();
+                if (!session) {
+                    throw new Error('Not authenticated');
+                }
+
                 const response = await fetch('/api/approve-update', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        update_id: currentUpdateId,
-                        action: 'reject',
-                        wedding_id: weddingId
+                        userToken: session.access_token,
+                        updateId: currentUpdateId,
+                        approve: false
                     })
                 });
 

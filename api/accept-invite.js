@@ -78,7 +78,35 @@ export default async function handler(req, res) {
     }
 
     // ========================================================================
-    // STEP 3: Look up the invite by token
+    // STEP 3: Ensure profile exists (don't rely on database trigger)
+    // ========================================================================
+    const { data: existingProfile } = await supabaseAdmin
+      .from('profiles')
+      .select('id')
+      .eq('id', user.id)
+      .single();
+
+    if (!existingProfile) {
+      // Create profile if it doesn't exist (trigger may not be deployed)
+      const { error: profileError } = await supabaseAdmin
+        .from('profiles')
+        .insert({
+          id: user.id,
+          email: user.email,
+          full_name: user.user_metadata?.full_name || ''
+        });
+
+      if (profileError) {
+        console.error('Profile creation error:', profileError);
+        return res.status(500).json({
+          error: 'Failed to create user profile',
+          details: profileError.message
+        });
+      }
+    }
+
+    // ========================================================================
+    // STEP 4: Look up the invite by token
     // ========================================================================
     const { data: invite, error: inviteError } = await supabaseAdmin
       .from('invite_codes')
@@ -93,7 +121,7 @@ export default async function handler(req, res) {
     }
 
     // ========================================================================
-    // STEP 4: Check if invite has been used
+    // STEP 5: Check if invite has been used
     // ========================================================================
     if (invite.used === true) {
       return res.status(400).json({
@@ -102,7 +130,7 @@ export default async function handler(req, res) {
     }
 
     // ========================================================================
-    // STEP 5: Check if invite has expired
+    // STEP 6: Check if invite has expired
     // ========================================================================
     const now = new Date();
     const expiresAt = new Date(invite.expires_at);
@@ -115,7 +143,7 @@ export default async function handler(req, res) {
     }
 
     // ========================================================================
-    // STEP 6: Check if user is already a member of this wedding
+    // STEP 7: Check if user is already a member of this wedding
     // ========================================================================
     const { data: existingMember } = await supabaseAdmin
       .from('wedding_members')
@@ -132,7 +160,7 @@ export default async function handler(req, res) {
     }
 
     // ========================================================================
-    // STEP 7: For bestie role - check 1:1 relationship constraint
+    // STEP 8: For bestie role - check 1:1 relationship constraint
     // ========================================================================
     if (invite.role === 'bestie') {
       const { data: existingBestie } = await supabaseAdmin
@@ -152,7 +180,7 @@ export default async function handler(req, res) {
     }
 
     // ========================================================================
-    // STEP 8: Add user to wedding_members
+    // STEP 9: Add user to wedding_members
     // ========================================================================
     const { data: newMember, error: addMemberError } = await supabaseAdmin
       .from('wedding_members')
@@ -175,7 +203,7 @@ export default async function handler(req, res) {
     }
 
     // ========================================================================
-    // STEP 8: Role-specific setup
+    // STEP 10: Role-specific setup
     // ========================================================================
     if (invite.role === 'bestie') {
       // Create bestie_profile for bestie role

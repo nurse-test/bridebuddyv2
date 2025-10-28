@@ -61,6 +61,30 @@ export default async function handler(req, res) {
 
     if (weddingError || !weddingData) throw new Error('Wedding profile not found');
 
+    // Ensure bestie_profile exists (UI expects this table to be populated)
+    const { data: bestieProfile } = await supabaseService
+      .from('bestie_profile')
+      .select('id')
+      .eq('bestie_user_id', user.id)
+      .eq('wedding_id', membership.wedding_id)
+      .maybeSingle();
+
+    if (!bestieProfile) {
+      // Create bestie_profile if it doesn't exist
+      const { error: profileError } = await supabaseService
+        .from('bestie_profile')
+        .insert({
+          bestie_user_id: user.id,
+          wedding_id: membership.wedding_id,
+          bestie_brief: 'Welcome! Chat with me to start planning your bestie duties and surprises.'
+        });
+
+      if (profileError) {
+        console.error('Failed to create bestie profile:', profileError);
+        // Don't fail the request - continue with chat
+      }
+    }
+
     // Build wedding context for bestie chat with extraction
     let weddingContext = `You are Bestie Buddy, the AI assistant for the Maid of Honor, Best Man, or Best Friend helping plan wedding events.
 
@@ -220,7 +244,6 @@ IMPORTANT:
     }
 
     // Update database with extracted data from bestie chat
-    console.log('Bestie extracted data:', JSON.stringify(extractedData, null, 2));
 
     // 1. Insert/Update budget items in budget_tracker table
     if (extractedData.budget_items && extractedData.budget_items.length > 0) {
@@ -258,8 +281,6 @@ IMPORTANT:
 
             if (budgetUpdateError) {
               console.error('Failed to update budget:', budgetUpdateError);
-            } else {
-              console.log('Successfully updated budget category:', budgetItem.category);
             }
           }
         } else {
@@ -279,8 +300,6 @@ IMPORTANT:
 
           if (budgetInsertError) {
             console.error('Failed to insert budget:', budgetInsertError);
-          } else {
-            console.log('Successfully inserted budget category:', budgetItem.category);
           }
         }
       }
@@ -298,8 +317,6 @@ IMPORTANT:
 
         if (taskInsertError) {
           console.error('Failed to insert task:', taskInsertError);
-        } else {
-          console.log('Successfully inserted task:', task.task_name);
         }
       }
     }
