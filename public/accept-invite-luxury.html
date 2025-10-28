@@ -187,9 +187,16 @@
         async function validateInvite() {
             try {
                 const response = await fetch(`/api/get-invite-info?invite_token=${inviteToken}`);
+
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+                    showError(errorData.error || `API error: ${response.status} ${response.statusText}`);
+                    return;
+                }
+
                 const data = await response.json();
 
-                if (!response.ok || !data.is_valid) {
+                if (!data.is_valid) {
                     showError(data.error || 'Invalid invite link');
                     return;
                 }
@@ -344,14 +351,15 @@
                     })
                 });
 
-                const result = await response.json();
-
                 if (!response.ok) {
-                    showError(result.error || 'Failed to accept invitation');
+                    const errorData = await response.json().catch(() => ({ error: 'Failed to accept invitation' }));
+                    showError(errorData.error || `API error: ${response.status} ${response.statusText}`);
                     document.getElementById('processingState').classList.add('hidden');
                     document.getElementById('acceptPrompt').classList.remove('hidden');
                     return;
                 }
+
+                const result = await response.json();
 
                 // Show success
                 document.getElementById('processingState').classList.add('hidden');

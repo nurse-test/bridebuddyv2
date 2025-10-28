@@ -1,8 +1,19 @@
 import { createClient } from '@supabase/supabase-js';
+import { handleCORS, rateLimitMiddleware, RATE_LIMITS } from './_utils/rate-limiter.js';
 
 export default async function handler(req, res) {
+  // Handle CORS preflight
+  if (handleCORS(req, res)) {
+    return;
+  }
+
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  // Apply rate limiting (30 requests per minute for chat)
+  if (!rateLimitMiddleware(req, res, RATE_LIMITS.MODERATE)) {
+    return;
   }
 
   const { message, conversationId, userToken } = req.body;
