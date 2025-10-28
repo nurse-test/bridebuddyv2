@@ -1,0 +1,26 @@
+{
+  "env": {
+    "browser": true,
+    "node": true,
+    "es2022": true
+  },
+  "extends": "eslint:recommended",
+  "parserOptions": {
+    "ecmaVersion": "latest",
+    "sourceType": "module"
+  },
+  "rules": {
+    "no-console": "off",
+    "no-unused-vars": ["warn", { "argsIgnorePattern": "^_" }],
+    "no-undef": "error",
+    "no-var": "warn",
+    "prefer-const": "warn",
+    "eqeqeq": ["warn", "always"],
+    "no-eval": "error",
+    "no-implied-eval": "error"
+  },
+  "ignorePatterns": [
+    "node_modules/",
+    "public/js/config.js"
+  ]
+}
