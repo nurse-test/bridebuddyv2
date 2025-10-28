@@ -55,6 +55,7 @@
     <!-- Scripts -->
     <script type="module">
         import { initSupabase, showToast } from '/js/shared.js';
+        import { escapeHtml } from '/js/security.js';
 
         // Initialize Supabase
         const supabase = initSupabase();
@@ -80,7 +81,8 @@
                 'bestie': '<span class="badge badge-success">Bestie</span>',
                 'partner': '<span class="badge badge-primary">Partner</span>'
             };
-            return badges[role] || `<span class="badge badge-secondary">${role}</span>`;
+            // SECURITY: Escape role if not in predefined list
+            return badges[role] || `<span class="badge badge-secondary">${escapeHtml(role)}</span>`;
         }
 
         function getRoleIcon(role) {
@@ -136,6 +138,7 @@
                     return;
                 }
 
+                // SECURITY: Escape all user data to prevent XSS
                 container.innerHTML = members.map((member, index) => {
                     const isCurrentUser = member.user_id === session.user.id;
                     const permissions = member.wedding_profile_permissions || {};
@@ -150,18 +153,18 @@
                                         <span style="font-size: var(--text-2xl);">${getRoleIcon(member.role)}</span>
                                         <div>
                                             <div style="color: var(--color-navy); font-weight: 600; font-size: var(--text-lg);">
-                                                ${member.profiles?.full_name || 'Unknown'}
+                                                ${escapeHtml(member.profiles?.full_name || 'Unknown')}
                                                 ${isCurrentUser ? '<span style="opacity: 0.7;">(You)</span>' : ''}
                                             </div>
                                             <div style="color: var(--color-burgundy); opacity: 0.8; font-size: var(--text-sm);">
-                                                ${member.profiles?.email || ''}
+                                                ${escapeHtml(member.profiles?.email || '')}
                                             </div>
                                         </div>
                                     </div>
 
                                     ${member.invited_by?.full_name ? `
                                         <div style="color: var(--color-burgundy); opacity: 0.7; font-size: var(--text-sm); margin-bottom: var(--space-2);">
-                                            Invited by ${member.invited_by.full_name}
+                                            Invited by ${escapeHtml(member.invited_by.full_name)}
                                         </div>
                                     ` : ''}
 

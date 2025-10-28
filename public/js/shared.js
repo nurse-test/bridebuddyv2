@@ -8,6 +8,7 @@
 // ============================================================================
 
 import { config } from './config.js';
+import { textToHtml } from './security.js';
 
 // ============================================================================
 // CONSTANTS
@@ -181,7 +182,9 @@ export function displayMessage(content, role = 'assistant', containerId = 'chatM
 
     const bubbleDiv = document.createElement('div');
     bubbleDiv.className = 'chat-bubble';
-    bubbleDiv.innerHTML = content.replace(/\n/g, '<br>');
+    // SECURITY: Use textToHtml to escape HTML and prevent XSS attacks
+    // This function escapes all HTML special characters before converting newlines to <br>
+    bubbleDiv.innerHTML = textToHtml(content);
 
     messageDiv.appendChild(bubbleDiv);
     messagesContainer.appendChild(messageDiv);

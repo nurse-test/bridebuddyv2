@@ -131,6 +131,7 @@
     <!-- Scripts -->
     <script type="module">
         import { initSupabase, showToast } from '/js/shared.js';
+        import { escapeHtml, sanitizeUrl } from '/js/security.js';
 
         // Initialize Supabase
         const supabase = initSupabase();
@@ -296,6 +297,7 @@
                     return;
                 }
 
+                // SECURITY: Escape all content to prevent XSS
                 container.innerHTML = invites.map(invite => {
                     const expiresAt = new Date(invite.expires_at);
                     const now = new Date();
@@ -303,15 +305,15 @@
                     const roleDisplay = invite.role === 'partner' ? 'Partner' : 'Bestie';
                     const roleColor = invite.role === 'partner' ? 'var(--color-gold)' : 'var(--color-rust)';
 
-                    const inviteUrl = `${window.location.origin}/accept-invite-luxury.html?token=${invite.invite_token}`;
+                    const inviteUrl = sanitizeUrl(`${window.location.origin}/accept-invite-luxury.html?token=${escapeHtml(invite.invite_token)}`);
 
                     return `
                         <div style="background: rgba(255, 255, 255, 0.3); padding: var(--space-4); border-radius: var(--radius-md); margin-bottom: var(--space-3);">
                             <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: var(--space-2);">
                                 <div>
-                                    <p style="font-weight: 600; color: var(--color-navy); margin-bottom: var(--space-1);">${roleDisplay}</p>
+                                    <p style="font-weight: 600; color: var(--color-navy); margin-bottom: var(--space-1);">${escapeHtml(roleDisplay)}</p>
                                     <p style="font-size: var(--text-sm); color: var(--color-burgundy); opacity: 0.7;">
-                                        Expires in ${hoursLeft} hours
+                                        Expires in ${escapeHtml(hoursLeft)} hours
                                     </p>
                                 </div>
                                 <span style="padding: 4px 12px; background: rgba(201, 169, 97, 0.1); color: ${roleColor}; font-size: var(--text-xs); border-radius: 12px; font-weight: 500;">
@@ -319,9 +321,9 @@
                                 </span>
                             </div>
                             <div style="background: rgba(0, 0, 0, 0.1); padding: var(--space-2); border-radius: var(--radius-sm); font-size: var(--text-xs); color: var(--color-navy); word-break: break-all; margin-bottom: var(--space-2);">
-                                ${inviteUrl}
+                                ${escapeHtml(inviteUrl)}
                             </div>
-                            <button onclick="copyInviteLink('${inviteUrl}')" class="btn btn-secondary btn-sm btn-full">
+                            <button onclick="copyInviteLink('${escapeHtml(inviteUrl)}')" class="btn btn-secondary btn-sm btn-full">
                                 Copy Link
                             </button>
                         </div>
@@ -361,12 +363,15 @@
                     return;
                 }
 
+                // SECURITY: Escape role display for defense in depth
                 container.innerHTML = members.map(member => {
-                    const roleDisplay = {
+                    const roleDisplayMap = {
                         'owner': 'Owner',
                         'partner': 'Partner',
                         'bestie': 'Bestie'
-                    }[member.role] || member.role;
+                    };
+                    // Use mapped value or escape the database role value
+                    const roleDisplay = roleDisplayMap[member.role] || escapeHtml(member.role);
 
                     const permissions = member.wedding_profile_permissions || {};
                     const permissionsText = member.role === 'owner'
