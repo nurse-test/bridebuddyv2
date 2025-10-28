@@ -62,6 +62,16 @@ git push origin your-branch
 # Test CSP, CORS, HTTPS, and compression on the preview URL
 ```
 
+### Vercel Deployment
+
+**See [VERCEL_SETUP.md](./VERCEL_SETUP.md) for complete deployment instructions.**
+
+Quick checklist:
+1. Set environment variables in Vercel Dashboard (Settings → Environment Variables)
+2. Required variables: `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `ANTHROPIC_API_KEY`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`
+3. Push to GitHub - Vercel auto-deploys
+4. Build command automatically runs: `npm run build` (generates config.js)
+
 ## Development Scripts
 
 ### Quality Assurance
@@ -109,6 +119,7 @@ bridebuddyv2/
 
 ## Documentation
 
+- **[VERCEL_SETUP.md](./VERCEL_SETUP.md)** - Complete Vercel deployment and environment variable setup guide
 - **[ENVIRONMENT.md](./ENVIRONMENT.md)** - Complete guide to environment variables and secrets management
 - **[TECHNICAL_ARCHITECTURE_REVIEW.md](./TECHNICAL_ARCHITECTURE_REVIEW.md)** - Technical architecture overview
 - **[RLS_POLICY_GUIDE.md](./RLS_POLICY_GUIDE.md)** - Row Level Security policies guide
@@ -121,3 +132,71 @@ bridebuddyv2/
 - Bestie mode for surprise planning
 - Invite system for wedding party members
 - Secure authentication with Supabase
+
+## Troubleshooting
+
+### "Failed to resolve module specifier './config.js'"
+
+**Cause:** The `config.js` file hasn't been generated.
+
+**Fix:**
+```bash
+# Make sure .env file exists with real values
+cat .env
+
+# Generate config.js
+npm run build:config
+
+# Verify it was created
+ls -la public/js/config.js
+```
+
+### "SUPABASE_URL is not set in environment variables"
+
+**Cause:** Missing environment variables.
+
+**Fix for Local Development:**
+```bash
+# Copy template and fill in real values
+cp .env.example .env
+# Edit .env and add your Supabase credentials
+npm run build:config
+```
+
+**Fix for Vercel:**
+1. Go to Vercel Dashboard → Your Project → Settings → Environment Variables
+2. Add `SUPABASE_URL` and `SUPABASE_ANON_KEY`
+3. Redeploy the project
+
+See **[VERCEL_SETUP.md](./VERCEL_SETUP.md)** for complete Vercel configuration instructions.
+
+### Application Loads But Nothing Works
+
+**Possible Causes:**
+1. `config.js` contains placeholder values instead of real credentials
+2. Supabase CDN script failed to load
+3. JavaScript module errors
+
+**Fix:**
+```bash
+# Verify config.js has real values (not placeholders)
+cat public/js/config.js
+
+# Check for "PLACEHOLDER" or "your_" in the file
+grep -i "placeholder\|your_" public/js/config.js
+
+# If placeholders found, update .env with real values and regenerate
+npm run build:config
+```
+
+**Check Browser Console:**
+1. Open browser DevTools (F12)
+2. Go to Console tab
+3. Look for errors related to:
+   - Module loading failures
+   - Supabase initialization errors
+   - Network request failures
+
+### Stripe Webhooks Not Working
+
+See **[VERCEL_SETUP.md](./VERCEL_SETUP.md)** - Stripe Webhook section for detailed setup instructions.
