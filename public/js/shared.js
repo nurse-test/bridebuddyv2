@@ -29,14 +29,8 @@ export function initSupabase() {
 
         if (!supabaseLib) {
             console.error('Supabase SDK not loaded. Make sure the Supabase CDN script is included in your HTML.');
-            console.error('Available globals:', Object.keys(window).filter(k => k.toLowerCase().includes('supabase')));
             throw new Error('Supabase SDK not available. Please check that the Supabase CDN script is loaded.');
         }
-
-        console.log('🔧 Creating Supabase client...');
-        console.log('Supabase URL:', SUPABASE_URL);
-        console.log('API Key present:', !!SUPABASE_ANON_KEY);
-        console.log('API Key length:', SUPABASE_ANON_KEY?.length || 0);
 
         try {
             supabaseClient = supabaseLib.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -44,10 +38,6 @@ export function initSupabase() {
             if (!supabaseClient) {
                 throw new Error('createClient returned null or undefined');
             }
-
-            console.log('✅ Supabase client created successfully');
-            console.log('Client type:', typeof supabaseClient);
-            console.log('Client methods:', Object.keys(supabaseClient).slice(0, 10).join(', '));
         } catch (err) {
             console.error('Error creating Supabase client:', err);
             throw new Error(`Failed to create Supabase client: ${err.message}`);
@@ -314,8 +304,6 @@ export async function loadWeddingData(options = {}) {
                 .eq('user_id', user.id)
                 .single();
 
-            console.log('Membership query result:', { membership, memberError, userId: user.id });
-
             if (memberError || !membership) {
                 console.error('No wedding membership found for user:', user.id);
                 console.error('Member error:', memberError);
@@ -327,7 +315,6 @@ export async function loadWeddingData(options = {}) {
             }
 
             weddingId = membership.wedding_id;
-            console.log('Set weddingId to:', weddingId);
 
             // Update URL with wedding_id
             updateUrlWithWeddingId(weddingId);
@@ -342,8 +329,6 @@ export async function loadWeddingData(options = {}) {
             }
             throw new Error('Invalid wedding_id');
         }
-
-        console.log('Querying wedding_profiles with id:', weddingId);
 
         // Get wedding profile
         const { data: wedding, error } = await supabase
