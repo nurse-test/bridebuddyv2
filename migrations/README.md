@@ -339,6 +339,178 @@ For questions or issues:
 
 ---
 
+### 006_unified_invite_system.sql
+**Purpose:** Unified invite code system for partners and besties
+
+**Changes:**
+- Updates invite_codes table structure
+- Adds role-based invite creation
+- One-time use enforcement with expiration
+
+**Run Time:** ~10 seconds
+
+---
+
+### 007_add_missing_wedding_profile_columns.sql
+**Purpose:** Add comprehensive wedding profile columns
+
+**Changes:**
+- Venue information (name, cost)
+- Timeline columns (engagement_date, planning status)
+- Style preferences (color schemes)
+- Trial/subscription tracking
+
+**Run Time:** ~20 seconds
+
+---
+
+### 008_fix_wedding_members_rls_recursion.sql
+**Purpose:** Fix infinite recursion in wedding_members RLS policies
+
+**Changes:**
+- Creates security definer helper functions
+- Breaks circular RLS dependencies
+- Enables proper member visibility
+
+**Run Time:** ~10 seconds
+
+---
+
+### 009_create_vendor_tracker_table.sql
+**Purpose:** Create vendor tracking with AI extraction support
+
+**Changes:**
+- Creates vendor_tracker table
+- Supports deposit tracking, contract status
+- 12+ vendor types
+- Full RLS policies
+
+**Run Time:** ~15 seconds
+
+---
+
+### 010_create_budget_tracker_table.sql
+**Purpose:** Create budget tracking by category
+
+**Changes:**
+- Creates budget_tracker table
+- Tracks budgeted vs spent amounts
+- Transaction history per category
+- Full RLS policies
+
+**Run Time:** ~15 seconds
+
+---
+
+### 011_create_wedding_tasks_table.sql
+**Purpose:** Create task management with AI extraction
+
+**Changes:**
+- Creates wedding_tasks table
+- Status, priority, due dates
+- Category-based organization
+- Full RLS policies
+
+**Run Time:** ~15 seconds
+
+---
+
+### 012_add_color_scheme_secondary.sql
+**Purpose:** Add secondary color to wedding profiles
+
+**Changes:**
+- Adds color_scheme_secondary column
+
+**Run Time:** ~5 seconds
+
+---
+
+### 013_add_engagement_and_onboarding_data.sql
+**Purpose:** Add engagement date and onboarding tracking
+
+**Changes:**
+- Adds engagement_date column
+- Adds started_planning boolean
+- Adds planning_completed array
+
+**Run Time:** ~10 seconds
+
+---
+
+### 014_correct_wedding_architecture.sql
+**Purpose:** Major architecture correction and RLS fixes
+
+**Changes:**
+- Fixes trial/subscription logic
+- Updates RLS policies across multiple tables
+- Adds proper couple visibility for chat
+
+**Run Time:** ~30 seconds
+
+---
+
+### 015_create_bestie_profile_table.sql
+**Purpose:** Create bestie profile for bestie-specific data
+
+**Changes:**
+- Creates bestie_profile table
+- Stores bestie brief and context
+- Handles orphaned constraints from failed migrations
+- Full RLS policies
+
+**Run Time:** ~15 seconds
+**Note:** Uses CLEANEST version that handles edge cases
+
+---
+
+### 016_fix_chat_visibility_for_couples.sql
+**Purpose:** Ensure partners can see each other's chat messages
+
+**Changes:**
+- Updates chat_messages RLS policies
+- Allows partner visibility
+- Maintains bestie privacy
+
+**Run Time:** ~10 seconds
+
+---
+
+### 017_add_subscription_dates.sql
+**Purpose:** Add subscription tracking columns
+
+**Changes:**
+- Adds trial_start_date, trial_end_date
+- Adds subscription_type
+
+**Run Time:** ~10 seconds
+
+---
+
+### 018_cleanup_unused_tables.sql
+**Purpose:** Remove 4 unused tables identified in database audit
+
+**Changes:**
+- Drops attire, bestie_knowledge, daily_message_counts, pending_vendors
+- Reduces table count from 15 to 11
+
+**Run Time:** ~5 seconds
+
+---
+
+## Complete Migration Sequence
+
+**Migrations 001-018:** Full wedding planning database
+**Total Run Time:** ~5-7 minutes
+**All Migrations:** Idempotent (safe to re-run)
+
+**Final Database Schema:**
+- 11 production tables
+- 30+ RLS policies
+- Bestie permission system
+- AI extraction (vendors, budget, tasks)
+
+---
+
 **Phase 1 Implementation:** Database Schema ✅ COMPLETE
-**Estimated Total Run Time:** ~2 minutes
-**All Migrations Reversible:** Yes
+**Estimated Total Run Time:** ~5-7 minutes
+**All Migrations Reversible:** Yes (archives available)

@@ -1,26 +1,23 @@
 -- ============================================================================
--- MIGRATION 015: Create bestie_profile table (CLEANEST VERSION)
+-- MIGRATION 015: Create bestie_profile table (SIMPLE VERSION)
 -- ============================================================================
 -- Purpose: Store bestie-specific profile and planning context
--- Handles orphaned constraints cleanly
+-- Handles orphaned constraints and missing tables
 -- ============================================================================
 
--- Step 1: Clean up any orphaned constraints from failed migrations
+-- Step 1: Drop orphaned constraint if it exists (without referencing table)
 DO $$
-DECLARE
-  constraint_oid oid;
 BEGIN
-  -- Find orphaned constraint if it exists
-  SELECT oid INTO constraint_oid
-  FROM pg_constraint
-  WHERE conname = 'unique_bestie_per_wedding'
-  LIMIT 1;
-
-  -- Delete orphaned constraint from catalog if found
-  IF constraint_oid IS NOT NULL THEN
-    DELETE FROM pg_constraint WHERE oid = constraint_oid;
-    RAISE NOTICE 'Cleaned up orphaned constraint';
-  END IF;
+  EXECUTE (
+    SELECT 'ALTER TABLE ' || conrelid::regclass || ' DROP CONSTRAINT IF EXISTS unique_bestie_per_wedding'
+    FROM pg_constraint
+    WHERE conname = 'unique_bestie_per_wedding'
+    LIMIT 1
+  );
+EXCEPTION
+  WHEN OTHERS THEN
+    -- Ignore errors if constraint is orphaned
+    NULL;
 END $$;
 
 -- Step 2: Create bestie_profile table
@@ -96,5 +93,5 @@ CREATE TRIGGER trigger_update_bestie_profile_updated_at
   EXECUTE FUNCTION update_bestie_profile_updated_at();
 
 -- Step 7: Verification
-SELECT '✓ bestie_profile table created successfully' as status;
-SELECT '✓ ' || COUNT(*) || ' RLS policies created' as status FROM pg_policies WHERE tablename = 'bestie_profile';
+SELECT '✓ bestie_profile table created' as status;
+SELECT COUNT(*) || ' policies created' as status FROM pg_policies WHERE tablename = 'bestie_profile';
