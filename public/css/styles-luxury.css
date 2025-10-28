@@ -40,7 +40,7 @@
   --gradient-gold-bright: linear-gradient(135deg, #f6e7b2 0%, #c9a961 100%);
 
   /* Compatibility tokens for legacy utility usage */
-  --color-navy: var(--color-heading);
+  --color-navy: #1a0b2e;
   --color-burgundy: var(--color-body);
   --color-rust: var(--color-warm);
   --color-gold: var(--color-accent);
@@ -48,8 +48,8 @@
   --color-cream: rgba(255, 235, 205, 0.35);
 
   /* Alpha Variations */
-  --color-navy-10: rgba(255, 249, 230, 0.1);
-  --color-navy-20: rgba(255, 249, 230, 0.2);
+  --color-navy-10: rgba(26, 11, 46, 0.1);
+  --color-navy-20: rgba(26, 11, 46, 0.2);
   --color-navy-80: rgba(26, 11, 46, 0.8);
   --color-navy-95: rgba(26, 11, 46, 0.95);
 
