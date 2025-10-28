@@ -1,0 +1,141 @@
+name: CI Checks
+
+on:
+  pull_request:
+    branches: ['*']
+  push:
+    branches: ['main', 'master', 'claude/*']
+
+jobs:
+  lint-and-validate:
+    name: Lint, Validate & Security Checks
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run ESLint
+        run: npm run lint
+        continue-on-error: false
+
+      - name: Validate project structure
+        run: npm run validate
+        continue-on-error: false
+
+      - name: Run security checks
+        run: npm run security:check
+        continue-on-error: false
+
+      - name: Check for large files
+        run: |
+          echo "Checking for files larger than 1MB..."
+          find . -type f -size +1M -not -path "./node_modules/*" -not -path "./.git/*" | while read file; do
+            echo "❌ Large file detected: $file ($(du -h "$file" | cut -f1))"
+            exit 1
+          done || echo "✓ No large files detected"
+
+  security-audit:
+    name: NPM Security Audit
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run npm audit
+        run: npm audit --audit-level=moderate
+        continue-on-error: false
+
+  vercel-build-check:
+    name: Vercel Build Validation
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Verify Vercel configuration
+        run: |
+          if [ ! -f vercel.json ]; then
+            echo "❌ vercel.json not found"
+            exit 1
+          fi
+          echo "✓ vercel.json exists"
+
+          # Validate JSON syntax
+          if ! jq empty vercel.json 2>/dev/null; then
+            echo "❌ vercel.json contains invalid JSON"
+            exit 1
+          fi
+          echo "✓ vercel.json is valid JSON"
+
+      - name: Check API functions
+        run: |
+          if [ ! -d api ]; then
+            echo "❌ api/ directory not found"
+            exit 1
+          fi
+
+          api_count=$(find api -name "*.js" -type f | wc -l)
+          if [ $api_count -eq 0 ]; then
+            echo "❌ No API functions found in api/"
+            exit 1
+          fi
+          echo "✓ Found $api_count API function(s)"
+
+  prevent-secrets:
+    name: Prevent Secrets in Commits
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check for common secret patterns
+        run: |
+          echo "Scanning for potential secrets..."
+
+          # Check for common secret patterns in git diff
+          if git diff --name-only origin/main...HEAD 2>/dev/null | grep -E '\.(js|json|html)$' | while read file; do
+            if [ -f "$file" ]; then
+              if grep -E '(sk_live_|pk_live_|rk_live_|eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,})' "$file"; then
+                echo "❌ Potential secret found in $file"
+                exit 1
+              fi
+            fi
+          done; then
+            echo "✓ No obvious secrets detected"
+          else
+            echo "❌ Potential secrets detected - please review"
+            exit 1
+          fi

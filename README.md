@@ -44,6 +44,46 @@ npm run build:config
 npm run preview
 ```
 
+### Local Development vs. Production Parity
+
+**IMPORTANT**: The local preview server (`preview.js`) is designed for rapid local development only. It intentionally lacks production features to keep it simple and fast:
+
+- **No HTTPS** - Serves over HTTP only
+- **No compression** - Assets are served uncompressed (no gzip/brotli)
+- **No caching headers** - No Cache-Control, ETag, or Last-Modified headers
+- **No security headers** - Missing CSP, CORS, X-Frame-Options, etc.
+
+**Production Testing Recommendation**: Always test security-critical features (CSP, CORS, authentication flows, Stripe webhooks) directly on Vercel preview deployments. Production parity issues cannot be caught with the local preview server.
+
+Deploy to Vercel for every PR and test there before merging to catch environment-specific issues early:
+```bash
+git push origin your-branch
+# Vercel will automatically create a preview deployment
+# Test CSP, CORS, HTTPS, and compression on the preview URL
+```
+
+## Development Scripts
+
+### Quality Assurance
+
+```bash
+npm run lint           # Run ESLint on all JavaScript files
+npm run lint:fix       # Auto-fix ESLint issues where possible
+npm run validate       # Validate project structure and required files
+npm run security:check # Check for hardcoded secrets and run npm audit
+npm run ci:checks      # Run all CI checks (lint + validate + security)
+```
+
+### Continuous Integration
+
+All pull requests and pushes automatically run:
+- **ESLint** - Code quality and consistency checks
+- **Structure validation** - Ensures required files/directories exist
+- **Security scanning** - Detects hardcoded secrets and vulnerable dependencies
+- **Vercel build validation** - Verifies deployment configuration
+
+See `.github/workflows/ci.yml` for the complete CI pipeline.
+
 ## Project Structure
 
 ```
