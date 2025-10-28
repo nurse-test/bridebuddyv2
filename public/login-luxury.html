@@ -185,30 +185,22 @@
             loginBtn.innerHTML = '<span class="loading-spinner"></span> Signing in...';
 
             try {
-                console.log('🔐 Login attempt:', { email });
+                // Login attempt (email redacted for security)
 
                 const { data, error } = await supabase.auth.signInWithPassword({
                     email: email,
                     password: password,
                 });
 
-                // Debug logging
-                console.log('📊 Supabase response:', { data, error });
-
                 if (error) {
-                    console.error('❌ Supabase auth error:', {
-                        message: error.message,
-                        status: error.status,
-                        name: error.name
-                    });
+                    console.error('Auth error:', error.message);
                     throw error;
                 }
 
-                console.log('✅ Authentication successful:', data.user.email);
+                // Authentication successful (user data redacted for security)
                 showToast('Welcome back!', 'success');
 
                 // Get user's wedding(s)
-                console.log('🔍 Looking up wedding for user:', data.user.id);
 
                 // Try progressively simpler queries to handle different table structures
                 let members = null;
@@ -257,32 +249,11 @@
                     memberError = result.error;
                 }
 
-                console.log('📊 Wedding lookup result:', {
-                    members,
-                    memberError,
-                    memberErrorDetails: memberError ? {
-                        message: memberError.message,
-                        code: memberError.code,
-                        details: memberError.details,
-                        hint: memberError.hint
-                    } : null,
-                    count: members?.length
-                });
+                // Wedding lookup completed (data redacted for security)
 
                 if (memberError) {
-                    console.error('❌ Wedding lookup error:', memberError);
-                    console.error('Full error object:', JSON.stringify(memberError, null, 2));
-
-                    // Show more detailed error message
-                    let errorMsg = 'Error loading your wedding. ';
-                    if (memberError.message) {
-                        errorMsg += memberError.message;
-                    }
-                    if (memberError.hint) {
-                        errorMsg += ' Hint: ' + memberError.hint;
-                    }
-
-                    showToast(errorMsg, 'error', 7000);
+                    console.error('Wedding lookup error:', memberError.message);
+                    showToast('Error loading your wedding: ' + memberError.message, 'error', 7000);
                     loginBtn.disabled = false;
                     loginBtn.textContent = 'Sign In';
                     return;
@@ -292,13 +263,11 @@
                 if (!members || members.length === 0) {
                     // If coming from invite, return to accept-invite page
                     if (inviteToken) {
-                        console.log('⚠️ No wedding found, but user has invite - redirecting to accept invite');
                         window.location.href = `accept-invite-luxury.html?token=${inviteToken}`;
                         return;
                     }
 
                     // Otherwise send to onboarding to create their own wedding
-                    console.log('⚠️ No wedding found for user - redirecting to onboarding');
                     showToast('Please complete your wedding setup', 'info', 3000);
                     setTimeout(() => {
                         window.location.href = 'onboarding-luxury.html';
@@ -308,30 +277,20 @@
 
                 // Use the first wedding (most recent)
                 const weddingId = members[0].wedding_id;
-                console.log('✅ Found wedding:', weddingId);
-
-                if (members.length > 1) {
-                    console.log('ℹ️ User has multiple weddings, using most recent');
-                }
-
-                console.log('🚀 Redirecting...');
 
                 // Determine redirect URL based on context
                 if (inviteToken) {
                     // User came from invite - return to accept-invite page
-                    console.log('Redirecting back to invite acceptance');
                     window.location.href = `accept-invite-luxury.html?token=${inviteToken}`;
                 } else if (returnTo) {
                     // Custom return URL provided
-                    console.log('Redirecting to custom return URL');
                     window.location.href = returnTo;
                 } else {
                     // Normal login - redirect to dashboard
-                    console.log('Redirecting to dashboard');
                     window.location.href = `dashboard-luxury.html?wedding_id=${weddingId}`;
                 }
             } catch (error) {
-                console.error('❌ Login error:', error);
+                console.error('Login error:', error.message);
 
                 // Show detailed error message for debugging
                 let errorMessage = 'Invalid email or password. Please try again.';

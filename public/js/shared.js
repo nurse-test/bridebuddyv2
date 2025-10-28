@@ -311,8 +311,10 @@ export async function loadWeddingData(options = {}) {
                 .single();
 
             if (memberError || !membership) {
-                console.error('No wedding membership found for user:', user.id);
-                console.error('Member error:', memberError);
+                console.error('No wedding membership found');
+                if (memberError) {
+                    console.error('Member error:', memberError.message);
+                }
                 if (redirectOnError) {
                     alert('You need to create or join a wedding first.');
                     goToWelcome();
