@@ -175,7 +175,8 @@ export default async function handler(req, res) {
     });
 
   } catch (error) {
-    console.error('Get invite info error:', error);
+    // Security: Only log error message, not full error object (contains invite tokens, wedding IDs, couple names)
+    console.error('Get invite info error:', error.message || 'Unknown error');
     return res.status(500).json({
       error: 'Internal server error',
       details: error.message

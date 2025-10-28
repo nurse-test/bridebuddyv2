@@ -87,11 +87,13 @@ export default async function handler(req, res) {
         .eq('id', weddingId);
 
       if (error) {
-        console.error('Failed to update wedding:', error);
+        // Security: Only log error message, not full error object (contains user IDs, wedding IDs, plan data)
+        console.error('Failed to update wedding:', error.message || 'Unknown error');
         return res.status(500).json({ error: 'Database update failed' });
       }
     } catch (err) {
-      console.error('Error processing payment:', err);
+      // Security: Only log error message, not full error object (contains session data, pricing)
+      console.error('Error processing payment:', err.message || 'Unknown error');
       return res.status(500).json({ error: 'Payment processing failed' });
     }
   }
@@ -110,10 +112,12 @@ export default async function handler(req, res) {
         .eq('stripe_subscription_id', subscription.id);
 
       if (error) {
-        console.error('Failed to cancel subscription:', error);
+        // Security: Only log error message, not full error object (contains subscription IDs, user data)
+        console.error('Failed to cancel subscription:', error.message || 'Unknown error');
       }
     } catch (err) {
-      console.error('Error canceling subscription:', err);
+      // Security: Only log error message, not full error object
+      console.error('Error canceling subscription:', err.message || 'Unknown error');
     }
   }
 

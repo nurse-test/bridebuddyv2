@@ -149,7 +149,8 @@ export default async function handler(req, res) {
 
     return res.status(200).json({ sessionId: session.id, url: session.url });
   } catch (error) {
-    console.error('Stripe checkout error:', error);
-    return res.status(500).json({ error: error.message });
+    // Security: Only log error message, not full error object (contains user IDs, pricing, plan names)
+    console.error('Stripe checkout error:', error.message || 'Unknown error');
+    return res.status(500).json({ error: 'Payment processing failed' });
   }
 }

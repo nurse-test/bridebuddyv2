@@ -303,7 +303,8 @@ export default async function handler(req, res) {
     return res.status(200).json(response);
 
   } catch (error) {
-    console.error('Accept invite error:', error);
+    // Security: Only log error message, not full error object (contains invite tokens, user IDs, wedding IDs, roles)
+    console.error('Accept invite error:', error.message || 'Unknown error');
     return res.status(500).json({
       error: 'Internal server error',
       details: error.message

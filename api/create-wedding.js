@@ -215,7 +215,8 @@ export default async function handler(req, res) {
     });
 
   } catch (error) {
-    console.error('Unexpected error creating wedding:', error);
+    // Security: Only log error message, not full error object (contains user IDs, wedding data, email addresses)
+    console.error('Wedding creation error:', error.message || 'Unknown error');
     return res.status(500).json({
       error: 'Internal server error',
       details: error.message

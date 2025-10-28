@@ -114,7 +114,8 @@ export default async function handler(req, res) {
     }
 
   } catch (error) {
-    console.error('Error:', error);
-    return res.status(500).json({ error: error.message });
+    // Security: Only log error message, not full error object (may contain update IDs, user IDs, field data)
+    console.error('Approval error:', error.message || 'Unknown error');
+    return res.status(500).json({ error: error.message || 'Failed to process update' });
   }
 }
