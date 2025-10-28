@@ -41,11 +41,13 @@ CREATE TABLE IF NOT EXISTS profiles (
   id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
   full_name TEXT,
   email TEXT,
+  is_owner BOOLEAN DEFAULT false,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 CREATE INDEX IF NOT EXISTS profiles_id_idx ON profiles(id);
+CREATE INDEX IF NOT EXISTS profiles_is_owner_idx ON profiles(is_owner);
 
 -- TABLE 2: chat_messages
 CREATE TABLE IF NOT EXISTS chat_messages (
@@ -99,11 +101,12 @@ CREATE INDEX IF NOT EXISTS invite_codes_is_used_idx ON invite_codes(is_used);
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
-  INSERT INTO public.profiles (id, email, full_name)
+  INSERT INTO public.profiles (id, email, full_name, is_owner)
   VALUES (
     NEW.id,
     NEW.email,
-    COALESCE(NEW.raw_user_meta_data->>'full_name', '')
+    COALESCE(NEW.raw_user_meta_data->>'full_name', ''),
+    false  -- Default: not a wedding owner yet
   )
   ON CONFLICT (id) DO NOTHING;  -- Prevents errors if profile already exists
   RETURN NEW;
