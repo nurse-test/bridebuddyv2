@@ -385,7 +385,8 @@
                 const messages = await loadChatHistory({
                     weddingId,
                     messageType,
-                    limit: 20
+                    limit: 20,
+                    userRole: userRole
                 });
 
                 conversationHistory = messages;

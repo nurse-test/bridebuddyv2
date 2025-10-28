@@ -191,6 +191,21 @@ export default async function handler(req, res) {
         console.error('Failed to create bestie profile:', profileError);
         // Don't fail the entire request - user is already a member
       }
+
+      // Create bestie_permissions entry to track what inviter can access
+      const { error: permissionsError } = await supabaseAdmin
+        .from('bestie_permissions')
+        .insert({
+          bestie_user_id: user.id,
+          inviter_user_id: invite.created_by,
+          wedding_id: invite.wedding_id,
+          permissions: bestie_knowledge_permissions
+        });
+
+      if (permissionsError) {
+        console.error('Failed to create bestie permissions:', permissionsError);
+        // Don't fail the entire request - user is already a member
+      }
     } else if (invite.role === 'partner') {
       // Partner joins as co-owner, no additional setup needed
       // They will share the same wedding_profiles, vendor_tracker, budget_tracker, wedding_tasks
