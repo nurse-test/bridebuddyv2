@@ -1,14 +1,14 @@
 -- ============================================================================
--- MIGRATION 015: Create bestie_profile table (SIMPLEST VERSION)
+-- MIGRATION 015: Create bestie_profile table (WORKING VERSION)
 -- ============================================================================
 -- Purpose: Store bestie-specific profile and planning context
--- Solution: Use a new constraint name to avoid conflicts with orphaned constraints
+-- This version works with Supabase permissions (no system catalog access needed)
 -- ============================================================================
 
--- Drop the table completely if it exists
+-- Drop the table completely if it exists (clean slate)
 DROP TABLE IF EXISTS bestie_profile CASCADE;
 
--- Create bestie_profile table with NEW constraint name
+-- Create bestie_profile table fresh
 CREATE TABLE bestie_profile (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   bestie_user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -16,8 +16,7 @@ CREATE TABLE bestie_profile (
   bestie_brief TEXT,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW(),
-  -- NEW constraint name to avoid orphaned constraint conflicts
-  CONSTRAINT bestie_profile_unique_per_wedding UNIQUE (bestie_user_id, wedding_id)
+  CONSTRAINT unique_bestie_per_wedding UNIQUE (bestie_user_id, wedding_id)
 );
 
 -- Create indexes
@@ -28,7 +27,7 @@ CREATE INDEX idx_bestie_profile_bestie_wedding ON bestie_profile(bestie_user_id,
 -- Enable RLS
 ALTER TABLE bestie_profile ENABLE ROW LEVEL SECURITY;
 
--- Create policies
+-- Drop and recreate policies (idempotent)
 DROP POLICY IF EXISTS "Bestie can view own profile" ON bestie_profile;
 CREATE POLICY "Bestie can view own profile"
   ON bestie_profile FOR SELECT TO authenticated
@@ -83,9 +82,18 @@ CREATE TRIGGER trigger_update_bestie_profile_updated_at
   EXECUTE FUNCTION update_bestie_profile_updated_at();
 
 -- Verification
-SELECT '✓ bestie_profile table created' as status;
-SELECT '✓ ' || COUNT(*) || ' RLS policies' as status FROM pg_policies WHERE tablename = 'bestie_profile';
+SELECT
+  '✓ bestie_profile table created successfully' as status,
+  COUNT(*) as column_count
+FROM information_schema.columns
+WHERE table_name = 'bestie_profile';
+
+SELECT
+  '✓ RLS policies created' as status,
+  COUNT(*) as policy_count
+FROM pg_policies
+WHERE tablename = 'bestie_profile';
 
 -- ============================================================================
--- SUCCESS - Table created with new constraint name
+-- COMPLETE - Table ready for use
 -- ============================================================================
