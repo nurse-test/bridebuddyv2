@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import { handleCORS, rateLimitMiddleware, RATE_LIMITS } from './_utils/rate-limiter.js';
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -6,8 +7,18 @@ const supabase = createClient(
 );
 
 export default async function handler(req, res) {
+  // Handle CORS preflight
+  if (handleCORS(req, res)) {
+    return;
+  }
+
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  // Apply rate limiting (60 requests per minute)
+  if (!rateLimitMiddleware(req, res, RATE_LIMITS.RELAXED)) {
+    return;
   }
 
   const { userToken, updateId, approve } = req.body;

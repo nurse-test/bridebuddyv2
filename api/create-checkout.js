@@ -1,11 +1,22 @@
 import Stripe from 'stripe';
 import { createClient } from '@supabase/supabase-js';
+import { handleCORS, rateLimitMiddleware, RATE_LIMITS } from './_utils/rate-limiter.js';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 export default async function handler(req, res) {
+  // Handle CORS preflight
+  if (handleCORS(req, res)) {
+    return;
+  }
+
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  // Apply strict rate limiting for payment endpoints (5 requests per minute)
+  if (!rateLimitMiddleware(req, res, RATE_LIMITS.PAYMENT)) {
+    return;
   }
 
   // SECURITY: Accept userToken and weddingId, verify server-side

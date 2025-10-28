@@ -7,6 +7,7 @@
 
 import { createClient } from '@supabase/supabase-js';
 import { randomBytes } from 'crypto';
+import { handleCORS, rateLimitMiddleware, RATE_LIMITS } from './_utils/rate-limiter.js';
 
 // Service role client (bypasses RLS for admin operations)
 const supabaseAdmin = createClient(
@@ -15,8 +16,18 @@ const supabaseAdmin = createClient(
 );
 
 export default async function handler(req, res) {
+  // Handle CORS preflight
+  if (handleCORS(req, res)) {
+    return;
+  }
+
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  // Apply rate limiting (60 requests per minute)
+  if (!rateLimitMiddleware(req, res, RATE_LIMITS.RELAXED)) {
+    return;
   }
 
   const { userToken, role } = req.body;

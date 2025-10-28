@@ -1,5 +1,6 @@
 import Stripe from 'stripe';
 import { createClient } from '@supabase/supabase-js';
+import { CORS_HEADERS } from './_utils/rate-limiter.js';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 const supabase = createClient(
@@ -22,6 +23,11 @@ async function buffer(readable) {
 }
 
 export default async function handler(req, res) {
+  // Set CORS headers (webhook endpoints typically don't need full CORS handling)
+  Object.entries(CORS_HEADERS).forEach(([key, value]) => {
+    res.setHeader(key, value);
+  });
+
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }

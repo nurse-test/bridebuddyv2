@@ -293,6 +293,11 @@
                     })
                 });
 
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+                    throw new Error(errorData.error || `API error: ${response.status} ${response.statusText}`);
+                }
+
                 const data = await response.json();
 
                 if (data.response) {
@@ -475,6 +480,11 @@
                         conversationId: weddingId
                     })
                 });
+
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+                    throw new Error(errorData.error || `API error: ${response.status} ${response.statusText}`);
+                }
 
                 const data = await response.json();
 
