@@ -351,6 +351,14 @@
                 weddingId = result.weddingId;
                 wedding = result.wedding;
                 const user = result.user;
+                const member = result.member;
+
+                // Redirect besties to their dedicated interface
+                if (member && member.role === 'bestie') {
+                    console.log('Bestie user detected, redirecting to bestie dashboard');
+                    window.location.href = `bestie-luxury.html?wedding_id=${weddingId}`;
+                    return; // Stop execution while redirecting
+                }
 
                 // Update UI with user info
                 const userName = user.user_metadata?.full_name || user.email?.split('@')[0] || 'User';
