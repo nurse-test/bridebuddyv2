@@ -250,6 +250,24 @@
             showToast('error', 'Connection Error', 'Failed to connect to database. Please refresh the page.');
         }
 
+        // Retry utility with exponential backoff
+        async function retryWithBackoff(fn, maxRetries = 3, initialDelay = 1000) {
+            let lastError;
+            for (let attempt = 0; attempt < maxRetries; attempt++) {
+                try {
+                    return await fn();
+                } catch (error) {
+                    lastError = error;
+                    if (attempt < maxRetries - 1) {
+                        const delay = initialDelay * Math.pow(2, attempt);
+                        console.log(`Retry attempt ${attempt + 1} after ${delay}ms`);
+                        await new Promise(resolve => setTimeout(resolve, delay));
+                    }
+                }
+            }
+            throw lastError;
+        }
+
         // Show Toast Notification
         function showToast(type, title, message, duration = 5000) {
             const container = document.getElementById('toastContainer');
@@ -275,6 +293,23 @@
                 toast.style.opacity = '0';
                 setTimeout(() => toast.remove(), 300);
             }, duration);
+        }
+
+        // Show error state with retry button
+        function showErrorState(containerId, retryFn, errorMessage = 'Failed to load data') {
+            const container = document.getElementById(containerId);
+            container.innerHTML = `
+                <div class="error-state" style="padding: var(--space-6) var(--space-4); text-align: center;">
+                    <div style="font-size: var(--text-4xl); margin-bottom: var(--space-3);">⚠️</div>
+                    <h4 style="font-family: var(--font-heading); font-size: var(--text-lg); color: var(--color-navy); margin-bottom: var(--space-2);">
+                        ${errorMessage}
+                    </h4>
+                    <button class="btn btn-secondary btn-sm" onclick="this.disabled=true; this.textContent='Retrying...'; ${retryFn}">
+                        🔄 Retry
+                    </button>
+                </div>
+            `;
+            container.style.display = 'block';
         }
 
         // Calculate days until wedding
@@ -359,10 +394,12 @@
                     document.getElementById('weddingDate').textContent = 'Set your date';
                 }
 
-                // Load MVP dashboard sections
-                await loadFinancialTracker();
-                await loadConfirmedVendors();
-                await loadNextToDo();
+                // Load MVP dashboard sections in parallel for better performance
+                await Promise.all([
+                    loadFinancialTracker(),
+                    loadConfirmedVendors(),
+                    loadNextToDo()
+                ]);
 
             } catch (error) {
                 console.error('Dashboard initialization error:', error);
@@ -373,28 +410,34 @@
         // Load Financial Tracker (Budget Summary)
         async function loadFinancialTracker() {
             try {
-                const { data: budgetItems, error } = await supabase
-                    .from('budget_tracker')
-                    .select('budgeted_amount, spent_amount')
-                    .eq('wedding_id', weddingId);
+                await retryWithBackoff(async () => {
+                    const { data: budgetItems, error } = await supabase
+                        .from('budget_tracker')
+                        .select('budgeted_amount, spent_amount')
+                        .eq('wedding_id', weddingId);
 
-                if (error) throw error;
+                    if (error) throw error;
 
-                // Calculate totals
-                const totalBudget = budgetItems?.reduce((sum, item) => sum + (parseFloat(item.budgeted_amount) || 0), 0) || 0;
-                const totalSpent = budgetItems?.reduce((sum, item) => sum + (parseFloat(item.spent_amount) || 0), 0) || 0;
-                const totalRemaining = totalBudget - totalSpent;
+                    // Calculate totals
+                    const totalBudget = budgetItems?.reduce((sum, item) => sum + (parseFloat(item.budgeted_amount) || 0), 0) || 0;
+                    const totalSpent = budgetItems?.reduce((sum, item) => sum + (parseFloat(item.spent_amount) || 0), 0) || 0;
+                    const totalRemaining = totalBudget - totalSpent;
 
-                // Format and display
-                document.getElementById('totalBudget').textContent = `$${totalBudget.toLocaleString()}`;
-                document.getElementById('totalSpent').textContent = `$${totalSpent.toLocaleString()}`;
-                document.getElementById('totalRemaining').textContent = `$${totalRemaining.toLocaleString()}`;
-
+                    // Format and display
+                    document.getElementById('totalBudget').textContent = `$${totalBudget.toLocaleString()}`;
+                    document.getElementById('totalSpent').textContent = `$${totalSpent.toLocaleString()}`;
+                    document.getElementById('totalRemaining').textContent = `$${totalRemaining.toLocaleString()}`;
+                });
             } catch (error) {
                 console.error('Error loading financial tracker:', error);
-                document.getElementById('totalBudget').textContent = '$0';
-                document.getElementById('totalSpent').textContent = '$0';
-                document.getElementById('totalRemaining').textContent = '$0';
+                // Show error state instead of zeros
+                document.getElementById('totalBudget').textContent = '--';
+                document.getElementById('totalBudget').style.color = 'var(--color-burgundy)';
+                document.getElementById('totalSpent').textContent = '--';
+                document.getElementById('totalSpent').style.color = 'var(--color-burgundy)';
+                document.getElementById('totalRemaining').textContent = '--';
+                document.getElementById('totalRemaining').style.color = 'var(--color-burgundy)';
+                showToast('error', 'Budget Load Failed', 'Could not load budget data. Click refresh to retry.');
             }
         }
 
@@ -404,57 +447,61 @@
             const emptyState = document.getElementById('emptyVendors');
 
             try {
-                // Query vendors with booked status
-                const { data: vendors, error } = await supabase
-                    .from('vendor_tracker')
-                    .select('vendor_type, vendor_name, deposit_paid')
-                    .eq('wedding_id', weddingId)
-                    .in('status', ['booked', 'contract_signed', 'deposit_paid', 'fully_paid'])
-                    .order('vendor_type');
+                await retryWithBackoff(async () => {
+                    // Query vendors with booked status
+                    const { data: vendors, error } = await supabase
+                        .from('vendor_tracker')
+                        .select('vendor_type, vendor_name, deposit_paid')
+                        .eq('wedding_id', weddingId)
+                        .in('status', ['booked', 'contract_signed', 'deposit_paid', 'fully_paid'])
+                        .order('vendor_type');
 
-                if (error) throw error;
+                    if (error) throw error;
 
-                vendorList.innerHTML = '';
+                    vendorList.innerHTML = '';
 
-                if (!vendors || vendors.length === 0) {
-                    vendorList.style.display = 'none';
-                    emptyState.style.display = 'block';
-                    return;
-                }
+                    if (!vendors || vendors.length === 0) {
+                        vendorList.style.display = 'none';
+                        emptyState.style.display = 'block';
+                        return;
+                    }
 
-                vendorList.style.display = 'flex';
-                emptyState.style.display = 'none';
+                    vendorList.style.display = 'flex';
+                    emptyState.style.display = 'none';
 
-                vendors.forEach(vendor => {
-                    const vendorItem = document.createElement('div');
-                    vendorItem.style.cssText = 'display: flex; justify-content: space-between; align-items: center; padding: var(--space-3); background: var(--color-cream); border-radius: var(--radius-md);';
+                    vendors.forEach(vendor => {
+                        const vendorItem = document.createElement('div');
+                        vendorItem.style.cssText = 'display: flex; justify-content: space-between; align-items: center; padding: var(--space-3); background: var(--color-cream); border-radius: var(--radius-md);';
 
-                    const vendorTypeFormatted = vendor.vendor_type
-                        .replace(/_/g, ' ')
-                        .split(' ')
-                        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-                        .join(' ');
+                        const vendorTypeFormatted = vendor.vendor_type
+                            .replace(/_/g, ' ')
+                            .split(' ')
+                            .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                            .join(' ');
 
-                    vendorItem.innerHTML = `
-                        <div>
-                            <p style="margin: 0; font-size: var(--text-sm); color: var(--color-navy); font-weight: var(--font-semibold);">
-                                ${vendorTypeFormatted}
-                            </p>
-                            <p style="margin: 0; font-size: var(--text-xs); color: var(--color-burgundy); opacity: 0.7; margin-top: 2px;">
-                                ${vendor.vendor_name || 'Name not set'}
-                            </p>
-                        </div>
-                        <div style="color: ${vendor.deposit_paid ? 'var(--color-gold)' : 'var(--color-burgundy)'}; font-size: var(--text-lg);">
-                            ${vendor.deposit_paid ? '✓' : '○'}
-                        </div>
-                    `;
-                    vendorList.appendChild(vendorItem);
+                        vendorItem.innerHTML = `
+                            <div>
+                                <p style="margin: 0; font-size: var(--text-sm); color: var(--color-navy); font-weight: var(--font-semibold);">
+                                    ${vendorTypeFormatted}
+                                </p>
+                                <p style="margin: 0; font-size: var(--text-xs); color: var(--color-burgundy); opacity: 0.7; margin-top: 2px;">
+                                    ${vendor.vendor_name || 'Name not set'}
+                                </p>
+                            </div>
+                            <div style="color: ${vendor.deposit_paid ? 'var(--color-gold)' : 'var(--color-burgundy)'}; font-size: var(--text-lg);">
+                                ${vendor.deposit_paid ? '✓' : '○'}
+                            </div>
+                        `;
+                        vendorList.appendChild(vendorItem);
+                    });
                 });
-
             } catch (error) {
                 console.error('Error loading confirmed vendors:', error);
-                vendorList.style.display = 'none';
-                emptyState.style.display = 'block';
+                // Show error state with retry button
+                vendorList.innerHTML = '';
+                vendorList.style.display = 'block';
+                emptyState.style.display = 'none';
+                showErrorState('vendorList', 'loadConfirmedVendors()', 'Failed to load vendors');
             }
         }
 
@@ -464,54 +511,58 @@
             const emptyState = document.getElementById('emptyTasks');
 
             try {
-                // Query tasks that are not completed, ordered by due date
-                const { data: tasks, error } = await supabase
-                    .from('wedding_tasks')
-                    .select('task_name, due_date')
-                    .eq('wedding_id', weddingId)
-                    .neq('status', 'completed')
-                    .order('due_date', { ascending: true, nullsLast: true })
-                    .limit(3);
+                await retryWithBackoff(async () => {
+                    // Query tasks that are not completed, ordered by due date
+                    const { data: tasks, error } = await supabase
+                        .from('wedding_tasks')
+                        .select('task_name, due_date')
+                        .eq('wedding_id', weddingId)
+                        .neq('status', 'completed')
+                        .order('due_date', { ascending: true, nullsLast: true })
+                        .limit(3);
 
-                if (error) throw error;
+                    if (error) throw error;
 
-                taskList.innerHTML = '';
+                    taskList.innerHTML = '';
 
-                if (!tasks || tasks.length === 0) {
-                    taskList.style.display = 'none';
-                    emptyState.style.display = 'block';
-                    return;
-                }
-
-                taskList.style.display = 'flex';
-                emptyState.style.display = 'none';
-
-                tasks.forEach(task => {
-                    const taskItem = document.createElement('div');
-                    taskItem.style.cssText = 'display: flex; justify-content: space-between; align-items: center; padding: var(--space-3); background: var(--color-cream); border-radius: var(--radius-md);';
-
-                    let dueDateFormatted = 'No deadline';
-
-                    if (task.due_date) {
-                        const dueDate = new Date(task.due_date);
-                        dueDateFormatted = dueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                    if (!tasks || tasks.length === 0) {
+                        taskList.style.display = 'none';
+                        emptyState.style.display = 'block';
+                        return;
                     }
 
-                    taskItem.innerHTML = `
-                        <p style="margin: 0; font-size: var(--text-sm); color: var(--color-navy); font-weight: var(--font-semibold);">
-                            ${task.task_name}
-                        </p>
-                        <p style="margin: 0; font-size: var(--text-xs); color: var(--color-burgundy); opacity: 0.7;">
-                            ${dueDateFormatted}
-                        </p>
-                    `;
-                    taskList.appendChild(taskItem);
-                });
+                    taskList.style.display = 'flex';
+                    emptyState.style.display = 'none';
 
+                    tasks.forEach(task => {
+                        const taskItem = document.createElement('div');
+                        taskItem.style.cssText = 'display: flex; justify-content: space-between; align-items: center; padding: var(--space-3); background: var(--color-cream); border-radius: var(--radius-md);';
+
+                        let dueDateFormatted = 'No deadline';
+
+                        if (task.due_date) {
+                            const dueDate = new Date(task.due_date);
+                            dueDateFormatted = dueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                        }
+
+                        taskItem.innerHTML = `
+                            <p style="margin: 0; font-size: var(--text-sm); color: var(--color-navy); font-weight: var(--font-semibold);">
+                                ${task.task_name}
+                            </p>
+                            <p style="margin: 0; font-size: var(--text-xs); color: var(--color-burgundy); opacity: 0.7;">
+                                ${dueDateFormatted}
+                            </p>
+                        `;
+                        taskList.appendChild(taskItem);
+                    });
+                });
             } catch (error) {
                 console.error('Error loading next to-do:', error);
-                taskList.style.display = 'none';
-                emptyState.style.display = 'block';
+                // Show error state with retry button
+                taskList.innerHTML = '';
+                taskList.style.display = 'block';
+                emptyState.style.display = 'none';
+                showErrorState('taskList', 'loadNextToDo()', 'Failed to load tasks');
             }
         }
 
