@@ -19,8 +19,8 @@
 /*
 This script will create:
   - 6 core tables (wedding_profiles, wedding_members, profiles, chat_messages, pending_updates, invite_codes)
-  - 2 bestie tables (bestie_permissions, bestie_knowledge)
-  - 24+ RLS policies to secure all data
+  - 3 bestie tables (bestie_permissions, bestie_knowledge, bestie_profile)
+  - 30+ RLS policies to secure all data
   - Triggers for auto-updating timestamps
   - Helper functions and views
   - Full bestie permission system
@@ -585,6 +585,89 @@ CREATE TRIGGER trigger_update_bestie_knowledge_updated_at
   BEFORE UPDATE ON bestie_knowledge
   FOR EACH ROW
   EXECUTE FUNCTION update_bestie_knowledge_updated_at();
+
+-- ============================================================================
+-- STEP 6A: CREATE BESTIE_PROFILE TABLE
+-- ============================================================================
+-- Source: migrations/015_create_bestie_profile_table.sql
+-- LAUNCH BLOCKER FIX: This table was referenced but never created
+-- ============================================================================
+
+CREATE TABLE IF NOT EXISTS bestie_profile (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  bestie_user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  wedding_id UUID NOT NULL REFERENCES wedding_profiles(id) ON DELETE CASCADE,
+  bestie_brief TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+  CONSTRAINT unique_bestie_per_wedding UNIQUE (bestie_user_id, wedding_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_bestie_profile_bestie_user ON bestie_profile(bestie_user_id);
+CREATE INDEX IF NOT EXISTS idx_bestie_profile_wedding ON bestie_profile(wedding_id);
+CREATE INDEX IF NOT EXISTS idx_bestie_profile_bestie_wedding ON bestie_profile(bestie_user_id, wedding_id);
+
+ALTER TABLE bestie_profile ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Bestie can view own profile" ON bestie_profile;
+DROP POLICY IF EXISTS "Bestie can create own profile" ON bestie_profile;
+DROP POLICY IF EXISTS "Bestie can update own profile" ON bestie_profile;
+DROP POLICY IF EXISTS "Bestie can delete own profile" ON bestie_profile;
+DROP POLICY IF EXISTS "Wedding members can view bestie profiles" ON bestie_profile;
+DROP POLICY IF EXISTS "Backend full access" ON bestie_profile;
+
+CREATE POLICY "Bestie can view own profile"
+  ON bestie_profile FOR SELECT
+  TO authenticated
+  USING (bestie_user_id = auth.uid());
+
+CREATE POLICY "Bestie can create own profile"
+  ON bestie_profile FOR INSERT
+  TO authenticated
+  WITH CHECK (bestie_user_id = auth.uid());
+
+CREATE POLICY "Bestie can update own profile"
+  ON bestie_profile FOR UPDATE
+  TO authenticated
+  USING (bestie_user_id = auth.uid())
+  WITH CHECK (bestie_user_id = auth.uid());
+
+CREATE POLICY "Bestie can delete own profile"
+  ON bestie_profile FOR DELETE
+  TO authenticated
+  USING (bestie_user_id = auth.uid());
+
+CREATE POLICY "Wedding members can view bestie profiles"
+  ON bestie_profile FOR SELECT
+  TO authenticated
+  USING (
+    EXISTS (
+      SELECT 1 FROM wedding_members
+      WHERE wedding_members.wedding_id = bestie_profile.wedding_id
+      AND wedding_members.user_id = auth.uid()
+    )
+  );
+
+CREATE POLICY "Backend full access"
+  ON bestie_profile FOR ALL
+  TO service_role
+  USING (true)
+  WITH CHECK (true);
+
+CREATE OR REPLACE FUNCTION update_bestie_profile_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.updated_at = NOW();
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS trigger_update_bestie_profile_updated_at ON bestie_profile;
+
+CREATE TRIGGER trigger_update_bestie_profile_updated_at
+  BEFORE UPDATE ON bestie_profile
+  FOR EACH ROW
+  EXECUTE FUNCTION update_bestie_profile_updated_at();
 
 -- ============================================================================
 -- STEP 7: RLS POLICIES FOR BESTIE_PERMISSIONS

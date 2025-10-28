@@ -206,8 +206,9 @@
                 }
 
                 // For one-time payment, go through Stripe checkout
-                const { data: { user } } = await supabase.auth.getUser();
-                if (!user) {
+                // SECURITY: Get session token to pass to server for verification
+                const { data: { session } } = await supabase.auth.getSession();
+                if (!session) {
                     showToast('Please log in to continue.', 'error');
                     setTimeout(() => {
                         window.location.href = 'login-luxury.html';
@@ -224,6 +225,7 @@
                     return;
                 }
 
+                // SECURITY: Pass userToken (not userId) - server verifies ownership
                 const response = await fetch('/api/create-checkout', {
                     method: 'POST',
                     headers: {
@@ -231,7 +233,7 @@
                     },
                     body: JSON.stringify({
                         priceId: priceId,
-                        userId: user.id,
+                        userToken: session.access_token,
                         weddingId: weddingId
                     })
                 });
