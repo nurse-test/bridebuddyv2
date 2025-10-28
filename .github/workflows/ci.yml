@@ -126,7 +126,8 @@ jobs:
           echo "Scanning for potential secrets..."
 
           # Check for common secret patterns in git diff
-          if git diff --name-only origin/main...HEAD 2>/dev/null | grep -E '\.(js|json|html)$' | while read file; do
+          # Exclude check-secrets.js which legitimately contains pattern examples
+          if git diff --name-only origin/main...HEAD 2>/dev/null | grep -E '\.(js|json|html)$' | grep -v 'check-secrets.js' | while read file; do
             if [ -f "$file" ]; then
               if grep -E '(sk_live_|pk_live_|rk_live_|eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,})' "$file"; then
                 echo "❌ Potential secret found in $file"
