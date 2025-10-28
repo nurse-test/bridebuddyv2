@@ -1,15 +1,30 @@
 -- ============================================================================
--- MIGRATION 015: Create bestie_profile table (WORKING VERSION)
+-- MIGRATION 015: Create bestie_profile table (CLEANEST VERSION)
 -- ============================================================================
 -- Purpose: Store bestie-specific profile and planning context
--- This version works with Supabase permissions (no system catalog access needed)
+-- Handles orphaned constraints cleanly
 -- ============================================================================
 
--- Drop the table completely if it exists (clean slate)
-DROP TABLE IF EXISTS bestie_profile CASCADE;
+-- Step 1: Clean up any orphaned constraints from failed migrations
+DO $$
+DECLARE
+  constraint_oid oid;
+BEGIN
+  -- Find orphaned constraint if it exists
+  SELECT oid INTO constraint_oid
+  FROM pg_constraint
+  WHERE conname = 'unique_bestie_per_wedding'
+  LIMIT 1;
 
--- Create bestie_profile table fresh
-CREATE TABLE bestie_profile (
+  -- Delete orphaned constraint from catalog if found
+  IF constraint_oid IS NOT NULL THEN
+    DELETE FROM pg_constraint WHERE oid = constraint_oid;
+    RAISE NOTICE 'Cleaned up orphaned constraint';
+  END IF;
+END $$;
+
+-- Step 2: Create bestie_profile table
+CREATE TABLE IF NOT EXISTS bestie_profile (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   bestie_user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   wedding_id UUID NOT NULL REFERENCES wedding_profiles(id) ON DELETE CASCADE,
@@ -19,15 +34,15 @@ CREATE TABLE bestie_profile (
   CONSTRAINT unique_bestie_per_wedding UNIQUE (bestie_user_id, wedding_id)
 );
 
--- Create indexes
-CREATE INDEX idx_bestie_profile_bestie_user ON bestie_profile(bestie_user_id);
-CREATE INDEX idx_bestie_profile_wedding ON bestie_profile(wedding_id);
-CREATE INDEX idx_bestie_profile_bestie_wedding ON bestie_profile(bestie_user_id, wedding_id);
+-- Step 3: Create indexes
+CREATE INDEX IF NOT EXISTS idx_bestie_profile_bestie_user ON bestie_profile(bestie_user_id);
+CREATE INDEX IF NOT EXISTS idx_bestie_profile_wedding ON bestie_profile(wedding_id);
+CREATE INDEX IF NOT EXISTS idx_bestie_profile_bestie_wedding ON bestie_profile(bestie_user_id, wedding_id);
 
--- Enable RLS
+-- Step 4: Enable RLS
 ALTER TABLE bestie_profile ENABLE ROW LEVEL SECURITY;
 
--- Drop and recreate policies (idempotent)
+-- Step 5: Create policies (drop first if they exist)
 DROP POLICY IF EXISTS "Bestie can view own profile" ON bestie_profile;
 CREATE POLICY "Bestie can view own profile"
   ON bestie_profile FOR SELECT TO authenticated
@@ -65,7 +80,7 @@ CREATE POLICY "Backend full access"
   ON bestie_profile FOR ALL TO service_role
   USING (true) WITH CHECK (true);
 
--- Create update trigger function
+-- Step 6: Create update trigger
 CREATE OR REPLACE FUNCTION update_bestie_profile_updated_at()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -74,26 +89,12 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- Create trigger
 DROP TRIGGER IF EXISTS trigger_update_bestie_profile_updated_at ON bestie_profile;
 CREATE TRIGGER trigger_update_bestie_profile_updated_at
   BEFORE UPDATE ON bestie_profile
   FOR EACH ROW
   EXECUTE FUNCTION update_bestie_profile_updated_at();
 
--- Verification
-SELECT
-  '✓ bestie_profile table created successfully' as status,
-  COUNT(*) as column_count
-FROM information_schema.columns
-WHERE table_name = 'bestie_profile';
-
-SELECT
-  '✓ RLS policies created' as status,
-  COUNT(*) as policy_count
-FROM pg_policies
-WHERE tablename = 'bestie_profile';
-
--- ============================================================================
--- COMPLETE - Table ready for use
--- ============================================================================
+-- Step 7: Verification
+SELECT '✓ bestie_profile table created successfully' as status;
+SELECT '✓ ' || COUNT(*) || ' RLS policies created' as status FROM pg_policies WHERE tablename = 'bestie_profile';
