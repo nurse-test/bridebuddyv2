@@ -319,8 +319,10 @@ export async function loadWeddingData(options = {}) {
                     console.error('Member error:', memberError.message);
                 }
                 if (redirectOnError) {
-                    alert('You need to create or join a wedding first.');
-                    goToWelcome();
+                    showToast('Please complete your wedding setup', 'info', 3000);
+                    setTimeout(() => {
+                        window.location.href = 'onboarding-luxury.html';
+                    }, 1000);
                 }
                 throw new Error('No wedding membership found');
             }

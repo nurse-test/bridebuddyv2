@@ -306,6 +306,53 @@
 
         console.log('📋 Initial onboarding data:', onboardingData);
 
+        // Check if user is already logged in (returning user who needs to complete onboarding)
+        async function checkExistingSession() {
+            try {
+                const { data: { session } } = await supabase.auth.getSession();
+
+                if (session && session.user) {
+                    console.log('✅ Existing session found - user already has account');
+
+                    // Check if they already have a wedding
+                    const { data: membership } = await supabase
+                        .from('wedding_members')
+                        .select('wedding_id')
+                        .eq('user_id', session.user.id)
+                        .single();
+
+                    if (membership && membership.wedding_id) {
+                        // User has account AND wedding - redirect to dashboard
+                        console.log('✅ User already has wedding, redirecting to dashboard');
+                        showToast('You already have a wedding profile!', 'success');
+                        setTimeout(() => {
+                            window.location.href = `dashboard-luxury.html?wedding_id=${membership.wedding_id}`;
+                        }, 1000);
+                        return;
+                    }
+
+                    // User has account but NO wedding - skip to slide 3 (About Us)
+                    console.log('⚠️ User has account but no wedding - skipping to wedding setup');
+                    onboardingData.email = session.user.email;
+                    onboardingData.fullName = session.user.user_metadata?.full_name || '';
+
+                    // Hide slide 1, show slide 3
+                    document.getElementById('slide1').classList.add('hidden');
+                    document.getElementById('slide3').classList.remove('hidden');
+                    currentSlide = 3;
+                    updateProgress();
+
+                    showToast('Welcome back! Let\'s finish setting up your wedding', 'info', 4000);
+                }
+            } catch (error) {
+                console.error('Error checking session:', error);
+                // Continue with normal onboarding flow
+            }
+        }
+
+        // Check for existing session on page load
+        checkExistingSession();
+
         // Update progress dots
         function updateProgress() {
             const dots = document.querySelectorAll('.progress-dot');
