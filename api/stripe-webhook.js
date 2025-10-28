@@ -53,8 +53,6 @@ export default async function handler(req, res) {
     const session = event.data.object;
     const { userId, weddingId, planType } = session.metadata;
 
-    console.log('Payment succeeded for wedding:', weddingId);
-
     try {
       // Update wedding to VIP
       const updates = {
@@ -68,7 +66,6 @@ export default async function handler(req, res) {
       // Enable bestie addon if plan includes "bestie"
       if (planType && planType.includes('bestie')) {
         updates.bestie_addon_enabled = true;
-        console.log('Enabling bestie addon for plan:', planType);
       }
 
       // If "Until I Do" plan, set expiration to wedding date
@@ -93,8 +90,6 @@ export default async function handler(req, res) {
         console.error('Failed to update wedding:', error);
         return res.status(500).json({ error: 'Database update failed' });
       }
-
-      console.log('Successfully activated VIP for wedding:', weddingId);
     } catch (err) {
       console.error('Error processing payment:', err);
       return res.status(500).json({ error: 'Payment processing failed' });
