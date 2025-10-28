@@ -363,12 +363,15 @@
                     return;
                 }
 
+                // SECURITY: Escape role display for defense in depth
                 container.innerHTML = members.map(member => {
-                    const roleDisplay = {
+                    const roleDisplayMap = {
                         'owner': 'Owner',
                         'partner': 'Partner',
                         'bestie': 'Bestie'
-                    }[member.role] || member.role;
+                    };
+                    // Use mapped value or escape the database role value
+                    const roleDisplay = roleDisplayMap[member.role] || escapeHtml(member.role);
 
                     const permissions = member.wedding_profile_permissions || {};
                     const permissionsText = member.role === 'owner'
