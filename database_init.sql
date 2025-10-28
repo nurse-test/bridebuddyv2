@@ -104,7 +104,8 @@ BEGIN
     NEW.id,
     NEW.email,
     COALESCE(NEW.raw_user_meta_data->>'full_name', '')
-  );
+  )
+  ON CONFLICT (id) DO NOTHING;  -- Prevents errors if profile already exists
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
