@@ -105,11 +105,13 @@ export function getClientIdentifier(req) {
 
 /**
  * CORS configuration
+ * Locked to production domain to prevent unauthorized cross-origin access
  */
 export const CORS_HEADERS = {
-  'Access-Control-Allow-Origin': '*', // In production, set this to your domain
+  'Access-Control-Allow-Origin': 'https://bridebuddyv2.vercel.app',
   'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
   'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+  'Access-Control-Allow-Credentials': 'true',
   'Access-Control-Max-Age': '86400', // 24 hours
 };
 

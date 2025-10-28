@@ -24,7 +24,7 @@
         },
         {
           "key": "Access-Control-Allow-Origin",
-          "value": "*"
+          "value": "https://bridebuddyv2.vercel.app"
         },
         {
           "key": "Access-Control-Allow-Methods",
