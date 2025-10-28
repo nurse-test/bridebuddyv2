@@ -101,10 +101,30 @@ export default async function handler(req, res) {
     }
 
     // ========================================================================
-    // STEP 4: Create Stripe checkout session with VERIFIED data
+    // STEP 4: Determine plan details from price ID
+    // ========================================================================
+    // Fetch price details from Stripe to determine plan type and features
+    const priceDetails = await stripe.prices.retrieve(priceId, {
+      expand: ['product']
+    });
+
+    // Determine if this is a subscription or one-time payment
+    const mode = priceDetails.recurring ? 'subscription' : 'payment';
+
+    // Detect if this is a bestie plan by checking product name
+    const productName = priceDetails.product?.name?.toLowerCase() || '';
+    const isBestiePlan = productName.includes('bestie');
+
+    // Determine plan type for metadata
+    const planType = priceDetails.recurring ?
+      (isBestiePlan ? 'vip_bestie_monthly' : 'vip_monthly') :
+      (isBestiePlan ? 'vip_bestie_until_i_do' : 'vip_until_i_do');
+
+    // ========================================================================
+    // STEP 5: Create Stripe checkout session with VERIFIED data
     // ========================================================================
     const session = await stripe.checkout.sessions.create({
-      mode: priceId === 'price_1SHYkGDn8y3nIH6VnJNyAsE1' ? 'subscription' : 'payment',
+      mode: mode,
       payment_method_types: ['card'],
       line_items: [
         {
@@ -121,7 +141,9 @@ export default async function handler(req, res) {
         weddingId: weddingId,
         userEmail: user.email,
         weddingName: wedding.wedding_name || 'Unnamed Wedding',
-        planType: priceId === 'price_1SHYkGDn8y3nIH6VnJNyAsE1' ? 'monthly' : (priceId === 'price_1SHYjrDn8y3nIH6VtE3aORiS' ? 'until_i_do' : 'unknown')
+        planType: planType,
+        priceAmount: priceDetails.unit_amount,
+        priceCurrency: priceDetails.currency
       }
     });
 

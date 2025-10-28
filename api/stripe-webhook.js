@@ -65,8 +65,14 @@ export default async function handler(req, res) {
         stripe_subscription_id: session.subscription || null
       };
 
+      // Enable bestie addon if plan includes "bestie"
+      if (planType && planType.includes('bestie')) {
+        updates.bestie_addon_enabled = true;
+        console.log('Enabling bestie addon for plan:', planType);
+      }
+
       // If "Until I Do" plan, set expiration to wedding date
-      if (planType === 'until_i_do') {
+      if (planType && (planType.includes('until_i_do') || planType === 'until_i_do')) {
         const { data: wedding } = await supabase
           .from('wedding_profiles')
           .select('wedding_date')

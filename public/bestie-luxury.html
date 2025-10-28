@@ -105,6 +105,9 @@
             </div>
 
             <div style="display: flex; flex-direction: column; gap: var(--space-3);">
+                <button class="btn btn-secondary btn-full" onclick="openBestieProfile()">
+                    My Bestie Profile
+                </button>
                 <button class="btn btn-secondary btn-full" onclick="viewEvents()">
                     Manage Events
                 </button>
@@ -119,6 +122,71 @@
                 </button>
                 <button class="btn btn-ghost btn-full" onclick="logout()">
                     Sign Out
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bestie Profile Modal -->
+    <div id="bestieProfileModal" class="modal hidden">
+        <div class="modal-overlay" onclick="closeBestieProfile()"></div>
+        <div class="modal-content card card-gold-accent" style="max-width: 600px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-6);">
+                <h3 style="font-family: var(--font-heading); font-size: var(--text-xl); color: var(--color-navy); margin: 0;">
+                    My Bestie Profile
+                </h3>
+                <button class="btn btn-icon-only" onclick="closeBestieProfile()" style="background: rgba(201, 169, 97, 0.2); border-color: var(--color-gold);">
+                    <svg style="width: 24px; height: 24px; fill: currentColor;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+                </button>
+            </div>
+
+            <div style="margin-bottom: var(--space-6);">
+                <label for="bestieBrief" style="display: block; color: var(--color-navy); font-weight: 600; margin-bottom: var(--space-2);">
+                    About Me (Brief for AI Assistant)
+                </label>
+                <textarea
+                    id="bestieBrief"
+                    class="form-input"
+                    rows="4"
+                    placeholder="Tell the AI about yourself, your role, and what you're planning..."
+                    style="resize: vertical; min-height: 100px;"
+                ></textarea>
+                <p style="color: var(--color-burgundy); opacity: 0.7; font-size: var(--text-sm); margin-top: var(--space-2);">
+                    This helps the AI provide personalized planning assistance. Only you and the AI can see this.
+                </p>
+            </div>
+
+            <div style="margin-bottom: var(--space-6);">
+                <h4 style="color: var(--color-navy); font-weight: 600; margin-bottom: var(--space-3);">
+                    Permissions for Wedding Owner
+                </h4>
+                <p style="color: var(--color-burgundy); opacity: 0.8; font-size: var(--text-sm); margin-bottom: var(--space-4);">
+                    Control what the person who invited you can access in your bestie planning space.
+                </p>
+
+                <div style="display: flex; flex-direction: column; gap: var(--space-3);">
+                    <label style="display: flex; align-items: center; gap: var(--space-3); cursor: pointer;">
+                        <input type="checkbox" id="canReadPermission" class="form-checkbox">
+                        <span style="color: var(--color-navy);">
+                            <strong>Can View:</strong> Allow them to see your bestie notes and planning
+                        </span>
+                    </label>
+
+                    <label style="display: flex; align-items: center; gap: var(--space-3); cursor: pointer;">
+                        <input type="checkbox" id="canEditPermission" class="form-checkbox">
+                        <span style="color: var(--color-navy);">
+                            <strong>Can Edit:</strong> Allow them to edit your bestie notes and planning
+                        </span>
+                    </label>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: var(--space-3);">
+                <button class="btn btn-secondary" style="flex: 1;" onclick="closeBestieProfile()">
+                    Cancel
+                </button>
+                <button class="btn btn-primary" style="flex: 1;" onclick="saveBestieProfile()">
+                    Save Profile
                 </button>
             </div>
         </div>
@@ -186,6 +254,125 @@
             showToast('Payment tracking coming soon! For now, ask me in the chat about tracking payments.', 'info');
             toggleMenu();
         };
+
+        // Bestie Profile Management
+        window.openBestieProfile = async function() {
+            toggleMenu();
+            await loadBestieProfile();
+            document.getElementById('bestieProfileModal').classList.remove('hidden');
+        };
+
+        window.closeBestieProfile = function() {
+            document.getElementById('bestieProfileModal').classList.add('hidden');
+        };
+
+        async function loadBestieProfile() {
+            try {
+                const { data: { session } } = await supabase.auth.getSession();
+                if (!session) {
+                    throw new Error('Not authenticated');
+                }
+
+                // Load bestie profile
+                const { data: profile, error: profileError } = await supabase
+                    .from('bestie_profile')
+                    .select('*')
+                    .eq('bestie_user_id', session.user.id)
+                    .eq('wedding_id', weddingId)
+                    .maybeSingle();
+
+                if (profileError && profileError.code !== 'PGRST116') {
+                    throw profileError;
+                }
+
+                // Load bestie permissions
+                const { data: permissions, error: permissionsError } = await supabase
+                    .from('bestie_permissions')
+                    .select('*')
+                    .eq('bestie_user_id', session.user.id)
+                    .eq('wedding_id', weddingId)
+                    .maybeSingle();
+
+                if (permissionsError && permissionsError.code !== 'PGRST116') {
+                    throw permissionsError;
+                }
+
+                // Populate form
+                document.getElementById('bestieBrief').value = profile?.bestie_brief || '';
+                document.getElementById('canReadPermission').checked = permissions?.permissions?.can_read || false;
+                document.getElementById('canEditPermission').checked = permissions?.permissions?.can_edit || false;
+
+            } catch (error) {
+                console.error('Error loading bestie profile:', error);
+                showToast('Error loading profile', 'error');
+            }
+        }
+
+        window.saveBestieProfile = async function() {
+            try {
+                const { data: { session } } = await supabase.auth.getSession();
+                if (!session) {
+                    throw new Error('Not authenticated');
+                }
+
+                const bestieBrief = document.getElementById('bestieBrief').value;
+                const canRead = document.getElementById('canReadPermission').checked;
+                const canEdit = document.getElementById('canEditPermission').checked;
+
+                // Update bestie profile
+                const { error: profileError } = await supabase
+                    .from('bestie_profile')
+                    .upsert({
+                        bestie_user_id: session.user.id,
+                        wedding_id: weddingId,
+                        bestie_brief: bestieBrief
+                    }, {
+                        onConflict: 'bestie_user_id,wedding_id'
+                    });
+
+                if (profileError) {
+                    throw profileError;
+                }
+
+                // Update bestie permissions
+                const { error: permissionsError } = await supabase
+                    .from('bestie_permissions')
+                    .upsert({
+                        bestie_user_id: session.user.id,
+                        wedding_id: weddingId,
+                        inviter_user_id: (await getInviterUserId()),
+                        permissions: {
+                            can_read: canRead,
+                            can_edit: canEdit
+                        }
+                    }, {
+                        onConflict: 'bestie_user_id,wedding_id'
+                    });
+
+                if (permissionsError) {
+                    throw permissionsError;
+                }
+
+                showToast('Profile saved successfully!', 'success');
+                closeBestieProfile();
+
+            } catch (error) {
+                console.error('Error saving bestie profile:', error);
+                showToast('Error saving profile', 'error');
+            }
+        };
+
+        async function getInviterUserId() {
+            const { data: { session } } = await supabase.auth.getSession();
+            const { data: member } = await supabase
+                .from('wedding_members')
+                .select('invited_by_user_id')
+                .eq('wedding_id', weddingId)
+                .eq('user_id', session.user.id)
+                .eq('role', 'bestie')
+                .single();
+            return member?.invited_by_user_id;
+        }
 
         // Load wedding data and verify bestie access
         async function initializeBestie() {
