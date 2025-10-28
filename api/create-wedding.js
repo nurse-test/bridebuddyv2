@@ -86,7 +86,35 @@ export default async function handler(req, res) {
     const userId = user.id;
 
     // ========================================================================
-    // STEP 3: Check if user already has a wedding
+    // STEP 3: Ensure profile exists (don't rely on database trigger)
+    // ========================================================================
+    const { data: existingProfile } = await supabaseAdmin
+      .from('profiles')
+      .select('id')
+      .eq('id', userId)
+      .single();
+
+    if (!existingProfile) {
+      // Create profile if it doesn't exist (trigger may not be deployed)
+      const { error: profileError } = await supabaseAdmin
+        .from('profiles')
+        .insert({
+          id: userId,
+          email: user.email,
+          full_name: user.user_metadata?.full_name || ''
+        });
+
+      if (profileError) {
+        console.error('Profile creation error:', profileError);
+        return res.status(500).json({
+          error: 'Failed to create user profile',
+          details: profileError.message
+        });
+      }
+    }
+
+    // ========================================================================
+    // STEP 4: Check if user already has a wedding
     // ========================================================================
     const { data: existingMembership } = await supabaseAdmin
       .from('wedding_members')
@@ -102,7 +130,7 @@ export default async function handler(req, res) {
     }
 
     // ========================================================================
-    // STEP 4: Build wedding profile data
+    // STEP 5: Build wedding profile data
     // ========================================================================
     const weddingData = {
       owner_id: userId,
@@ -135,7 +163,7 @@ export default async function handler(req, res) {
     if (planningCompleted) weddingData.planning_completed = JSON.stringify(planningCompleted);
 
     // ========================================================================
-    // STEP 5: Create wedding profile
+    // STEP 6: Create wedding profile
     // ========================================================================
     const { data: wedding, error: weddingError } = await supabaseAdmin
       .from('wedding_profiles')
@@ -152,7 +180,7 @@ export default async function handler(req, res) {
     }
 
     // ========================================================================
-    // STEP 6: Add owner to wedding_members
+    // STEP 7: Add owner to wedding_members
     // ========================================================================
     const { error: memberError } = await supabaseAdmin
       .from('wedding_members')
@@ -178,7 +206,7 @@ export default async function handler(req, res) {
     }
 
     // ========================================================================
-    // STEP 7: Return success response
+    // STEP 8: Return success response
     // ========================================================================
     return res.status(200).json({
       success: true,
