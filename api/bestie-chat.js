@@ -44,14 +44,22 @@ export default async function handler(req, res) {
     const { data: { user }, error: userError } = await supabase.auth.getUser();
     if (userError || !user) throw new Error('Invalid user token');
 
-    // Get user's wedding
+    // Get user's wedding and role
     const { data: membership, error: memberError } = await supabase
       .from('wedding_members')
-      .select('wedding_id')
+      .select('wedding_id, role')
       .eq('user_id', user.id)
       .single();
 
     if (memberError || !membership) throw new Error('No wedding profile found');
+
+    // Only besties can access bestie chat
+    if (membership.role !== 'bestie') {
+      return res.status(403).json({
+        error: 'Only besties can access bestie chat. Please use the main wedding chat instead.',
+        redirect: '/dashboard-luxury.html'
+      });
+    }
 
     const { data: weddingData, error: weddingError } = await supabase
       .from('wedding_profiles')
