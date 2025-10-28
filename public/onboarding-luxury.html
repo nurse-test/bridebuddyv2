@@ -596,26 +596,24 @@
                     body: JSON.stringify(requestData)
                 });
 
-                // Check if response is OK (status 200-299)
-                if (!response.ok) {
-                    // HTTP error occurred
-                    try {
-                        const errorData = await response.json();
-                        throw new Error(errorData.error || errorData.details || `HTTP ${response.status}: ${response.statusText}`);
-                    } catch (e) {
-                        // If JSON parsing fails, get text
-                        const errorText = await response.text();
-                        throw new Error(`HTTP ${response.status}: ${errorText || response.statusText}`);
-                    }
-                }
+                // Get response text first (can only read body once)
+                const responseText = await response.text();
 
-                // Try to parse response as JSON
+                // Try to parse as JSON
                 let data;
                 try {
-                    data = await response.json();
+                    data = JSON.parse(responseText);
                 } catch (parseError) {
-                    const textResponse = await response.text();
-                    throw new Error('Invalid response from server');
+                    // Not valid JSON
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}: ${responseText || response.statusText}`);
+                    }
+                    throw new Error('Invalid response from server: ' + responseText.substring(0, 100));
+                }
+
+                // Check if response is OK (status 200-299)
+                if (!response.ok) {
+                    throw new Error(data.error || data.details || `HTTP ${response.status}: ${response.statusText}`);
                 }
 
                 if (data.success) {
