@@ -236,6 +236,7 @@
             navigateTo,
             logout as sharedLogout
         } from '/js/shared.js';
+        import { escapeHtml } from '/js/security.js';
 
         let supabase = null;
         let weddingId = null;
@@ -487,13 +488,14 @@
                             .map(word => word.charAt(0).toUpperCase() + word.slice(1))
                             .join(' ');
 
+                        // SECURITY: Escape HTML to prevent XSS from vendor names
                         vendorItem.innerHTML = `
                             <div>
                                 <p style="margin: 0; font-size: var(--text-sm); color: var(--color-navy); font-weight: var(--font-semibold);">
-                                    ${vendorTypeFormatted}
+                                    ${escapeHtml(vendorTypeFormatted)}
                                 </p>
                                 <p style="margin: 0; font-size: var(--text-xs); color: var(--color-burgundy); opacity: 0.7; margin-top: 2px;">
-                                    ${vendor.vendor_name || 'Name not set'}
+                                    ${escapeHtml(vendor.vendor_name || 'Name not set')}
                                 </p>
                             </div>
                             <div style="color: ${vendor.deposit_paid ? 'var(--color-gold)' : 'var(--color-burgundy)'}; font-size: var(--text-lg);">
@@ -553,12 +555,13 @@
                             dueDateFormatted = dueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
                         }
 
+                        // SECURITY: Escape HTML to prevent XSS from task names
                         taskItem.innerHTML = `
                             <p style="margin: 0; font-size: var(--text-sm); color: var(--color-navy); font-weight: var(--font-semibold);">
-                                ${task.task_name}
+                                ${escapeHtml(task.task_name)}
                             </p>
                             <p style="margin: 0; font-size: var(--text-xs); color: var(--color-burgundy); opacity: 0.7;">
-                                ${dueDateFormatted}
+                                ${escapeHtml(dueDateFormatted)}
                             </p>
                         `;
                         taskList.appendChild(taskItem);

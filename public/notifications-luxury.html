@@ -93,6 +93,7 @@
     <!-- Scripts -->
     <script type="module">
         import { initSupabase, showToast } from '/js/shared.js';
+        import { escapeHtml } from '/js/security.js';
 
         // Initialize Supabase
         const supabase = initSupabase();
@@ -143,28 +144,29 @@
                 }
 
                 emptyState.classList.add('hidden');
+                // SECURITY: Escape all database content to prevent XSS
                 container.innerHTML = updates.map((update, index) => `
                     <div class="card card-champagne-accent animate-fade-in-scale" style="margin-bottom: var(--space-4); animation-delay: ${index * 0.1}s;">
                         <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: var(--space-4);">
                             <div>
-                                <div style="color: var(--color-navy); font-weight: 600; font-size: var(--text-lg);">${update.profiles.full_name}</div>
-                                <div style="color: var(--color-burgundy); opacity: 0.8; font-size: var(--text-sm);">${getUpdateTypeLabel(update.update_type)}</div>
+                                <div style="color: var(--color-navy); font-weight: 600; font-size: var(--text-lg);">${escapeHtml(update.profiles.full_name)}</div>
+                                <div style="color: var(--color-burgundy); opacity: 0.8; font-size: var(--text-sm);">${escapeHtml(getUpdateTypeLabel(update.update_type))}</div>
                             </div>
                             <div class="badge badge-warning">Pending</div>
                         </div>
 
                         <div style="background: rgba(255, 255, 255, 0.5); padding: var(--space-4); border-radius: var(--radius-md); margin-bottom: var(--space-4);">
                             <div style="color: var(--color-navy); font-weight: 600; margin-bottom: var(--space-2);">
-                                ${update.task_name || update.description || 'Update request'}
+                                ${escapeHtml(update.task_name || update.description || 'Update request')}
                             </div>
-                            ${update.amount ? `<div style="color: var(--color-navy); opacity: 0.8;">Amount: $${update.amount}</div>` : ''}
+                            ${update.amount ? `<div style="color: var(--color-navy); opacity: 0.8;">Amount: $${escapeHtml(update.amount)}</div>` : ''}
                         </div>
 
                         <div style="display: flex; gap: var(--space-3);">
-                            <button class="btn btn-secondary" style="flex: 1;" onclick="viewChat('${update.id}')">
+                            <button class="btn btn-secondary" style="flex: 1;" onclick="viewChat('${escapeHtml(update.id)}')">
                                 View Chat
                             </button>
-                            <button class="btn btn-primary" style="flex: 1;" onclick="quickApprove('${update.id}')">
+                            <button class="btn btn-primary" style="flex: 1;" onclick="quickApprove('${escapeHtml(update.id)}')">
                                 Quick Approve
                             </button>
                         </div>
@@ -189,18 +191,19 @@
                 currentUpdateId = updateId;
 
                 const modalContent = document.getElementById('modalContent');
+                // SECURITY: Escape all database content to prevent XSS
                 modalContent.innerHTML = `
                     <div style="background: rgba(201, 169, 97, 0.12); padding: var(--space-4); border-radius: var(--radius-md); margin-bottom: var(--space-4);">
-                        <div style="color: var(--color-navy); font-weight: 600; margin-bottom: var(--space-2);">Task: ${update.task_name || 'N/A'}</div>
-                        <div style="color: var(--color-navy); opacity: 0.8; margin-bottom: var(--space-2);">Action: ${getUpdateTypeLabel(update.update_type)}</div>
-                        ${update.amount ? `<div style="color: var(--color-navy); opacity: 0.8;">Amount: $${update.amount}</div>` : ''}
+                        <div style="color: var(--color-navy); font-weight: 600; margin-bottom: var(--space-2);">Task: ${escapeHtml(update.task_name || 'N/A')}</div>
+                        <div style="color: var(--color-navy); opacity: 0.8; margin-bottom: var(--space-2);">Action: ${escapeHtml(getUpdateTypeLabel(update.update_type))}</div>
+                        ${update.amount ? `<div style="color: var(--color-navy); opacity: 0.8;">Amount: $${escapeHtml(update.amount)}</div>` : ''}
                     </div>
 
                     ${update.trigger_message ? `
                         <div style="margin-bottom: var(--space-4);">
-                            <div style="color: var(--color-navy); font-weight: 600; margin-bottom: var(--space-2);">${update.profiles.full_name}'s message:</div>
+                            <div style="color: var(--color-navy); font-weight: 600; margin-bottom: var(--space-2);">${escapeHtml(update.profiles.full_name)}'s message:</div>
                             <div style="background: rgba(201, 169, 97, 0.1); padding: var(--space-4); border-radius: var(--radius-md); color: var(--color-navy);">
-                                "${update.trigger_message}"
+                                "${escapeHtml(update.trigger_message)}"
                             </div>
                         </div>
                     ` : ''}
@@ -209,7 +212,7 @@
                         <div>
                             <div style="color: var(--color-navy); font-weight: 600; margin-bottom: var(--space-2);">AI response:</div>
                             <div style="background: rgba(201, 169, 97, 0.12); padding: var(--space-4); border-radius: var(--radius-md); color: var(--color-navy);">
-                                "${update.ai_response}"
+                                "${escapeHtml(update.ai_response)}"
                             </div>
                         </div>
                     ` : ''}
