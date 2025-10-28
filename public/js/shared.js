@@ -4,11 +4,17 @@
  */
 
 // ============================================================================
+// CONFIGURATION IMPORT
+// ============================================================================
+
+import { config } from './config.js';
+
+// ============================================================================
 // CONSTANTS
 // ============================================================================
 
-const SUPABASE_URL = 'https://nluvnjydydotsrpluhey.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5sdXZuanlkeWRvdHNycGx1aGV5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA3NjE5MjAsImV4cCI6MjA3NjMzNzkyMH0.p5S8vYtZeYqp24avigifhjEDRaKv8TxJTaTkeLoE5mY';
+const SUPABASE_URL = config.supabase.url;
+const SUPABASE_ANON_KEY = config.supabase.anonKey;
 
 // CSS Spinner (replaced image-based lazy susan)
 
