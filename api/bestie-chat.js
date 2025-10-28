@@ -256,19 +256,29 @@ IMPORTANT:
 
     // Update database with extracted data from bestie chat
 
-    // 1. Insert/Update budget items in budget_tracker table
+    // 1. Insert/Update budget items in budget_tracker table (BATCHED)
     if (extractedData.budget_items && extractedData.budget_items.length > 0) {
-      for (const budgetItem of extractedData.budget_items) {
-        // Check if budget category already exists
-        const { data: existingBudget } = await supabaseService
-          .from('budget_tracker')
-          .select('id, spent_amount')
-          .eq('wedding_id', membership.wedding_id)
-          .eq('category', budgetItem.category)
-          .single();
+      // Fetch all existing budget items for this wedding in one query
+      const { data: existingBudgets } = await supabaseService
+        .from('budget_tracker')
+        .select('id, category, spent_amount')
+        .eq('wedding_id', membership.wedding_id);
 
-        if (existingBudget) {
-          // Update existing budget category
+      const existingBudgetMap = new Map();
+      if (existingBudgets) {
+        existingBudgets.forEach(b => {
+          existingBudgetMap.set(b.category, { id: b.id, spent_amount: b.spent_amount });
+        });
+      }
+
+      const budgetsToInsert = [];
+      const budgetsToUpdate = [];
+
+      for (const budgetItem of extractedData.budget_items) {
+        const existing = existingBudgetMap.get(budgetItem.category);
+
+        if (existing) {
+          // Prepare for batch update
           const budgetUpdates = {};
 
           if (budgetItem.budgeted_amount !== null && budgetItem.budgeted_amount !== undefined) {
@@ -276,7 +286,7 @@ IMPORTANT:
           }
 
           if (budgetItem.spent_amount !== null && budgetItem.spent_amount !== undefined) {
-            budgetUpdates.spent_amount = (existingBudget.spent_amount || 0) + budgetItem.spent_amount;
+            budgetUpdates.spent_amount = (existing.spent_amount || 0) + budgetItem.spent_amount;
           }
 
           if (budgetItem.transaction_date) budgetUpdates.last_transaction_date = budgetItem.transaction_date;
@@ -285,50 +295,63 @@ IMPORTANT:
           if (budgetItem.notes) budgetUpdates.notes = budgetItem.notes;
 
           if (Object.keys(budgetUpdates).length > 0) {
-            const { error: budgetUpdateError } = await supabaseService
-              .from('budget_tracker')
-              .update(budgetUpdates)
-              .eq('id', existingBudget.id);
-
-            if (budgetUpdateError) {
-              console.error('Failed to update budget:', budgetUpdateError);
-            }
+            budgetsToUpdate.push({ id: existing.id, updates: budgetUpdates });
           }
         } else {
-          // Insert new budget category
-          const { error: budgetInsertError } = await supabaseService
-            .from('budget_tracker')
-            .insert({
-              wedding_id: membership.wedding_id,
-              category: budgetItem.category,
-              budgeted_amount: budgetItem.budgeted_amount || 0,
-              spent_amount: budgetItem.spent_amount || 0,
-              last_transaction_date: budgetItem.transaction_date,
-              last_transaction_amount: budgetItem.transaction_amount,
-              last_transaction_description: budgetItem.transaction_description,
-              notes: budgetItem.notes
-            });
-
-          if (budgetInsertError) {
-            console.error('Failed to insert budget:', budgetInsertError);
-          }
+          // Prepare for batch insert
+          budgetsToInsert.push({
+            wedding_id: membership.wedding_id,
+            category: budgetItem.category,
+            budgeted_amount: budgetItem.budgeted_amount || 0,
+            spent_amount: budgetItem.spent_amount || 0,
+            last_transaction_date: budgetItem.transaction_date,
+            last_transaction_amount: budgetItem.transaction_amount,
+            last_transaction_description: budgetItem.transaction_description,
+            notes: budgetItem.notes
+          });
         }
+      }
+
+      // Batch insert new budget items
+      if (budgetsToInsert.length > 0) {
+        const { error: budgetInsertError } = await supabaseService
+          .from('budget_tracker')
+          .insert(budgetsToInsert);
+
+        if (budgetInsertError) {
+          console.error('Failed to batch insert budgets:', budgetInsertError);
+        }
+      }
+
+      // Batch update existing budget items (in parallel)
+      if (budgetsToUpdate.length > 0) {
+        await Promise.all(
+          budgetsToUpdate.map(({ id, updates }) =>
+            supabaseService
+              .from('budget_tracker')
+              .update(updates)
+              .eq('id', id)
+              .then(({ error }) => {
+                if (error) console.error('Failed to update budget:', error);
+              })
+          )
+        );
       }
     }
 
-    // 2. Insert tasks in wedding_tasks table
+    // 2. Insert tasks in wedding_tasks table (BATCHED)
     if (extractedData.tasks && extractedData.tasks.length > 0) {
-      for (const task of extractedData.tasks) {
-        const { error: taskInsertError } = await supabaseService
-          .from('wedding_tasks')
-          .insert({
-            wedding_id: membership.wedding_id,
-            ...task
-          });
+      const tasksToInsert = extractedData.tasks.map(task => ({
+        wedding_id: membership.wedding_id,
+        ...task
+      }));
 
-        if (taskInsertError) {
-          console.error('Failed to insert task:', taskInsertError);
-        }
+      const { error: taskInsertError } = await supabaseService
+        .from('wedding_tasks')
+        .insert(tasksToInsert);
+
+      if (taskInsertError) {
+        console.error('Failed to batch insert tasks:', taskInsertError);
       }
     }
 
