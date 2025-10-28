@@ -201,8 +201,27 @@
         // Make function globally available
         window.selectPlan = async function(tier, billing) {
             try {
-                // If "monthly" (Start Free Trial), skip to dashboard - trial already started
+                // If "monthly" (Start Free Trial), enable the plan and go to dashboard
                 if (billing === 'monthly') {
+                    // Enable bestie addon if VIP+Bestie plan selected
+                    if (tier === 'vip_bestie') {
+                        const { data: { session } } = await supabase.auth.getSession();
+                        if (session) {
+                            // Enable bestie addon for trial
+                            const { error } = await supabase
+                                .from('wedding_profiles')
+                                .update({ bestie_addon_enabled: true })
+                                .eq('id', weddingId);
+
+                            if (error) {
+                                console.error('Error enabling bestie addon:', error);
+                                showToast('Trial started, but bestie addon could not be enabled. Please contact support.', 'warning');
+                            } else {
+                                showToast('VIP+Bestie trial started! Bestie features enabled.', 'success');
+                            }
+                        }
+                    }
+
                     window.location.href = `dashboard-luxury.html?wedding_id=${weddingId}`;
                     return;
                 }

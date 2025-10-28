@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Manage your profile">
+    <title>Bride Buddy - My Profile</title>
+
+    <!-- Preconnect to font providers -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="/css/styles-luxury.css">
+    <link rel="stylesheet" href="/css/components-luxury.css">
+</head>
+<body>
+    <!-- Skip to main content for accessibility -->
+    <a href="#main-content" class="skip-to-main">Skip to main content</a>
+
+    <!-- Profile Page Container -->
+    <div class="bg-sunset">
+        <div class="container" style="min-height: 100vh; padding-top: var(--space-8); padding-bottom: var(--space-8); max-width: 600px;">
+
+            <!-- Header -->
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--space-8);" class="animate-fade-in">
+                <button onclick="goBack()" class="btn btn-icon-only" style="background: rgba(201, 169, 97, 0.2); border-color: var(--color-gold);">
+                    <svg style="width: 24px; height: 24px; fill: currentColor;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
+                </button>
+                <h2 style="font-family: var(--font-heading); font-size: var(--text-2xl); color: var(--color-navy); margin: 0;">
+                    My Profile
+                </h2>
+                <div style="width: 48px;"></div>
+            </div>
+
+            <!-- Profile Form -->
+            <main id="main-content">
+                <div class="card card-gold-accent animate-fade-in" style="animation-delay: 0.1s;">
+                    <form id="profileForm">
+                        <!-- Full Name -->
+                        <div style="margin-bottom: var(--space-6);">
+                            <label for="fullName" style="display: block; color: var(--color-navy); font-weight: 600; margin-bottom: var(--space-2);">
+                                Full Name
+                            </label>
+                            <input
+                                type="text"
+                                id="fullName"
+                                class="form-input"
+                                placeholder="Enter your full name"
+                                required
+                            >
+                        </div>
+
+                        <!-- Email (read-only) -->
+                        <div style="margin-bottom: var(--space-6);">
+                            <label for="email" style="display: block; color: var(--color-navy); font-weight: 600; margin-bottom: var(--space-2);">
+                                Email Address
+                            </label>
+                            <input
+                                type="email"
+                                id="email"
+                                class="form-input"
+                                readonly
+                                disabled
+                                style="background: rgba(201, 169, 97, 0.1); cursor: not-allowed;"
+                            >
+                            <p style="color: var(--color-burgundy); opacity: 0.7; font-size: var(--text-sm); margin-top: var(--space-2);">
+                                Email address cannot be changed. Contact support if you need to update your email.
+                            </p>
+                        </div>
+
+                        <!-- Member Since -->
+                        <div style="margin-bottom: var(--space-6);">
+                            <label style="display: block; color: var(--color-navy); font-weight: 600; margin-bottom: var(--space-2);">
+                                Member Since
+                            </label>
+                            <div id="memberSince" style="color: var(--color-burgundy); opacity: 0.8; font-size: var(--text-lg);">
+                                Loading...
+                            </div>
+                        </div>
+
+                        <!-- Save Button -->
+                        <div style="display: flex; gap: var(--space-3);">
+                            <button type="button" class="btn btn-secondary" style="flex: 1;" onclick="goBack()">
+                                Cancel
+                            </button>
+                            <button type="submit" class="btn btn-primary" style="flex: 1;" id="saveBtn">
+                                Save Profile
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Password Change Section -->
+                <div class="card card-champagne-accent animate-fade-in" style="margin-top: var(--space-6); animation-delay: 0.2s;">
+                    <h3 style="font-family: var(--font-heading); font-size: var(--text-xl); color: var(--color-navy); margin-bottom: var(--space-4);">
+                        Change Password
+                    </h3>
+                    <p style="color: var(--color-burgundy); opacity: 0.8; margin-bottom: var(--space-4);">
+                        To change your password, use the settings page or password reset flow.
+                    </p>
+                    <button class="btn btn-secondary" onclick="goToSettings()">
+                        Go to Settings
+                    </button>
+                </div>
+            </main>
+
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <!-- Scripts -->
+    <script type="module">
+        import { initSupabase, showToast } from '/js/shared.js';
+
+        // Initialize Supabase
+        const supabase = initSupabase();
+
+        // Get wedding_id from URL (optional)
+        const urlParams = new URLSearchParams(window.location.search);
+        const weddingId = urlParams.get('wedding_id');
+
+        // Make functions globally available
+        window.goBack = function() {
+            if (weddingId) {
+                window.location.href = `dashboard-luxury.html?wedding_id=${weddingId}`;
+            } else {
+                window.location.href = 'dashboard-luxury.html';
+            }
+        };
+
+        window.goToSettings = function() {
+            if (weddingId) {
+                window.location.href = `settings-luxury.html?wedding_id=${weddingId}`;
+            } else {
+                window.location.href = 'settings-luxury.html';
+            }
+        };
+
+        async function loadProfile() {
+            try {
+                const { data: { session } } = await supabase.auth.getSession();
+                if (!session) {
+                    showToast('Please log in to continue', 'error');
+                    window.location.href = 'login-luxury.html';
+                    return;
+                }
+
+                // Load profile from database
+                const { data: profile, error } = await supabase
+                    .from('profiles')
+                    .select('*')
+                    .eq('id', session.user.id)
+                    .single();
+
+                if (error) throw error;
+
+                // Populate form
+                document.getElementById('fullName').value = profile.full_name || '';
+                document.getElementById('email').value = profile.email || session.user.email || '';
+
+                // Format member since date
+                const memberSinceDate = new Date(profile.created_at);
+                document.getElementById('memberSince').textContent = memberSinceDate.toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                });
+
+            } catch (error) {
+                console.error('Error loading profile:', error);
+                showToast('Error loading profile', 'error');
+            }
+        }
+
+        // Handle form submission
+        document.getElementById('profileForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const saveBtn = document.getElementById('saveBtn');
+            const fullName = document.getElementById('fullName').value.trim();
+
+            if (!fullName) {
+                showToast('Please enter your full name', 'error');
+                return;
+            }
+
+            try {
+                saveBtn.disabled = true;
+                saveBtn.textContent = 'Saving...';
+
+                const { data: { session } } = await supabase.auth.getSession();
+                if (!session) {
+                    throw new Error('Not authenticated');
+                }
+
+                // Update profile
+                const { error } = await supabase
+                    .from('profiles')
+                    .update({
+                        full_name: fullName
+                    })
+                    .eq('id', session.user.id);
+
+                if (error) throw error;
+
+                showToast('Profile updated successfully!', 'success');
+
+                // Redirect back after a short delay
+                setTimeout(() => {
+                    goBack();
+                }, 1500);
+
+            } catch (error) {
+                console.error('Error updating profile:', error);
+                showToast('Error updating profile', 'error');
+                saveBtn.disabled = false;
+                saveBtn.textContent = 'Save Profile';
+            }
+        });
+
+        // Initialize
+        loadProfile();
+    </script>
+
+    <!-- Custom Styles -->
+    <style>
+        @media (max-width: 768px) {
+            .card {
+                padding: var(--space-4) !important;
+            }
+        }
+    </style>
+</body>
+</html>

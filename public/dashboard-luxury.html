@@ -54,10 +54,10 @@
                     </button>
 
                     <div class="dropdown-menu" id="userDropdown" role="menu">
-                        <a href="#" class="dropdown-item" role="menuitem">
+                        <a href="profile-luxury.html" class="dropdown-item" role="menuitem" id="profileLink">
                             <span>👤</span> Profile
                         </a>
-                        <a href="#" class="dropdown-item" role="menuitem">
+                        <a href="settings-luxury.html" class="dropdown-item" role="menuitem" id="settingsLink">
                             <span>⚙️</span> Settings
                         </a>
                         <div class="dropdown-divider"></div>
@@ -86,7 +86,7 @@
                         </a>
                     </li>
                     <li class="sidebar-item">
-                        <a href="#" class="sidebar-link">
+                        <a href="team-luxury.html" class="sidebar-link" id="teamLink">
                             <span class="sidebar-icon">👥</span>
                             Team
                         </a>
@@ -104,7 +104,7 @@
                         </a>
                     </li>
                     <li class="sidebar-item">
-                        <a href="#" class="sidebar-link">
+                        <a href="settings-luxury.html" class="sidebar-link" id="settingsSidebarLink">
                             <span class="sidebar-icon">⚙️</span>
                             Settings
                         </a>
@@ -214,11 +214,11 @@
                 <span class="bottom-nav-icon">💬</span>
                 Chat
             </a>
-            <a href="#" class="bottom-nav-item">
+            <a href="team-luxury.html" class="bottom-nav-item" id="teamBottomLink">
                 <span class="bottom-nav-icon">👥</span>
                 Team
             </a>
-            <a href="#" class="bottom-nav-item">
+            <a href="settings-luxury.html" class="bottom-nav-item" id="settingsBottomLink">
                 <span class="bottom-nav-icon">⚙️</span>
                 Settings
             </a>
@@ -329,6 +329,17 @@
                 // Update wedding name
                 const weddingName = wedding.wedding_name || `${wedding.partner1_name || 'Partner 1'} & ${wedding.partner2_name || 'Partner 2'}`;
                 document.getElementById('weddingName').textContent = weddingName;
+
+                // Update navigation links with wedding_id
+                const navLinks = ['profileLink', 'settingsLink', 'teamLink', 'settingsSidebarLink', 'teamBottomLink', 'settingsBottomLink'];
+                navLinks.forEach(linkId => {
+                    const link = document.getElementById(linkId);
+                    if (link && weddingId) {
+                        const url = new URL(link.href);
+                        url.searchParams.set('wedding_id', weddingId);
+                        link.href = url.toString();
+                    }
+                });
 
                 // Update trial badge
                 updateTrialBadge(wedding);

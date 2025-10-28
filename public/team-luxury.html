@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Manage your wedding planning team">
+    <title>Bride Buddy - Team Management</title>
+
+    <!-- Preconnect to font providers -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="/css/styles-luxury.css">
+    <link rel="stylesheet" href="/css/components-luxury.css">
+</head>
+<body>
+    <!-- Skip to main content for accessibility -->
+    <a href="#main-content" class="skip-to-main">Skip to main content</a>
+
+    <!-- Team Page Container -->
+    <div class="bg-sunset">
+        <div class="container" style="min-height: 100vh; padding-top: var(--space-8); padding-bottom: var(--space-8);">
+
+            <!-- Header -->
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--space-8);" class="animate-fade-in">
+                <button onclick="goBack()" class="btn btn-icon-only" style="background: rgba(201, 169, 97, 0.2); border-color: var(--color-gold);">
+                    <svg style="width: 24px; height: 24px; fill: currentColor;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
+                </button>
+                <h2 style="font-family: var(--font-heading); font-size: var(--text-2xl); color: var(--color-navy); margin: 0;">
+                    Team Management
+                </h2>
+                <button onclick="inviteTeamMember()" class="btn btn-primary">
+                    <svg style="width: 20px; height: 20px; fill: currentColor; margin-right: var(--space-2);" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+                    Invite
+                </button>
+            </div>
+
+            <!-- Team Members List -->
+            <main id="main-content">
+                <div id="teamMembersList" class="animate-fade-in" style="animation-delay: 0.1s;">
+                    <p style="text-align: center; color: var(--color-burgundy); opacity: 0.7;">Loading...</p>
+                </div>
+            </main>
+
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <!-- Scripts -->
+    <script type="module">
+        import { initSupabase, showToast } from '/js/shared.js';
+
+        // Initialize Supabase
+        const supabase = initSupabase();
+
+        // Get wedding_id from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const weddingId = urlParams.get('wedding_id');
+        let currentUserRole = null;
+
+        // Make functions globally available
+        window.goBack = function() {
+            window.location.href = `dashboard-luxury.html?wedding_id=${weddingId}`;
+        };
+
+        window.inviteTeamMember = function() {
+            window.location.href = `invite-luxury.html?wedding_id=${weddingId}`;
+        };
+
+        function getRoleBadge(role) {
+            const badges = {
+                'owner': '<span class="badge badge-primary">Owner</span>',
+                'member': '<span class="badge badge-secondary">Co-Planner</span>',
+                'bestie': '<span class="badge badge-success">Bestie</span>',
+                'partner': '<span class="badge badge-primary">Partner</span>'
+            };
+            return badges[role] || `<span class="badge badge-secondary">${role}</span>`;
+        }
+
+        function getRoleIcon(role) {
+            const icons = {
+                'owner': '👑',
+                'partner': '💍',
+                'member': '👤',
+                'bestie': '💖'
+            };
+            return icons[role] || '👤';
+        }
+
+        async function loadTeamMembers() {
+            try {
+                const { data: { session } } = await supabase.auth.getSession();
+                if (!session) {
+                    showToast('Please log in to continue', 'error');
+                    window.location.href = 'login-luxury.html';
+                    return;
+                }
+
+                // Get current user's role
+                const { data: currentMember } = await supabase
+                    .from('wedding_members')
+                    .select('role')
+                    .eq('wedding_id', weddingId)
+                    .eq('user_id', session.user.id)
+                    .single();
+
+                currentUserRole = currentMember?.role;
+
+                // Load all team members
+                const { data: members, error } = await supabase
+                    .from('wedding_members')
+                    .select(`
+                        *,
+                        profiles (full_name, email),
+                        invited_by:profiles!invited_by_user_id (full_name)
+                    `)
+                    .eq('wedding_id', weddingId)
+                    .order('created_at', { ascending: true });
+
+                if (error) throw error;
+
+                const container = document.getElementById('teamMembersList');
+
+                if (!members || members.length === 0) {
+                    container.innerHTML = `
+                        <div class="card card-gold-accent text-center">
+                            <p style="color: var(--color-burgundy); opacity: 0.7;">No team members found.</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                container.innerHTML = members.map((member, index) => {
+                    const isCurrentUser = member.user_id === session.user.id;
+                    const permissions = member.wedding_profile_permissions || {};
+                    const canEdit = permissions.can_edit === true;
+                    const canRead = permissions.can_read === true;
+
+                    return `
+                        <div class="card card-champagne-accent animate-fade-in-scale" style="margin-bottom: var(--space-4); animation-delay: ${index * 0.1}s;">
+                            <div style="display: flex; justify-content: space-between; align-items: start; gap: var(--space-4);">
+                                <div style="flex: 1;">
+                                    <div style="display: flex; align-items: center; gap: var(--space-2); margin-bottom: var(--space-2);">
+                                        <span style="font-size: var(--text-2xl);">${getRoleIcon(member.role)}</span>
+                                        <div>
+                                            <div style="color: var(--color-navy); font-weight: 600; font-size: var(--text-lg);">
+                                                ${member.profiles?.full_name || 'Unknown'}
+                                                ${isCurrentUser ? '<span style="opacity: 0.7;">(You)</span>' : ''}
+                                            </div>
+                                            <div style="color: var(--color-burgundy); opacity: 0.8; font-size: var(--text-sm);">
+                                                ${member.profiles?.email || ''}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    ${member.invited_by?.full_name ? `
+                                        <div style="color: var(--color-burgundy); opacity: 0.7; font-size: var(--text-sm); margin-bottom: var(--space-2);">
+                                            Invited by ${member.invited_by.full_name}
+                                        </div>
+                                    ` : ''}
+
+                                    ${member.role !== 'owner' && (canRead || canEdit) ? `
+                                        <div style="color: var(--color-burgundy); opacity: 0.8; font-size: var(--text-sm);">
+                                            Permissions: ${canEdit ? 'Can Edit' : canRead ? 'Can View' : 'None'}
+                                        </div>
+                                    ` : ''}
+                                </div>
+
+                                <div style="display: flex; flex-direction: column; gap: var(--space-2); align-items: flex-end;">
+                                    ${getRoleBadge(member.role)}
+                                    ${member.role === 'bestie' ? `
+                                        <div style="font-size: var(--text-xs); color: var(--color-burgundy); opacity: 0.7;">
+                                            Private planning
+                                        </div>
+                                    ` : ''}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+            } catch (error) {
+                console.error('Error loading team members:', error);
+                showToast('Error loading team members', 'error');
+            }
+        }
+
+        // Initialize
+        if (!weddingId) {
+            showToast('No wedding selected', 'error');
+            window.location.href = 'dashboard-luxury.html';
+        } else {
+            loadTeamMembers();
+        }
+    </script>
+
+    <!-- Custom Styles -->
+    <style>
+        .badge {
+            display: inline-block;
+            padding: var(--space-1) var(--space-3);
+            border-radius: var(--radius-full);
+            font-size: var(--text-xs);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .badge-primary {
+            background: linear-gradient(135deg, var(--color-accent), var(--color-accent-dark));
+            color: var(--color-white);
+        }
+
+        .badge-secondary {
+            background: rgba(201, 169, 97, 0.2);
+            color: var(--color-navy);
+        }
+
+        .badge-success {
+            background: linear-gradient(135deg, #D946A6, #C026D3);
+            color: var(--color-white);
+        }
+
+        @media (max-width: 768px) {
+            .card {
+                padding: var(--space-4) !important;
+            }
+        }
+    </style>
+</body>
+</html>
