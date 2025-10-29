@@ -8,6 +8,22 @@
 -- ============================================================================
 
 -- ============================================================================
+-- STEP 0: Ensure required columns exist
+-- ============================================================================
+-- Add wedding_profile_permissions column if it doesn't exist
+
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'invite_codes' AND column_name = 'wedding_profile_permissions'
+  ) THEN
+    ALTER TABLE invite_codes
+      ADD COLUMN wedding_profile_permissions JSONB DEFAULT '{"read": false, "edit": false}'::jsonb;
+  END IF;
+END $$;
+
+-- ============================================================================
 -- STEP 1: Drop and recreate is_invite_valid function
 -- ============================================================================
 -- This function checks if an invite token is valid
@@ -78,11 +94,9 @@ SELECT
   ic.used_by,
   ic.used_at,
   wp.partner1_name,
-  wp.partner2_name,
-  u.email AS creator_email
+  wp.partner2_name
 FROM invite_codes ic
 JOIN wedding_profiles wp ON ic.wedding_id = wp.id
-LEFT JOIN auth.users u ON ic.created_by = u.id
 WHERE (ic.is_used = false OR ic.is_used IS NULL);
 
 -- Grant access to view
