@@ -49,7 +49,36 @@ CREATE TABLE IF NOT EXISTS profiles (
 CREATE INDEX IF NOT EXISTS profiles_id_idx ON profiles(id);
 CREATE INDEX IF NOT EXISTS profiles_is_owner_idx ON profiles(is_owner);
 
--- TABLE 2: chat_messages
+-- TABLE 2: wedding_profiles
+CREATE TABLE IF NOT EXISTS wedding_profiles (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  owner_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS wedding_profiles_owner_id_idx ON wedding_profiles(owner_id);
+CREATE INDEX IF NOT EXISTS wedding_profiles_created_at_idx ON wedding_profiles(created_at DESC);
+
+-- TABLE 3: wedding_members
+CREATE TABLE IF NOT EXISTS wedding_members (
+  wedding_id UUID NOT NULL REFERENCES wedding_profiles(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  role TEXT NOT NULL,
+  PRIMARY KEY (wedding_id, user_id)
+);
+
+CREATE INDEX IF NOT EXISTS wedding_members_user_id_idx ON wedding_members(user_id);
+CREATE INDEX IF NOT EXISTS wedding_members_wedding_id_idx ON wedding_members(wedding_id);
+CREATE INDEX IF NOT EXISTS wedding_members_role_idx ON wedding_members(role);
+
+-- Add role constraint: Only 'owner', 'partner', 'bestie' allowed
+ALTER TABLE wedding_members DROP CONSTRAINT IF EXISTS wedding_members_role_check;
+ALTER TABLE wedding_members
+  ADD CONSTRAINT wedding_members_role_check
+  CHECK (role IN ('owner', 'partner', 'bestie'));
+
+-- TABLE 5: chat_messages
 CREATE TABLE IF NOT EXISTS chat_messages (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   wedding_id UUID NOT NULL REFERENCES wedding_profiles(id) ON DELETE CASCADE,
@@ -64,7 +93,7 @@ CREATE INDEX IF NOT EXISTS chat_messages_wedding_id_idx ON chat_messages(wedding
 CREATE INDEX IF NOT EXISTS chat_messages_user_id_idx ON chat_messages(user_id);
 CREATE INDEX IF NOT EXISTS chat_messages_created_at_idx ON chat_messages(created_at DESC);
 
--- TABLE 3: pending_updates
+-- TABLE 6: pending_updates
 CREATE TABLE IF NOT EXISTS pending_updates (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   wedding_id UUID NOT NULL REFERENCES wedding_profiles(id) ON DELETE CASCADE,
@@ -81,7 +110,7 @@ CREATE INDEX IF NOT EXISTS pending_updates_wedding_id_idx ON pending_updates(wed
 CREATE INDEX IF NOT EXISTS pending_updates_status_idx ON pending_updates(status);
 CREATE INDEX IF NOT EXISTS pending_updates_created_at_idx ON pending_updates(created_at DESC);
 
--- TABLE 4: invite_codes
+-- TABLE 7: invite_codes
 CREATE TABLE IF NOT EXISTS invite_codes (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   wedding_id UUID NOT NULL REFERENCES wedding_profiles(id) ON DELETE CASCADE,
@@ -837,6 +866,19 @@ END $$;
 UPDATE invite_codes
 SET invite_token = code
 WHERE invite_token IS NULL AND code IS NOT NULL;
+
+-- Add role constraint: Only 'partner' and 'bestie' can be invited
+-- (owner is created during wedding creation, not via invite)
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'invite_codes_role_check'
+  ) THEN
+    ALTER TABLE invite_codes
+      ADD CONSTRAINT invite_codes_role_check
+      CHECK (role IN ('partner', 'bestie'));
+  END IF;
+END $$;
 
 -- ============================================================================
 -- STEP 9.5: FIX INVITE FUNCTIONS (SCHEMA MISMATCH)
