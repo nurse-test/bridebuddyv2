@@ -282,21 +282,16 @@
             if (inviteData.role === 'partner') {
                 html += permissionItem('👑', '<strong>Full Partner Access</strong>', true);
                 html += permissionItem('👁️', 'Can view and edit all wedding details', true);
-                html += permissionItem('✉️', 'Can invite additional team members', true);
+                html += permissionItem('✉️', 'Can invite besties', true);
             } else if (inviteData.role === 'bestie') {
                 html += permissionItem('💖', '<strong>Bestie Access</strong>', true);
                 html += permissionItem('🤫', 'Private bestie planning space', true);
                 html += permissionItem('👁️', 'Can view wedding details', canRead);
-                html += permissionItem('✏️', 'Can edit wedding details', canEdit);
+                html += permissionItem('✏️', 'Limited editing access', canEdit);
             } else if (inviteData.role === 'owner') {
                 html += permissionItem('👑', '<strong>Owner Access</strong>', true);
                 html += permissionItem('👁️', 'Can view and edit all wedding details', true);
-                html += permissionItem('✉️', 'Can invite and manage team members', true);
-            } else {
-                // Fallback for any unexpected role
-                html += permissionItem('👥', '<strong>Wedding Team Member</strong>', true);
-                html += permissionItem('👁️', 'Can view wedding details', canRead);
-                html += permissionItem('✏️', 'Can edit wedding details', canEdit);
+                html += permissionItem('✉️', 'Can invite partner and besties', true);
             }
 
             permissionsDisplay.innerHTML = html;

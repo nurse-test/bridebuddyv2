@@ -48,7 +48,7 @@
                         Invite Your Partner
                     </h3>
                     <p style="color: var(--color-burgundy); opacity: 0.8; margin-bottom: var(--space-6);">
-                        Invite your fiancé(e) to co-manage the wedding planning. You'll both have your own AI chats that populate the same wedding details, vendors, budget, and tasks.
+                        Share full access with your fiancé(e) or spouse. You'll both have complete access to all wedding details, vendors, budget, and tasks.
                     </p>
 
                     <button
@@ -68,7 +68,7 @@
                         Invite Your Besties
                     </h3>
                     <p style="color: var(--color-burgundy); opacity: 0.8; margin-bottom: var(--space-6);">
-                        Invite your Maid of Honor or Best Man (max 2 total). Each bestie gets their own private planning space to organize bachelorette/bachelor parties and bridal showers.
+                        Invite your Maid of Honor or Best Man (max 2 total). Each bestie gets their own private planning space and can view wedding details.
                     </p>
 
                     <button
@@ -347,7 +347,7 @@
                         }
                     }
 
-                    const roleDisplay = role === 'partner' ? 'Partner' : role === 'bestie' ? 'Bestie' : 'Team Member';
+                    const roleDisplay = role === 'partner' ? 'Partner' : role === 'bestie' ? 'Bestie' : 'Unknown';
                     const roleColor = role === 'partner' ? 'var(--color-gold)' : 'var(--color-rust)';
                     const inviteUrl = sanitizeUrl(`${window.location.origin}/accept-invite-luxury.html?token=${escapeHtml(token)}`);
 

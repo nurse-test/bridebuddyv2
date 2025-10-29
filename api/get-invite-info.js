@@ -160,20 +160,23 @@ export default async function handler(req, res) {
       intendedRole = invite.role;
     }
 
-    // Only 3 valid roles: owner, partner, bestie
+    // ONLY 3 valid roles: owner, partner, bestie
     const roleDisplayNames = {
       owner: 'Owner',
-      partner: 'Partner',
-      bestie: 'Bestie (MOH/Best Man)'
+      partner: 'Wedding Partner',
+      bestie: 'Bestie'
     };
-    const roleDisplay = roleDisplayNames[intendedRole] || 'Wedding Team Member';
+    const roleDisplay = roleDisplayNames[intendedRole] || 'Unknown';
 
-    // Set permissions based on intended role
-    const permissions = intendedRole === 'partner'
-      ? { read: true, edit: true }  // Partner gets full access
+    // Set permissions based on role:
+    // - Owner: Full access (read + edit)
+    // - Partner: Full access (read + edit)
+    // - Bestie: View access (read only, no edit)
+    const permissions = intendedRole === 'partner' || intendedRole === 'owner'
+      ? { read: true, edit: true }  // Full access for partner and owner
       : intendedRole === 'bestie'
-      ? { read: false, edit: false }  // Bestie gets no wedding profile access
-      : { read: true, edit: false };  // Default view-only
+      ? { read: true, edit: false }  // View only for bestie
+      : { read: false, edit: false };  // Default no access
 
     // Override with database permissions if present (for migrated schemas)
     const finalPermissions = invite.wedding_profile_permissions || permissions;

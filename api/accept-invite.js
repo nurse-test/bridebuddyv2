@@ -154,23 +154,24 @@ export default async function handler(req, res) {
       }
     }
 
-    // Override database role if present (for migrated schemas)
+    // Override with database role if present (for migrated schemas)
     if (invite.role) {
       intendedRole = invite.role;
     }
 
-    // wedding_members CHECK constraint allows: 'owner', 'partner', 'bestie'
-    // Use the intended role directly (no mapping needed)
+    // ONLY 3 valid roles: owner, partner, bestie
+    // Use the intended role directly
     const dbRole = intendedRole;
 
-    // Set permissions based on role
-    // Owner and Partner: Full access (read + edit)
-    // Bestie: No wedding profile access (bestie chat only)
+    // Set permissions based on role:
+    // - Owner: Full access (read + edit)
+    // - Partner: Full access (read + edit)
+    // - Bestie: View access (read only, no edit)
     const permissions = (intendedRole === 'owner' || intendedRole === 'partner')
-      ? { read: true, edit: true }  // Full access
+      ? { read: true, edit: true }  // Full access for owner and partner
       : intendedRole === 'bestie'
-      ? { read: false, edit: false }  // Bestie access only
-      : { read: true, edit: false };  // Default view-only
+      ? { read: true, edit: false }  // View only for bestie
+      : { read: false, edit: false };  // Default no access
 
     // Override with database permissions if present (for migrated schemas)
     const finalPermissions = invite.wedding_profile_permissions || {
