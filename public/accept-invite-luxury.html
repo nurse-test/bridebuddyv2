@@ -288,8 +288,13 @@
                 html += permissionItem('🤫', 'Private bestie planning space', true);
                 html += permissionItem('👁️', 'Can view wedding details', canRead);
                 html += permissionItem('✏️', 'Can edit wedding details', canEdit);
-            } else { // co_planner
-                html += permissionItem('🤝', '<strong>Co-planner Access</strong>', true);
+            } else if (inviteData.role === 'owner') {
+                html += permissionItem('👑', '<strong>Owner Access</strong>', true);
+                html += permissionItem('👁️', 'Can view and edit all wedding details', true);
+                html += permissionItem('✉️', 'Can invite and manage team members', true);
+            } else {
+                // Fallback for any unexpected role
+                html += permissionItem('👥', '<strong>Wedding Team Member</strong>', true);
                 html += permissionItem('👁️', 'Can view wedding details', canRead);
                 html += permissionItem('✏️', 'Can edit wedding details', canEdit);
             }
