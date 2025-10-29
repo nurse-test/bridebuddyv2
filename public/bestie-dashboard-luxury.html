@@ -309,16 +309,31 @@
         // Load and display wedding data
         async function initializeDashboard() {
             try {
+                console.log('🚀 Initializing bestie dashboard...');
                 const result = await loadWeddingData();
+                console.log('✅ Wedding data loaded:', { weddingId: result.weddingId, role: result.member?.role });
+
                 weddingId = result.weddingId;
                 wedding = result.wedding;
                 user = result.user;
                 const member = result.member;
 
                 // Ensure user is actually a bestie
-                if (member && member.role !== 'bestie') {
-                    console.log('Non-bestie user detected, redirecting to main dashboard');
-                    window.location.href = `dashboard-luxury.html?wedding_id=${weddingId}`;
+                if (!member) {
+                    console.error('❌ No wedding member record found');
+                    showToast('error', 'Access Error', 'You are not a member of this wedding. Please contact the wedding owner.');
+                    setTimeout(() => {
+                        window.location.href = 'login-luxury.html';
+                    }, 3000);
+                    return;
+                }
+
+                if (member.role !== 'bestie') {
+                    console.log('Non-bestie user detected, redirecting to main dashboard. Role:', member.role);
+                    showToast('info', 'Redirecting', 'Redirecting to main dashboard...');
+                    setTimeout(() => {
+                        window.location.href = `dashboard-luxury.html?wedding_id=${weddingId}`;
+                    }, 1000);
                     return;
                 }
 
@@ -362,15 +377,34 @@
                 }
 
                 // Load bestie-specific sections in parallel
+                console.log('📊 Loading bestie data sections...');
                 await Promise.all([
                     loadBestieTasks(),
                     loadBestieExpenses(),
                     loadBestieNotes()
                 ]);
+                console.log('✅ All bestie data sections loaded successfully');
 
             } catch (error) {
-                console.error('Dashboard initialization error:', error);
-                showToast('error', 'Error', 'Failed to load dashboard data');
+                console.error('❌ Dashboard initialization error:', error);
+                console.error('Error details:', {
+                    message: error.message,
+                    stack: error.stack
+                });
+
+                let errorMessage = 'Failed to load dashboard';
+                if (error.message.includes('wedding membership')) {
+                    errorMessage = 'You need to be added to a wedding first. Please ask for an invite.';
+                } else if (error.message.includes('authenticated')) {
+                    errorMessage = 'Please log in to continue.';
+                    setTimeout(() => {
+                        window.location.href = 'login-luxury.html';
+                    }, 2000);
+                } else if (error.message) {
+                    errorMessage = `Error: ${error.message}`;
+                }
+
+                showToast('error', 'Error Loading Dashboard', errorMessage, 10000);
             }
         }
 
