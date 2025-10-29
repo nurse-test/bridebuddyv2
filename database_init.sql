@@ -536,7 +536,7 @@ CREATE TABLE IF NOT EXISTS bestie_permissions (
   permissions JSONB NOT NULL DEFAULT '{"can_read": false, "can_edit": false}'::jsonb,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW(),
-  CONSTRAINT unique_bestie_per_wedding UNIQUE (bestie_user_id, wedding_id),
+  CONSTRAINT unique_bestie_permissions_per_wedding UNIQUE (bestie_user_id, wedding_id),
   CONSTRAINT bestie_not_inviter CHECK (bestie_user_id != inviter_user_id)
 );
 
@@ -633,7 +633,7 @@ CREATE TABLE IF NOT EXISTS bestie_profile (
   bestie_brief TEXT,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW(),
-  CONSTRAINT unique_bestie_per_wedding UNIQUE (bestie_user_id, wedding_id)
+  CONSTRAINT unique_bestie_profile_per_wedding UNIQUE (bestie_user_id, wedding_id)
 );
 
 CREATE INDEX IF NOT EXISTS idx_bestie_profile_bestie_user ON bestie_profile(bestie_user_id);
