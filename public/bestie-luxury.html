@@ -215,10 +215,29 @@
         // Initialize Supabase
         const supabase = initSupabase();
 
-        // Get wedding_id from URL
-        let weddingId = null;
-        let userRole = null;
+        // Get wedding_id from URL params or localStorage
+        const urlParams = new URLSearchParams(window.location.search);
+        let weddingId = urlParams.get('wedding_id') || localStorage.getItem('wedding_id');
+        let userRole = localStorage.getItem('user_role') || 'bestie';
         let conversationHistory = [];
+
+        // Log initialization for debugging
+        console.log('🔵 [BESTIE-CHAT] Initializing...');
+        console.log('🔵 [BESTIE-CHAT] URL wedding_id:', urlParams.get('wedding_id'));
+        console.log('🔵 [BESTIE-CHAT] localStorage wedding_id:', localStorage.getItem('wedding_id'));
+        console.log('🔵 [BESTIE-CHAT] Final wedding_id:', weddingId);
+
+        // If no wedding_id, redirect to dashboard
+        if (!weddingId) {
+            console.error('❌ [BESTIE-CHAT] No wedding_id found - redirecting to dashboard');
+            showToast('No wedding found. Please navigate from your dashboard.', 'error');
+            setTimeout(() => {
+                window.location.href = '/bestie-dashboard-luxury.html';
+            }, 2000);
+            throw new Error('No wedding_id available');
+        }
+
+        console.log('✅ [BESTIE-CHAT] Bestie chat loaded with wedding_id:', weddingId);
 
         // Make functions globally available
         window.goBack = function() {
