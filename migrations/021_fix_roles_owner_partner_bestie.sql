@@ -16,20 +16,35 @@ BEGIN;
 -- STEP 1: Update invite_codes table
 -- ============================================================================
 
--- Drop old role constraint if it exists
+-- Drop old role constraint if it exists (must do this BEFORE updating data)
 ALTER TABLE invite_codes DROP CONSTRAINT IF EXISTS invite_codes_role_check;
 
--- Add new constraint: Only 'partner' and 'bestie' can be invited
--- (owner is created during wedding creation, not via invite)
-ALTER TABLE invite_codes
-  ADD CONSTRAINT invite_codes_role_check
-  CHECK (role IN ('partner', 'bestie'));
+-- Update any existing NULL or invalid roles to 'bestie' FIRST
+-- Set any NULL roles to 'bestie' as default
+UPDATE invite_codes
+SET role = 'bestie'
+WHERE role IS NULL;
 
 -- Update any existing 'co_planner' invites to 'bestie'
 -- (co_planner is closest to bestie functionality)
 UPDATE invite_codes
 SET role = 'bestie'
-WHERE role = 'co_planner' OR role = 'member' OR role NOT IN ('partner', 'bestie');
+WHERE role = 'co_planner' OR role = 'member';
+
+-- Update any other invalid roles to 'bestie'
+UPDATE invite_codes
+SET role = 'bestie'
+WHERE role NOT IN ('partner', 'bestie');
+
+-- NOW add new constraint: Only 'partner' and 'bestie' can be invited
+-- (owner is created during wedding creation, not via invite)
+ALTER TABLE invite_codes
+  ADD CONSTRAINT invite_codes_role_check
+  CHECK (role IN ('partner', 'bestie'));
+
+-- Make role NOT NULL now that all rows have valid values
+ALTER TABLE invite_codes
+  ALTER COLUMN role SET NOT NULL;
 
 -- Update permissions for existing invites
 -- Partner: Full access (read + edit)
@@ -48,18 +63,32 @@ WHERE role = 'bestie'
 -- STEP 2: Update wedding_members table
 -- ============================================================================
 
--- Drop old role constraint if it exists
+-- Drop old role constraint if it exists (must do this BEFORE updating data)
 ALTER TABLE wedding_members DROP CONSTRAINT IF EXISTS wedding_members_role_check;
 
--- Add new constraint: Only 'owner', 'partner', 'bestie'
-ALTER TABLE wedding_members
-  ADD CONSTRAINT wedding_members_role_check
-  CHECK (role IN ('owner', 'partner', 'bestie'));
+-- Update any existing NULL roles to 'bestie' FIRST
+UPDATE wedding_members
+SET role = 'bestie'
+WHERE role IS NULL;
 
 -- Update any existing 'co_planner' or 'member' roles to 'bestie'
 UPDATE wedding_members
 SET role = 'bestie'
-WHERE role = 'co_planner' OR role = 'member' OR role NOT IN ('owner', 'partner', 'bestie');
+WHERE role = 'co_planner' OR role = 'member';
+
+-- Update any other invalid roles to 'bestie'
+UPDATE wedding_members
+SET role = 'bestie'
+WHERE role NOT IN ('owner', 'partner', 'bestie');
+
+-- NOW add new constraint: Only 'owner', 'partner', 'bestie'
+ALTER TABLE wedding_members
+  ADD CONSTRAINT wedding_members_role_check
+  CHECK (role IN ('owner', 'partner', 'bestie'));
+
+-- Make role NOT NULL now that all rows have valid values
+ALTER TABLE wedding_members
+  ALTER COLUMN role SET NOT NULL;
 
 -- Update permissions for existing members
 -- Owner: Full access (read + edit)
