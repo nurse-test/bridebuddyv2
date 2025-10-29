@@ -823,6 +823,17 @@ BEGIN
   END IF;
 END $$;
 
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'invite_codes' AND column_name = 'wedding_profile_permissions'
+  ) THEN
+    ALTER TABLE invite_codes
+      ADD COLUMN wedding_profile_permissions JSONB DEFAULT '{"read": false, "edit": false}'::jsonb;
+  END IF;
+END $$;
+
 UPDATE invite_codes
 SET invite_token = code
 WHERE invite_token IS NULL AND code IS NOT NULL;
