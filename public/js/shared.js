@@ -95,6 +95,115 @@ export function updateUrlWithWeddingId(weddingId) {
 }
 
 // ============================================================================
+// SESSION MANAGEMENT (localStorage)
+// ============================================================================
+
+/**
+ * Store user session in localStorage
+ * @param {string} userId - User ID
+ * @param {string} weddingId - Wedding ID
+ */
+export function storeUserSession(userId, weddingId) {
+    if (userId) {
+        localStorage.setItem('user_id', userId);
+    }
+    if (weddingId) {
+        localStorage.setItem('wedding_id', weddingId);
+    }
+}
+
+/**
+ * Get user session from localStorage
+ * @returns {Object} Session object with userId and weddingId
+ */
+export function getUserSession() {
+    return {
+        userId: localStorage.getItem('user_id'),
+        weddingId: localStorage.getItem('wedding_id')
+    };
+}
+
+/**
+ * Clear user session from localStorage
+ */
+export function clearUserSession() {
+    localStorage.removeItem('user_id');
+    localStorage.removeItem('wedding_id');
+}
+
+/**
+ * Get user ID from session (localStorage or Supabase)
+ * @returns {Promise<string|null>} User ID or null
+ */
+export async function getUserId() {
+    // Try localStorage first
+    const { userId } = getUserSession();
+    if (userId) {
+        return userId;
+    }
+
+    // Fall back to Supabase
+    try {
+        const supabase = getSupabase();
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+            // Store for next time
+            storeUserSession(user.id, null);
+            return user.id;
+        }
+    } catch (error) {
+        console.error('Error getting user ID:', error);
+    }
+
+    return null;
+}
+
+/**
+ * Get wedding ID from session (localStorage, URL, or database)
+ * @returns {Promise<string|null>} Wedding ID or null
+ */
+export async function getWeddingId() {
+    // Try localStorage first
+    let { weddingId } = getUserSession();
+    if (weddingId) {
+        return weddingId;
+    }
+
+    // Try URL parameter
+    weddingId = getWeddingIdFromUrl();
+    if (weddingId) {
+        // Store for next time
+        storeUserSession(null, weddingId);
+        return weddingId;
+    }
+
+    // Fall back to database query
+    try {
+        const userId = await getUserId();
+        if (!userId) {
+            return null;
+        }
+
+        const supabase = getSupabase();
+        const { data: membership } = await supabase
+            .from('wedding_members')
+            .select('wedding_id')
+            .eq('user_id', userId)
+            .single();
+
+        if (membership && membership.wedding_id) {
+            // Store for next time
+            storeUserSession(null, membership.wedding_id);
+            return membership.wedding_id;
+        }
+    } catch (error) {
+        console.error('Error getting wedding ID:', error);
+    }
+
+    return null;
+}
+
+// ============================================================================
 // LOADING INDICATOR (CSS Spinner)
 // ============================================================================
 
@@ -293,7 +402,6 @@ export async function loadWeddingData(options = {}) {
 
     try {
         const supabase = getSupabase();
-        let weddingId = providedWeddingId || getWeddingIdFromUrl();
 
         // Check authentication
         const { data: { user } } = await supabase.auth.getUser();
@@ -305,23 +413,20 @@ export async function loadWeddingData(options = {}) {
             throw new Error('Not authenticated');
         }
 
-        // If no wedding_id in URL, get it from user's membership
-        if (!weddingId) {
-            const { data: membership, error: memberError } = await supabase
-                .from('wedding_members')
-                .select('wedding_id')
-                .eq('user_id', user.id)
-                .single();
+        // Get wedding_id from provided, URL, or session/database
+        let weddingId = providedWeddingId || getWeddingIdFromUrl();
 
-            if (memberError || !membership) {
-                console.error('No wedding membership found');
-                if (memberError) {
-                    console.error('Member error:', memberError.message);
-                }
-                if (redirectOnError) {
-                    showToast('Please complete your wedding setup', 'info', 3000);
-                    setTimeout(() => {
-                        window.location.href = 'onboarding-luxury.html';
+        // If no wedding_id yet, try to get from getWeddingId() which checks localStorage and database
+        if (!weddingId) {
+            weddingId = await getWeddingId();
+        }
+
+        if (!weddingId) {
+            console.error('No wedding membership found');
+            if (redirectOnError) {
+                showToast('Please complete your wedding setup', 'info', 3000);
+                setTimeout(() => {
+                    window.location.href = 'onboarding-luxury.html';
                     }, 1000);
                 }
                 throw new Error('No wedding membership found');
@@ -367,6 +472,9 @@ export async function loadWeddingData(options = {}) {
         if (memberError) {
             console.error('Error loading member:', memberError);
         }
+
+        // Store session in localStorage for future use
+        storeUserSession(user.id, weddingId);
 
         return {
             wedding,

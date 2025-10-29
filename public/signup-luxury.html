@@ -287,6 +287,11 @@
 
                 if (error) throw error;
 
+                // Store user_id in localStorage immediately after signup
+                if (data.user && data.user.id) {
+                    localStorage.setItem('user_id', data.user.id);
+                }
+
                 // Determine redirect URL based on context
                 let redirectUrl;
                 if (inviteToken) {
