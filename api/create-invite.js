@@ -118,7 +118,7 @@ export default async function handler(req, res) {
     // ========================================================================
     const { data: existingMembers } = await supabaseAdmin
       .from('wedding_members')
-      .select('role')
+      .select('role, invited_by_user_id')
       .eq('wedding_id', wedding_id);
 
     if (role === 'partner') {
@@ -131,10 +131,36 @@ export default async function handler(req, res) {
     }
 
     if (role === 'bestie') {
+      // Check 1: Max 2 besties per wedding
       const bestieCount = existingMembers?.filter(m => m.role === 'bestie').length || 0;
       if (bestieCount >= 2) {
         return res.status(400).json({
           error: 'This wedding already has 2 besties. Maximum 2 besties allowed per wedding.'
+        });
+      }
+
+      // Check 2: Each person (owner/partner) can only invite 1 bestie
+      const userAlreadyInvitedBestie = existingMembers?.some(
+        m => m.role === 'bestie' && m.invited_by_user_id === user.id
+      );
+      if (userAlreadyInvitedBestie) {
+        return res.status(400).json({
+          error: 'You have already invited a bestie. Each person can only invite 1 bestie.'
+        });
+      }
+
+      // Check 3: Make sure there's not already a pending invite from this user
+      const { data: pendingInvites } = await supabaseAdmin
+        .from('invite_codes')
+        .select('id')
+        .eq('wedding_id', wedding_id)
+        .eq('created_by', user.id)
+        .eq('role', 'bestie')
+        .or('is_used.is.null,is_used.eq.false');
+
+      if (pendingInvites && pendingInvites.length > 0) {
+        return res.status(400).json({
+          error: 'You already have a pending bestie invite. Please wait for it to be accepted or delete it first.'
         });
       }
     }
