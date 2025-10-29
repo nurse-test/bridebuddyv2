@@ -1108,11 +1108,16 @@ ON wedding_profiles(engagement_date);
 -- STEP 11: CREATE ACTIVE INVITES VIEW
 -- ============================================================================
 -- Must be created AFTER wedding_profiles columns are added (partner1_name, partner2_name)
+-- SECURITY: View uses SECURITY INVOKER (default) - respects RLS policies
 -- ============================================================================
 
 DROP VIEW IF EXISTS active_invites;
 
-CREATE OR REPLACE VIEW active_invites AS
+-- Create view WITHOUT security definer (uses SECURITY INVOKER by default)
+-- This view respects RLS policies and runs with the privileges of the calling user
+CREATE VIEW active_invites
+WITH (security_invoker = true)
+AS
 SELECT
   ic.id,
   ic.wedding_id,
@@ -1130,7 +1135,11 @@ FROM invite_codes ic
 JOIN wedding_profiles wp ON ic.wedding_id = wp.id
 WHERE (ic.is_used = false OR ic.is_used IS NULL);
 
+-- Grant SELECT to authenticated users (they'll see invites via RLS policies)
 GRANT SELECT ON active_invites TO authenticated;
+
+-- Comment explaining security model
+COMMENT ON VIEW active_invites IS 'Shows active (unused) invite codes. Uses SECURITY INVOKER to respect RLS policies - users only see invites for weddings they are members of.';
 
 -- ============================================================================
 -- DEPLOYMENT COMPLETE
