@@ -838,6 +838,19 @@ UPDATE invite_codes
 SET invite_token = code
 WHERE invite_token IS NULL AND code IS NOT NULL;
 
+-- Add role constraint: Only 'partner' and 'bestie' can be invited
+-- (owner is created during wedding creation, not via invite)
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'invite_codes_role_check'
+  ) THEN
+    ALTER TABLE invite_codes
+      ADD CONSTRAINT invite_codes_role_check
+      CHECK (role IN ('partner', 'bestie'));
+  END IF;
+END $$;
+
 -- ============================================================================
 -- STEP 9.5: FIX INVITE FUNCTIONS (SCHEMA MISMATCH)
 -- ============================================================================
