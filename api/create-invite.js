@@ -1,8 +1,8 @@
 // ============================================================================
 // CREATE INVITE - UNIFIED SYSTEM FOR ALL ROLES
 // ============================================================================
-// Creates one-time-use invite links for partner, co-planner, and bestie roles
-// Returns shareable URL that expires in 7 days
+// Creates one-time-use invite links for partner and bestie roles
+// Link becomes invalid after first use (no time-based expiration)
 // ============================================================================
 
 import { createClient } from '@supabase/supabase-js';
@@ -140,13 +140,7 @@ export default async function handler(req, res) {
     const inviteToken = generateSecureToken();
 
     // ========================================================================
-    // STEP 6: Set expiration (7 days from now)
-    // ========================================================================
-    const expiresAt = new Date();
-    expiresAt.setDate(expiresAt.getDate() + 7);
-
-    // ========================================================================
-    // STEP 7: Insert into database
+    // STEP 6: Insert into database (one-time use, no expiration)
     // ========================================================================
     const { data: invite, error: insertError } = await supabaseAdmin
       .from('invite_codes')
@@ -156,8 +150,7 @@ export default async function handler(req, res) {
         created_by: user.id,
         role: role,
         wedding_profile_permissions: { read: true, edit: role === 'partner' },
-        used: false,
-        expires_at: expiresAt.toISOString()
+        used: false
       })
       .select()
       .single();
@@ -171,7 +164,7 @@ export default async function handler(req, res) {
     }
 
     // ========================================================================
-    // STEP 8: Build invite URL
+    // STEP 7: Build invite URL
     // ========================================================================
     const baseUrl = process.env.VERCEL_URL
       ? `https://${process.env.VERCEL_URL}`
@@ -180,7 +173,7 @@ export default async function handler(req, res) {
     const inviteUrl = `${baseUrl}/accept-invite.html?token=${inviteToken}`;
 
     // ========================================================================
-    // STEP 9: Return success response
+    // STEP 8: Return success response
     // ========================================================================
     return res.status(200).json({
       success: true,
@@ -188,11 +181,10 @@ export default async function handler(req, res) {
       invite_token: inviteToken,
       role: invite.role,
       wedding_profile_permissions: invite.wedding_profile_permissions,
-      expires_at: invite.expires_at,
       wedding_name: `${wedding.partner1_name} & ${wedding.partner2_name}`,
       message: role === 'partner'
-        ? 'Partner invite link created! Share this with your fiancé(e).'
-        : 'Bestie invite link created! Share this with your Maid of Honor or Best Man.'
+        ? 'Partner invite link created! Share this with your fiancé(e). This is a one-time use link.'
+        : 'Bestie invite link created! Share this with your Maid of Honor or Best Man. This is a one-time use link.'
     });
 
   } catch (error) {

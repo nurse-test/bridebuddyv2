@@ -53,7 +53,6 @@ export default async function handler(req, res) {
         wedding_profile_permissions,
         created_by,
         used,
-        expires_at,
         created_at
       `)
       .eq('invite_token', invite_token)
@@ -67,7 +66,7 @@ export default async function handler(req, res) {
     }
 
     // ========================================================================
-    // STEP 3: Check if invite has been used
+    // STEP 3: Check if invite has been used (one-time use only)
     // ========================================================================
     if (invite.used === true) {
       return res.status(400).json({
@@ -78,22 +77,7 @@ export default async function handler(req, res) {
     }
 
     // ========================================================================
-    // STEP 4: Check if invite has expired
-    // ========================================================================
-    const now = new Date();
-    const expiresAt = new Date(invite.expires_at);
-
-    if (expiresAt < now) {
-      return res.status(400).json({
-        error: 'This invite has expired',
-        is_valid: false,
-        is_expired: true,
-        expires_at: invite.expires_at
-      });
-    }
-
-    // ========================================================================
-    // STEP 5: Get wedding details
+    // STEP 4: Get wedding details
     // ========================================================================
     const { data: wedding, error: weddingError } = await supabaseAdmin
       .from('wedding_profiles')
@@ -108,7 +92,7 @@ export default async function handler(req, res) {
     }
 
     // ========================================================================
-    // STEP 6: Get inviter details
+    // STEP 5: Get inviter details
     // ========================================================================
     const { data: inviter, error: inviterError } = await supabaseAdmin
       .from('auth.users')
@@ -133,7 +117,7 @@ export default async function handler(req, res) {
     }
 
     // ========================================================================
-    // STEP 7: Format role display name
+    // STEP 6: Format role display name
     // ========================================================================
     const roleDisplayNames = {
       partner: 'Partner',
@@ -144,14 +128,7 @@ export default async function handler(req, res) {
     const roleDisplay = roleDisplayNames[invite.role] || invite.role;
 
     // ========================================================================
-    // STEP 8: Calculate time until expiration
-    // ========================================================================
-    const timeUntilExpiration = expiresAt - now;
-    const hoursUntilExpiration = Math.floor(timeUntilExpiration / (1000 * 60 * 60));
-    const daysUntilExpiration = Math.floor(hoursUntilExpiration / 24);
-
-    // ========================================================================
-    // STEP 9: Return invite details
+    // STEP 7: Return invite details
     // ========================================================================
     return res.status(200).json({
       success: true,
@@ -164,9 +141,7 @@ export default async function handler(req, res) {
         role_display: roleDisplay,
         wedding_profile_permissions: invite.wedding_profile_permissions,
         created_at: invite.created_at,
-        expires_at: invite.expires_at,
-        days_until_expiration: daysUntilExpiration,
-        hours_until_expiration: hoursUntilExpiration
+        one_time_use: true
       },
       permissions: {
         can_read_wedding_profile: invite.wedding_profile_permissions.read,
