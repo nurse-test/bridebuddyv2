@@ -828,6 +828,78 @@ SET invite_token = code
 WHERE invite_token IS NULL AND code IS NOT NULL;
 
 -- ============================================================================
+-- STEP 9.5: FIX INVITE FUNCTIONS (SCHEMA MISMATCH)
+-- ============================================================================
+-- Source: migrations/020_fix_invite_functions_schema.sql
+-- Fix database functions to use is_used instead of used
+-- Remove expires_at references (one-time use only)
+-- ============================================================================
+
+-- Drop and recreate is_invite_valid function with correct column names
+DROP FUNCTION IF EXISTS is_invite_valid(TEXT);
+
+CREATE OR REPLACE FUNCTION is_invite_valid(token TEXT)
+RETURNS BOOLEAN AS $$
+BEGIN
+  RETURN EXISTS (
+    SELECT 1
+    FROM invite_codes
+    WHERE invite_token = token
+      AND (is_used = false OR is_used IS NULL)
+  );
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Drop and recreate get_invite_details function with correct column names
+DROP FUNCTION IF EXISTS get_invite_details(TEXT);
+
+CREATE OR REPLACE FUNCTION get_invite_details(token TEXT)
+RETURNS TABLE (
+  wedding_id UUID,
+  role TEXT,
+  is_valid BOOLEAN,
+  is_used BOOLEAN
+) AS $$
+BEGIN
+  RETURN QUERY
+  SELECT
+    ic.wedding_id,
+    ic.role,
+    (ic.is_used = false OR ic.is_used IS NULL) AS is_valid,
+    COALESCE(ic.is_used, false) AS is_used
+  FROM invite_codes ic
+  WHERE ic.invite_token = token;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Grant execute permissions
+GRANT EXECUTE ON FUNCTION get_invite_details(TEXT) TO anon, authenticated;
+GRANT EXECUTE ON FUNCTION is_invite_valid(TEXT) TO anon, authenticated;
+
+-- Update active_invites view
+DROP VIEW IF EXISTS active_invites;
+
+CREATE OR REPLACE VIEW active_invites AS
+SELECT
+  ic.id,
+  ic.wedding_id,
+  ic.invite_token,
+  ic.role,
+  ic.wedding_profile_permissions,
+  ic.created_by,
+  ic.created_at,
+  ic.is_used,
+  ic.used_by,
+  ic.used_at,
+  wp.partner1_name,
+  wp.partner2_name
+FROM invite_codes ic
+JOIN wedding_profiles wp ON ic.wedding_id = wp.id
+WHERE (ic.is_used = false OR ic.is_used IS NULL);
+
+GRANT SELECT ON active_invites TO authenticated;
+
+-- ============================================================================
 -- STEP 10: ADD MISSING WEDDING_PROFILES COLUMNS
 -- ============================================================================
 -- Source: migrations/007_add_missing_wedding_profile_columns.sql
