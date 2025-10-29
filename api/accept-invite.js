@@ -44,6 +44,9 @@ export default async function handler(req, res) {
   }
 
   try {
+    console.log('🔵 [ACCEPT-INVITE] Starting invite acceptance process');
+    console.log('🔵 [ACCEPT-INVITE] Invite token received:', invite_token ? 'YES' : 'NO');
+
     // ========================================================================
     // STEP 2: Authenticate the user
     // ========================================================================
@@ -62,10 +65,13 @@ export default async function handler(req, res) {
     const { data: { user }, error: authError } = await supabaseUser.auth.getUser();
 
     if (authError || !user) {
+      console.error('❌ [ACCEPT-INVITE] Authentication failed:', authError?.message);
       return res.status(401).json({
         error: 'Unauthorized - invalid or expired token'
       });
     }
+
+    console.log('✅ [ACCEPT-INVITE] User authenticated:', user.id);
 
     // ========================================================================
     // STEP 3: Ensure profile exists (don't rely on database trigger)
@@ -125,10 +131,18 @@ export default async function handler(req, res) {
     }
 
     if (inviteError || !invite) {
+      console.error('❌ [ACCEPT-INVITE] Invite not found:', inviteError?.message || 'No invite record');
       return res.status(404).json({
         error: 'Invalid invite link'
       });
     }
+
+    console.log('✅ [ACCEPT-INVITE] Invite found:', {
+      id: invite.id,
+      wedding_id: invite.wedding_id,
+      is_used: invite.is_used,
+      role: intendedRole
+    });
 
     // ========================================================================
     // Extract role from token (base schema compatibility)
@@ -232,6 +246,13 @@ export default async function handler(req, res) {
     // ========================================================================
     // STEP 9: Add user to wedding_members
     // ========================================================================
+    console.log('🔵 [ACCEPT-INVITE] Adding user to wedding_members:', {
+      wedding_id: invite.wedding_id,
+      user_id: user.id,
+      role: dbRole,
+      invited_by: invite.created_by
+    });
+
     const { error: addMemberError } = await supabaseAdmin
       .from('wedding_members')
       .insert({
@@ -245,12 +266,18 @@ export default async function handler(req, res) {
       .single();
 
     if (addMemberError) {
-      console.error('Failed to add member:', addMemberError);
+      console.error('❌ [ACCEPT-INVITE] Failed to add member:', {
+        error: addMemberError.message,
+        code: addMemberError.code,
+        details: addMemberError.details
+      });
       return res.status(500).json({
         error: 'Failed to join wedding',
         details: addMemberError.message
       });
     }
+
+    console.log('✅ [ACCEPT-INVITE] User added to wedding_members successfully');
 
     // ========================================================================
     // STEP 10: Role-specific setup
@@ -280,7 +307,7 @@ export default async function handler(req, res) {
     }
 
     // ========================================================================
-    // STEP 11: Mark invite as used
+    // STEP 11: Mark invite as used (use ID not token for reliability)
     // ========================================================================
     const { error: updateInviteError } = await supabaseAdmin
       .from('invite_codes')
@@ -289,11 +316,17 @@ export default async function handler(req, res) {
         used_by: user.id,
         used_at: new Date().toISOString()
       })
-      .eq('invite_token', invite_token);
+      .eq('id', invite.id);  // Use ID instead of token - works for both base and migration schemas
 
     if (updateInviteError) {
-      console.error('Failed to mark invite as used:', updateInviteError);
+      console.error('⚠️ [ACCEPT-INVITE] Failed to mark invite as used:', {
+        error: updateInviteError.message,
+        code: updateInviteError.code,
+        invite_id: invite.id
+      });
       // Don't fail the request - user was added successfully
+    } else {
+      console.log('✅ [ACCEPT-INVITE] Invite marked as used');
     }
 
     // ========================================================================
@@ -343,11 +376,15 @@ export default async function handler(req, res) {
       ];
     }
 
+    console.log('✅ [ACCEPT-INVITE] Invite acceptance complete, returning success');
     return res.status(200).json(response);
 
   } catch (error) {
     // Security: Only log error message, not full error object (contains invite tokens, user IDs, wedding IDs, roles)
-    console.error('Accept invite error:', error.message || 'Unknown error');
+    console.error('❌ [ACCEPT-INVITE] Critical error:', {
+      message: error.message,
+      stack: error.stack?.split('\n')[0]  // First line of stack trace only
+    });
     return res.status(500).json({
       error: 'Internal server error',
       details: error.message

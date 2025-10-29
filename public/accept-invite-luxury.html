@@ -322,6 +322,9 @@
 
         // Accept Invite
         async function acceptInvite() {
+            console.log('🔵 [FRONTEND] Accept invite button clicked');
+            console.log('🔵 [FRONTEND] Invite token:', inviteToken);
+
             // Hide accept prompt (if visible), show processing
             document.getElementById('acceptPrompt').classList.add('hidden');
             document.getElementById('authPrompt').classList.add('hidden');
@@ -331,9 +334,13 @@
                 const { data: { session } } = await supabase.auth.getSession();
 
                 if (!session) {
+                    console.error('❌ [FRONTEND] No session found');
                     showError('Please log in to accept this invitation');
                     return;
                 }
+
+                console.log('✅ [FRONTEND] Session found, user authenticated');
+                console.log('🔵 [FRONTEND] Calling /api/accept-invite...');
 
                 // Call accept API
                 // NOTE: No longer sending bestie_knowledge_permissions
@@ -347,8 +354,16 @@
                     })
                 });
 
+                console.log('🔵 [FRONTEND] API response status:', response.status, response.statusText);
+
                 if (!response.ok) {
                     const errorData = await response.json().catch(() => ({ error: 'Failed to accept invitation' }));
+                    console.error('❌ [FRONTEND] API returned error:', {
+                        status: response.status,
+                        statusText: response.statusText,
+                        error: errorData.error,
+                        details: errorData.details
+                    });
                     showError(errorData.error || `API error: ${response.status} ${response.statusText}`);
                     document.getElementById('processingState').classList.add('hidden');
                     document.getElementById('acceptPrompt').classList.remove('hidden');
@@ -356,6 +371,11 @@
                 }
 
                 const result = await response.json();
+                console.log('✅ [FRONTEND] Invite accepted successfully!', {
+                    wedding_id: result.wedding?.id,
+                    role: result.your_role,
+                    redirect_to: result.redirect_to
+                });
 
                 // Clear pending invite token from localStorage
                 localStorage.removeItem('pending_invite_token');
@@ -373,7 +393,10 @@
                 }, 2000);
 
             } catch (error) {
-                console.error('Accept error:', error);
+                console.error('❌ [FRONTEND] Exception during invite acceptance:', {
+                    message: error.message,
+                    stack: error.stack
+                });
                 showToast('Failed to accept invitation. Please try again.', 'error');
                 document.getElementById('processingState').classList.add('hidden');
 
