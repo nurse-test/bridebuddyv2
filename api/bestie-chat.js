@@ -1,6 +1,12 @@
 import { createClient } from '@supabase/supabase-js';
 import { handleCORS, rateLimitMiddleware, RATE_LIMITS } from './_utils/rate-limiter.js';
 
+// Get env vars directly (works in Vercel serverless functions)
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseAnonKey = process.env.SUPABASE_ANON_KEY;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const anthropicApiKey = process.env.ANTHROPIC_API_KEY;
+
 export default async function handler(req, res) {
   // Handle CORS preflight
   if (handleCORS(req, res)) {
@@ -23,8 +29,8 @@ export default async function handler(req, res) {
   }
 
   const supabase = createClient(
-    process.env.SUPABASE_URL,
-    process.env.SUPABASE_ANON_KEY,
+    supabaseUrl,
+    supabaseAnonKey,
     {
       global: {
         headers: {
@@ -36,8 +42,8 @@ export default async function handler(req, res) {
 
   // Service role client for database updates
   const supabaseService = createClient(
-    process.env.SUPABASE_URL,
-    process.env.SUPABASE_SERVICE_ROLE_KEY
+    supabaseUrl,
+    supabaseServiceKey
   );
 
   try {
@@ -139,7 +145,7 @@ CURRENT WEDDING INFORMATION:`;
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-api-key': process.env.ANTHROPIC_API_KEY,
+        'x-api-key': anthropicApiKey,
         'anthropic-version': '2023-06-01'
       },
       body: JSON.stringify({
