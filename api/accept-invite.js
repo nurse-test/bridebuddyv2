@@ -159,15 +159,17 @@ export default async function handler(req, res) {
       intendedRole = invite.role;
     }
 
-    // wedding_members CHECK constraint only allows: 'owner', 'member', 'bestie'
-    // Map 'partner' to 'member' with full permissions
-    const dbRole = intendedRole === 'partner' ? 'member' : intendedRole;
+    // wedding_members CHECK constraint allows: 'owner', 'partner', 'bestie'
+    // Use the intended role directly (no mapping needed)
+    const dbRole = intendedRole;
 
-    // Set permissions based on intended role
-    const permissions = intendedRole === 'partner'
-      ? { read: true, edit: true }  // Partner gets full access
+    // Set permissions based on role
+    // Owner and Partner: Full access (read + edit)
+    // Bestie: No wedding profile access (bestie chat only)
+    const permissions = (intendedRole === 'owner' || intendedRole === 'partner')
+      ? { read: true, edit: true }  // Full access
       : intendedRole === 'bestie'
-      ? { read: false, edit: false }  // Bestie gets no wedding profile access
+      ? { read: false, edit: false }  // Bestie access only
       : { read: true, edit: false };  // Default view-only
 
     // Override with database permissions if present (for migrated schemas)
@@ -244,7 +246,7 @@ export default async function handler(req, res) {
       .insert({
         wedding_id: invite.wedding_id,
         user_id: user.id,
-        role: dbRole,  // Use 'member' for partner, 'bestie' for bestie
+        role: dbRole,  // 'owner', 'partner', or 'bestie'
         invited_by_user_id: invite.created_by,
         wedding_profile_permissions: finalPermissions
       })
@@ -292,7 +294,7 @@ export default async function handler(req, res) {
         // Don't fail the entire request - user is already a member
       }
     } else if (intendedRole === 'partner') {
-      // Partner joins as 'member' role with full edit permissions
+      // Partner joins as 'partner' role with full access (same as owner)
       // They will share the same wedding_profiles, vendor_tracker, budget_tracker, wedding_tasks
     }
 
