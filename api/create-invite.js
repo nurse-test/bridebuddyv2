@@ -191,7 +191,7 @@ export default async function handler(req, res) {
       ? `https://${process.env.VERCEL_URL}`
       : 'https://bridebuddyv2.vercel.app';
 
-    const inviteUrl = `${baseUrl}/accept-invite.html?token=${inviteToken}`;
+    const inviteUrl = `${baseUrl}/accept-invite-luxury.html?token=${inviteToken}`;
 
     // ========================================================================
     // STEP 8: Return success response
