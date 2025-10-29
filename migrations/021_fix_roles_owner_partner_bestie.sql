@@ -190,7 +190,11 @@ GRANT SELECT ON wedding_member_roles TO authenticated;
 
 DROP VIEW IF EXISTS active_invites;
 
-CREATE OR REPLACE VIEW active_invites AS
+-- Recreate view WITHOUT security definer (uses SECURITY INVOKER by default)
+-- This ensures the view respects RLS policies and runs with user privileges
+CREATE VIEW active_invites
+WITH (security_invoker = true)
+AS
 SELECT
   ic.id,
   ic.wedding_id,
@@ -214,6 +218,8 @@ JOIN wedding_profiles wp ON ic.wedding_id = wp.id
 WHERE (ic.is_used = false OR ic.is_used IS NULL);
 
 GRANT SELECT ON active_invites TO authenticated;
+
+COMMENT ON VIEW active_invites IS 'Shows active invite codes with SECURITY INVOKER (respects RLS policies)';
 
 -- ============================================================================
 -- STEP 6: Add comments for documentation
