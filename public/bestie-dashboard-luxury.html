@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Your Bride Buddy bestie dashboard">
+    <title>Bestie Dashboard - Bride Buddy</title>
+
+    <!-- Preconnect to font providers -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="/css/styles-luxury.css">
+    <link rel="stylesheet" href="/css/components-luxury.css">
+
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <!-- Skip to main content for accessibility -->
+    <a href="#main-content" class="skip-to-main">Skip to main content</a>
+
+    <div class="bg-sunset">
+
+        <!-- Top Navbar -->
+        <nav class="navbar">
+            <div class="navbar-container">
+                <!-- Logo -->
+                <a href="index-luxury.html" style="text-decoration: none;">
+                    <h1 class="logo-led" style="font-family: var(--font-heading); font-size: var(--text-xl); margin: 0; line-height: 1;">
+                        <span style="font-style: italic; font-weight: 400;">Bride</span>
+                        <span style="font-weight: 700;">BUDDY</span>
+                    </h1>
+                </a>
+
+                <!-- Wedding Name -->
+                <div class="navbar-center">
+                    <div class="navbar-wedding-name" id="weddingName">Loading...</div>
+                    <span class="badge badge-gold" style="margin-left: var(--space-2);">Bestie</span>
+                </div>
+
+                <!-- User Menu -->
+                <div class="navbar-menu">
+                    <button class="navbar-user-button" id="userMenuBtn" aria-label="User menu" aria-expanded="false">
+                        <div class="navbar-avatar" id="userAvatar">?</div>
+                        <span id="userName">User</span>
+                        <svg width="16" height="16" fill="currentColor" style="margin-left: var(--space-1);">
+                            <path d="M4.5 6l3.5 3.5L11.5 6z"/>
+                        </svg>
+                    </button>
+
+                    <div class="dropdown-menu" id="userDropdown" role="menu">
+                        <a href="profile-luxury.html" class="dropdown-item" role="menuitem" id="profileLink">
+                            <span>👤</span> Profile
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <button class="dropdown-item" id="logoutBtn" role="menuitem">
+                            <span>🚪</span> Log Out
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <nav class="sidebar-nav">
+                <ul style="list-style: none; padding: 0; margin: 0;">
+                    <li class="sidebar-item">
+                        <a href="bestie-dashboard-luxury.html" class="sidebar-link is-active">
+                            <span class="sidebar-icon">🏠</span>
+                            Dashboard
+                        </a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a href="bestie-luxury.html" class="sidebar-link">
+                            <span class="sidebar-icon">💬</span>
+                            Bestie Chat
+                        </a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a href="team-luxury.html" class="sidebar-link" id="teamLink">
+                            <span class="sidebar-icon">👥</span>
+                            Team
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main id="main-content" style="margin-left: 260px; padding: var(--space-6); min-height: calc(100vh - 72px);">
+
+            <!-- Welcome Message -->
+            <div style="margin-bottom: var(--space-8);">
+                <h1 style="font-family: var(--font-heading); font-size: var(--text-4xl); color: var(--color-navy); margin-bottom: var(--space-2);">
+                    Hey <span id="welcomeName">Bestie</span>! 🤫
+                </h1>
+                <p style="font-size: var(--text-lg); color: var(--color-burgundy);">
+                    Your secret mission: help make this wedding amazing
+                </p>
+            </div>
+
+            <!-- Top Row: Countdown + Quick Actions -->
+            <div class="grid grid-cols-2 gap-6" style="margin-bottom: var(--space-8);">
+                <!-- 1. Wedding Countdown -->
+                <div class="card">
+                    <p style="font-size: var(--text-sm); color: var(--color-burgundy); margin-bottom: var(--space-2); font-weight: var(--font-semibold);">
+                        Wedding Countdown
+                    </p>
+                    <h2 id="daysUntil" style="font-size: var(--text-5xl); color: var(--color-gold); margin: 0; font-family: var(--font-heading);">
+                        --
+                    </h2>
+                    <p style="font-size: var(--text-xs); color: var(--color-burgundy); margin-top: var(--space-2); opacity: 0.8;" id="weddingDate">
+                        Loading...
+                    </p>
+                </div>
+
+                <!-- 2. Quick Actions -->
+                <div class="card">
+                    <p style="font-size: var(--text-sm); color: var(--color-burgundy); margin-bottom: var(--space-4); font-weight: var(--font-semibold);">
+                        Quick Actions
+                    </p>
+                    <div style="display: flex; flex-direction: column; gap: var(--space-3);">
+                        <a href="bestie-luxury.html" class="btn btn-primary" style="text-decoration: none; text-align: center; display: block;">
+                            💬 Chat with Bestie AI
+                        </a>
+                        <button id="viewWeddingInfoBtn" class="btn btn-secondary" style="width: 100%;">
+                            👀 View Wedding Details
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- My Bestie Tasks -->
+            <div class="card" style="margin-bottom: var(--space-8);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-4);">
+                    <h3 style="font-family: var(--font-heading); font-size: var(--text-2xl); color: var(--color-navy); margin: 0;">
+                        My Tasks
+                    </h3>
+                    <button class="btn btn-sm btn-secondary" id="addTaskBtn">+ Add Task</button>
+                </div>
+                <div id="taskList" style="display: flex; flex-direction: column; gap: var(--space-3);">
+                    <!-- Dynamic task list -->
+                    <div class="skeleton skeleton-text"></div>
+                    <div class="skeleton skeleton-text"></div>
+                </div>
+                <!-- Empty State -->
+                <div class="empty-state" id="emptyTasks" style="display: none; padding: var(--space-6) var(--space-4);">
+                    <div class="empty-state-icon">✅</div>
+                    <h4 class="empty-state-title">No tasks assigned to you yet</h4>
+                    <p class="empty-state-description">
+                        Tasks assigned to you will appear here. You can also add your own bestie tasks!
+                    </p>
+                </div>
+            </div>
+
+            <!-- My Bestie Expenses -->
+            <div class="card" style="margin-bottom: var(--space-8);">
+                <h3 style="font-family: var(--font-heading); font-size: var(--text-2xl); color: var(--color-navy); margin-bottom: var(--space-4);">
+                    My Expenses
+                </h3>
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-3); margin-bottom: var(--space-4);">
+                    <div>
+                        <p style="font-size: var(--text-xs); color: var(--color-burgundy); opacity: 0.7; margin: 0;">Budgeted</p>
+                        <p id="bestieBudget" style="font-size: var(--text-xl); color: var(--color-navy); font-weight: var(--font-semibold); margin: 0;">$0</p>
+                    </div>
+                    <div>
+                        <p style="font-size: var(--text-xs); color: var(--color-burgundy); opacity: 0.7; margin: 0;">Spent</p>
+                        <p id="bestieSpent" style="font-size: var(--text-xl); color: var(--color-gold); font-weight: var(--font-semibold); margin: 0;">$0</p>
+                    </div>
+                    <div>
+                        <p style="font-size: var(--text-xs); color: var(--color-burgundy); opacity: 0.7; margin: 0;">Remaining</p>
+                        <p id="bestieRemaining" style="font-size: var(--text-xl); color: var(--color-navy); font-weight: var(--font-semibold); margin: 0;">$0</p>
+                    </div>
+                </div>
+                <div id="expensesList">
+                    <p style="font-size: var(--text-sm); color: var(--color-burgundy); opacity: 0.7; text-align: center; padding: var(--space-4);">
+                        Track your bestie expenses like bach party, shower, gifts, etc.
+                    </p>
+                </div>
+            </div>
+
+            <!-- My Private Notes -->
+            <div class="card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-4);">
+                    <h3 style="font-family: var(--font-heading); font-size: var(--text-2xl); color: var(--color-navy); margin: 0;">
+                        My Private Notes
+                    </h3>
+                    <button class="btn btn-sm btn-secondary" id="addNoteBtn">+ Add Note</button>
+                </div>
+                <div id="notesList" style="display: flex; flex-direction: column; gap: var(--space-3);">
+                    <!-- Dynamic notes list -->
+                    <div class="skeleton skeleton-text"></div>
+                    <div class="skeleton skeleton-text"></div>
+                </div>
+                <!-- Empty State -->
+                <div class="empty-state" id="emptyNotes" style="display: none; padding: var(--space-6) var(--space-4);">
+                    <div class="empty-state-icon">📝</div>
+                    <h4 class="empty-state-title">No notes yet</h4>
+                    <p class="empty-state-description">
+                        Add private notes about gift ideas, surprises, or anything you want to remember!
+                    </p>
+                </div>
+            </div>
+        </main>
+
+        <!-- Mobile Bottom Nav -->
+        <nav class="bottom-nav">
+            <a href="bestie-dashboard-luxury.html" class="bottom-nav-item is-active">
+                <span class="bottom-nav-icon">🏠</span>
+                Home
+            </a>
+            <a href="bestie-luxury.html" class="bottom-nav-item">
+                <span class="bottom-nav-icon">💬</span>
+                Chat
+            </a>
+            <a href="team-luxury.html" class="bottom-nav-item" id="teamBottomLink">
+                <span class="bottom-nav-icon">👥</span>
+                Team
+            </a>
+        </nav>
+
+        <!-- Toast Container -->
+        <div class="toast-container" id="toastContainer"></div>
+
+        <!-- Wedding Info Modal -->
+        <div id="weddingInfoModal" class="modal" style="display: none;">
+            <div class="modal-overlay" id="modalOverlay"></div>
+            <div class="modal-content" style="max-width: 600px;">
+                <div class="modal-header">
+                    <h2 class="modal-title">Wedding Details</h2>
+                    <button class="modal-close" id="closeModalBtn">×</button>
+                </div>
+                <div class="modal-body" id="weddingInfoContent">
+                    <div class="skeleton skeleton-text"></div>
+                    <div class="skeleton skeleton-text"></div>
+                    <div class="skeleton skeleton-text"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script type="module">
+        import {
+            initSupabase,
+            loadWeddingData,
+            navigateTo,
+            logout as sharedLogout
+        } from '/js/shared.js';
+        import { escapeHtml } from '/js/security.js';
+
+        let supabase = null;
+        let weddingId = null;
+        let wedding = null;
+        let user = null;
+
+        // Initialize Supabase with error handling
+        try {
+            supabase = initSupabase();
+            console.log('✅ Supabase client initialized successfully');
+        } catch (error) {
+            console.error('❌ Failed to initialize Supabase:', error);
+            showToast('error', 'Connection Error', 'Failed to connect to database. Please refresh the page.');
+        }
+
+        // Show Toast Notification
+        function showToast(type, title, message, duration = 5000) {
+            const container = document.getElementById('toastContainer');
+
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            toast.innerHTML = `
+                <div class="toast-icon">${type === 'success' ? '✓' : type === 'error' ? '✗' : 'ℹ'}</div>
+                <div class="toast-content">
+                    <div class="toast-title">${title}</div>
+                    <p class="toast-message">${message}</p>
+                </div>
+                <button class="toast-close">×</button>
+            `;
+
+            container.appendChild(toast);
+
+            toast.querySelector('.toast-close').addEventListener('click', () => {
+                toast.remove();
+            });
+
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                setTimeout(() => toast.remove(), 300);
+            }, duration);
+        }
+
+        // Calculate days until wedding
+        function calculateDaysUntil(dateString) {
+            if (!dateString) return null;
+            const weddingDate = new Date(dateString);
+            const today = new Date();
+            const diffTime = weddingDate - today;
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            return diffDays;
+        }
+
+        // Load and display wedding data
+        async function initializeDashboard() {
+            try {
+                const result = await loadWeddingData();
+                weddingId = result.weddingId;
+                wedding = result.wedding;
+                user = result.user;
+                const member = result.member;
+
+                // Ensure user is actually a bestie
+                if (member && member.role !== 'bestie') {
+                    console.log('Non-bestie user detected, redirecting to main dashboard');
+                    window.location.href = `dashboard-luxury.html?wedding_id=${weddingId}`;
+                    return;
+                }
+
+                // Update UI with user info
+                const userName = user.user_metadata?.full_name || user.email?.split('@')[0] || 'Bestie';
+                document.getElementById('userName').textContent = userName;
+                document.getElementById('welcomeName').textContent = userName.split(' ')[0];
+
+                // Update avatar
+                const initials = userName.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
+                document.getElementById('userAvatar').textContent = initials;
+
+                // Update wedding name
+                const weddingName = wedding.wedding_name || `${wedding.partner1_name || 'Partner 1'} & ${wedding.partner2_name || 'Partner 2'}`;
+                document.getElementById('weddingName').textContent = weddingName;
+
+                // Update navigation links with wedding_id
+                const navLinks = ['profileLink', 'teamLink', 'teamBottomLink'];
+                navLinks.forEach(linkId => {
+                    const link = document.getElementById(linkId);
+                    if (link && weddingId) {
+                        const url = new URL(link.href);
+                        url.searchParams.set('wedding_id', weddingId);
+                        link.href = url.toString();
+                    }
+                });
+
+                // Calculate days until wedding
+                if (wedding.wedding_date) {
+                    const days = calculateDaysUntil(wedding.wedding_date);
+                    document.getElementById('daysUntil').textContent = days > 0 ? days : '0';
+                    const dateStr = new Date(wedding.wedding_date).toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                    });
+                    document.getElementById('weddingDate').textContent = dateStr;
+                } else {
+                    document.getElementById('daysUntil').textContent = '--';
+                    document.getElementById('weddingDate').textContent = 'Date not set yet';
+                }
+
+                // Load bestie-specific sections in parallel
+                await Promise.all([
+                    loadBestieTasks(),
+                    loadBestieExpenses(),
+                    loadBestieNotes()
+                ]);
+
+            } catch (error) {
+                console.error('Dashboard initialization error:', error);
+                showToast('error', 'Error', 'Failed to load dashboard data');
+            }
+        }
+
+        // Load Bestie Tasks (assigned to this user)
+        async function loadBestieTasks() {
+            const taskList = document.getElementById('taskList');
+            const emptyState = document.getElementById('emptyTasks');
+
+            try {
+                const { data: tasks, error } = await supabase
+                    .from('wedding_tasks')
+                    .select('id, task_name, due_date, status, priority')
+                    .eq('wedding_id', weddingId)
+                    .eq('assigned_to', user.id)
+                    .order('due_date', { ascending: true, nullsLast: true });
+
+                if (error) throw error;
+
+                taskList.innerHTML = '';
+
+                if (!tasks || tasks.length === 0) {
+                    taskList.style.display = 'none';
+                    emptyState.style.display = 'block';
+                    return;
+                }
+
+                taskList.style.display = 'flex';
+                emptyState.style.display = 'none';
+
+                tasks.forEach(task => {
+                    const taskItem = document.createElement('div');
+                    taskItem.style.cssText = 'display: flex; justify-content: space-between; align-items: center; padding: var(--space-3); background: var(--color-cream); border-radius: var(--radius-md);';
+
+                    let dueDateFormatted = 'No deadline';
+                    if (task.due_date) {
+                        const dueDate = new Date(task.due_date);
+                        dueDateFormatted = dueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                    }
+
+                    const isCompleted = task.status === 'completed';
+                    const priorityEmoji = {
+                        urgent: '🔴',
+                        high: '🟠',
+                        medium: '🟡',
+                        low: '🟢'
+                    }[task.priority] || '⚪';
+
+                    taskItem.innerHTML = `
+                        <div style="display: flex; align-items: center; gap: var(--space-3); flex: 1;">
+                            <input type="checkbox" ${isCompleted ? 'checked' : ''} data-task-id="${task.id}" class="task-checkbox" style="width: 20px; height: 20px; cursor: pointer;">
+                            <div style="flex: 1;">
+                                <p style="margin: 0; font-size: var(--text-sm); color: var(--color-navy); font-weight: var(--font-semibold); ${isCompleted ? 'text-decoration: line-through; opacity: 0.6;' : ''}">
+                                    ${priorityEmoji} ${escapeHtml(task.task_name)}
+                                </p>
+                                <p style="margin: 0; font-size: var(--text-xs); color: var(--color-burgundy); opacity: 0.7; margin-top: 2px;">
+                                    ${escapeHtml(dueDateFormatted)}
+                                </p>
+                            </div>
+                        </div>
+                    `;
+                    taskList.appendChild(taskItem);
+
+                    // Add checkbox listener
+                    const checkbox = taskItem.querySelector('.task-checkbox');
+                    checkbox.addEventListener('change', async (e) => {
+                        const newStatus = e.target.checked ? 'completed' : 'not_started';
+                        await toggleTaskStatus(task.id, newStatus);
+                    });
+                });
+            } catch (error) {
+                console.error('Error loading bestie tasks:', error);
+                taskList.innerHTML = '<p style="color: var(--color-burgundy); text-align: center; padding: var(--space-4);">Failed to load tasks</p>';
+            }
+        }
+
+        // Toggle task status
+        async function toggleTaskStatus(taskId, newStatus) {
+            try {
+                const updates = { status: newStatus };
+                if (newStatus === 'completed') {
+                    updates.completed_date = new Date().toISOString().split('T')[0];
+                } else {
+                    updates.completed_date = null;
+                }
+
+                const { error } = await supabase
+                    .from('wedding_tasks')
+                    .update(updates)
+                    .eq('id', taskId);
+
+                if (error) throw error;
+
+                showToast('success', 'Task Updated', `Task marked as ${newStatus === 'completed' ? 'complete' : 'incomplete'}`);
+            } catch (error) {
+                console.error('Error updating task:', error);
+                showToast('error', 'Update Failed', 'Could not update task status');
+                // Reload tasks to reset checkbox
+                await loadBestieTasks();
+            }
+        }
+
+        // Load Bestie Expenses
+        async function loadBestieExpenses() {
+            try {
+                // Query budget items related to bestie expenses
+                const { data: budgetItems, error } = await supabase
+                    .from('budget_tracker')
+                    .select('category, budgeted_amount, spent_amount, notes')
+                    .eq('wedding_id', weddingId)
+                    .or(`category.ilike.%bestie%,category.ilike.%bach%,category.ilike.%shower%,notes.ilike.%bestie%`);
+
+                if (error) throw error;
+
+                // Calculate totals
+                const totalBudget = budgetItems?.reduce((sum, item) => sum + (parseFloat(item.budgeted_amount) || 0), 0) || 0;
+                const totalSpent = budgetItems?.reduce((sum, item) => sum + (parseFloat(item.spent_amount) || 0), 0) || 0;
+                const totalRemaining = totalBudget - totalSpent;
+
+                // Format and display
+                document.getElementById('bestieBudget').textContent = `$${totalBudget.toLocaleString()}`;
+                document.getElementById('bestieSpent').textContent = `$${totalSpent.toLocaleString()}`;
+                document.getElementById('bestieRemaining').textContent = `$${totalRemaining.toLocaleString()}`;
+
+            } catch (error) {
+                console.error('Error loading bestie expenses:', error);
+                document.getElementById('bestieBudget').textContent = '--';
+                document.getElementById('bestieSpent').textContent = '--';
+                document.getElementById('bestieRemaining').textContent = '--';
+            }
+        }
+
+        // Load Bestie Notes (private notes from bestie_knowledge)
+        async function loadBestieNotes() {
+            const notesList = document.getElementById('notesList');
+            const emptyState = document.getElementById('emptyNotes');
+
+            try {
+                const { data: notes, error } = await supabase
+                    .from('bestie_knowledge')
+                    .select('id, content, knowledge_type, created_at')
+                    .eq('wedding_id', weddingId)
+                    .eq('bestie_user_id', user.id)
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+
+                notesList.innerHTML = '';
+
+                if (!notes || notes.length === 0) {
+                    notesList.style.display = 'none';
+                    emptyState.style.display = 'block';
+                    return;
+                }
+
+                notesList.style.display = 'flex';
+                emptyState.style.display = 'none';
+
+                notes.forEach(note => {
+                    const noteItem = document.createElement('div');
+                    noteItem.style.cssText = 'padding: var(--space-4); background: var(--color-cream); border-radius: var(--radius-md); border-left: 4px solid var(--color-gold);';
+
+                    const createdDate = new Date(note.created_at).toLocaleDateString('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                        year: 'numeric'
+                    });
+
+                    noteItem.innerHTML = `
+                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: var(--space-2);">
+                            <p style="margin: 0; font-size: var(--text-xs); color: var(--color-burgundy); opacity: 0.7;">
+                                ${escapeHtml(createdDate)}
+                            </p>
+                        </div>
+                        <p style="margin: 0; font-size: var(--text-sm); color: var(--color-navy); white-space: pre-wrap;">
+                            ${escapeHtml(note.content)}
+                        </p>
+                    `;
+                    notesList.appendChild(noteItem);
+                });
+            } catch (error) {
+                console.error('Error loading bestie notes:', error);
+                notesList.innerHTML = '<p style="color: var(--color-burgundy); text-align: center; padding: var(--space-4);">Failed to load notes</p>';
+            }
+        }
+
+        // View Wedding Info Modal
+        document.getElementById('viewWeddingInfoBtn').addEventListener('click', async () => {
+            const modal = document.getElementById('weddingInfoModal');
+            const content = document.getElementById('weddingInfoContent');
+
+            modal.style.display = 'flex';
+
+            // Load wedding info
+            content.innerHTML = `
+                <div style="margin-bottom: var(--space-4);">
+                    <h4 style="font-family: var(--font-heading); color: var(--color-navy); margin-bottom: var(--space-2);">
+                        ${escapeHtml(wedding.wedding_name || 'Wedding')}
+                    </h4>
+                    <p style="color: var(--color-burgundy);">
+                        ${escapeHtml(wedding.partner1_name || '')} & ${escapeHtml(wedding.partner2_name || '')}
+                    </p>
+                </div>
+
+                ${wedding.wedding_date ? `
+                <div style="margin-bottom: var(--space-4);">
+                    <p style="font-weight: var(--font-semibold); color: var(--color-navy); margin-bottom: var(--space-1);">Date & Time</p>
+                    <p style="color: var(--color-burgundy);">
+                        ${new Date(wedding.wedding_date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                        ${wedding.wedding_time ? `at ${wedding.wedding_time}` : ''}
+                    </p>
+                </div>
+                ` : ''}
+
+                ${wedding.ceremony_location || wedding.reception_location ? `
+                <div style="margin-bottom: var(--space-4);">
+                    <p style="font-weight: var(--font-semibold); color: var(--color-navy); margin-bottom: var(--space-1);">Location</p>
+                    ${wedding.ceremony_location ? `<p style="color: var(--color-burgundy);">Ceremony: ${escapeHtml(wedding.ceremony_location)}</p>` : ''}
+                    ${wedding.reception_location ? `<p style="color: var(--color-burgundy);">Reception: ${escapeHtml(wedding.reception_location)}</p>` : ''}
+                </div>
+                ` : ''}
+
+                ${wedding.wedding_style || wedding.color_scheme_primary ? `
+                <div style="margin-bottom: var(--space-4);">
+                    <p style="font-weight: var(--font-semibold); color: var(--color-navy); margin-bottom: var(--space-1);">Style & Colors</p>
+                    ${wedding.wedding_style ? `<p style="color: var(--color-burgundy);">Style: ${escapeHtml(wedding.wedding_style)}</p>` : ''}
+                    ${wedding.color_scheme_primary ? `<p style="color: var(--color-burgundy);">Colors: ${escapeHtml(wedding.color_scheme_primary)}${wedding.color_scheme_secondary ? ' & ' + escapeHtml(wedding.color_scheme_secondary) : ''}</p>` : ''}
+                </div>
+                ` : ''}
+
+                ${wedding.expected_guest_count ? `
+                <div style="margin-bottom: var(--space-4);">
+                    <p style="font-weight: var(--font-semibold); color: var(--color-navy); margin-bottom: var(--space-1);">Guest Count</p>
+                    <p style="color: var(--color-burgundy);">${escapeHtml(wedding.expected_guest_count.toString())} guests expected</p>
+                </div>
+                ` : ''}
+            `;
+        });
+
+        // Close modal
+        document.getElementById('closeModalBtn').addEventListener('click', () => {
+            document.getElementById('weddingInfoModal').style.display = 'none';
+        });
+        document.getElementById('modalOverlay').addEventListener('click', () => {
+            document.getElementById('weddingInfoModal').style.display = 'none';
+        });
+
+        // Add Task Button
+        document.getElementById('addTaskBtn').addEventListener('click', () => {
+            showToast('info', 'Coming Soon', 'Task creation UI will be added soon. For now, ask the couple to assign tasks to you!');
+        });
+
+        // Add Note Button
+        document.getElementById('addNoteBtn').addEventListener('click', () => {
+            showToast('info', 'Coming Soon', 'Note creation UI will be added soon. For now, use the Bestie Chat!');
+        });
+
+        // Dropdown toggle
+        const userMenuBtn = document.getElementById('userMenuBtn');
+        const userDropdown = document.getElementById('userDropdown');
+
+        userMenuBtn.addEventListener('click', () => {
+            const isActive = userDropdown.classList.toggle('is-active');
+            userMenuBtn.setAttribute('aria-expanded', isActive);
+        });
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!userMenuBtn.contains(e.target) && !userDropdown.contains(e.target)) {
+                userDropdown.classList.remove('is-active');
+                userMenuBtn.setAttribute('aria-expanded', 'false');
+            }
+        });
+
+        // Logout handler
+        document.getElementById('logoutBtn').addEventListener('click', async () => {
+            try {
+                await sharedLogout();
+            } catch (error) {
+                console.error('Logout error:', error);
+            }
+        });
+
+        // Initialize dashboard when DOM is ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initializeDashboard);
+        } else {
+            // DOM already loaded
+            initializeDashboard();
+        }
+
+    </script>
+
+    <!-- Responsive Styles -->
+    <style>
+        /* Hide sidebar on mobile */
+        @media (max-width: 1023px) {
+            main {
+                margin-left: 0 !important;
+                padding-bottom: 80px !important;
+            }
+        }
+
+        /* Responsive grid */
+        @media (max-width: 768px) {
+            .grid-cols-2 {
+                grid-template-columns: 1fr !important;
+            }
+        }
+
+        /* Smooth animations */
+        .card {
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Modal styles */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 1000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: var(--space-4);
+        }
+
+        .modal-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+        }
+
+        .modal-content {
+            position: relative;
+            background: white;
+            border-radius: var(--radius-lg);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            max-height: 90vh;
+            overflow-y: auto;
+            width: 100%;
+            z-index: 1001;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: var(--space-6);
+            border-bottom: 1px solid var(--color-cream);
+        }
+
+        .modal-title {
+            font-family: var(--font-heading);
+            font-size: var(--text-2xl);
+            color: var(--color-navy);
+            margin: 0;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: var(--text-3xl);
+            color: var(--color-burgundy);
+            cursor: pointer;
+            padding: 0;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: var(--radius-full);
+            transition: all 0.2s;
+        }
+
+        .modal-close:hover {
+            background: var(--color-cream);
+        }
+
+        .modal-body {
+            padding: var(--space-6);
+        }
+    </style>
+</body>
+</html>
