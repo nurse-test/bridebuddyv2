@@ -161,9 +161,13 @@ export default async function handler(req, res) {
     }
 
     // ========================================================================
-    // STEP 5: Generate secure invite token
+    // STEP 5: Generate secure invite token with role encoded
     // ========================================================================
-    const inviteToken = generateSecureToken();
+    // Base schema doesn't have 'role' column in invite_codes, so we encode
+    // the role in the token itself: "partner_TOKEN" or "bestie_TOKEN"
+    // This allows us to track the intended role even without the column
+    const randomToken = generateSecureToken();
+    const inviteToken = `${role}_${randomToken}`;
 
     // ========================================================================
     // STEP 6: Insert into database (base schema compatibility)
