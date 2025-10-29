@@ -20,7 +20,7 @@
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "validate": "node scripts/validate-structure.js",
-    "security:audit": "npm audit --audit-level=moderate",
+    "security:audit": "node scripts/run-audit.js",
     "security:check": "npm run security:audit && node scripts/check-secrets.js",
     "ci:checks": "npm run lint && npm run validate && npm run security:check"
   },
