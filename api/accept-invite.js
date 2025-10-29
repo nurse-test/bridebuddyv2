@@ -141,16 +141,40 @@ export default async function handler(req, res) {
     }
 
     // ========================================================================
-    // Handle base schema compatibility (missing role and permissions)
+    // Extract role from token (base schema compatibility)
     // ========================================================================
-    // Base schema doesn't have 'role' or 'wedding_profile_permissions' columns
-    // Set defaults for backward compatibility
-    if (!invite.role) {
-      invite.role = 'partner';  // Default role
+    // Base schema doesn't have 'role' column in invite_codes
+    // We encode it in the token: "partner_TOKEN" or "bestie_TOKEN"
+    // Extract the role prefix from the token
+    let intendedRole = 'partner';  // Default
+    if (invite_token.includes('_')) {
+      const parts = invite_token.split('_');
+      if (parts[0] === 'partner' || parts[0] === 'bestie') {
+        intendedRole = parts[0];
+      }
     }
-    if (!invite.wedding_profile_permissions) {
-      invite.wedding_profile_permissions = { read: true, edit: true };
+
+    // Override database role if present (for migrated schemas)
+    if (invite.role) {
+      intendedRole = invite.role;
     }
+
+    // wedding_members CHECK constraint only allows: 'owner', 'member', 'bestie'
+    // Map 'partner' to 'member' with full permissions
+    const dbRole = intendedRole === 'partner' ? 'member' : intendedRole;
+
+    // Set permissions based on intended role
+    const permissions = intendedRole === 'partner'
+      ? { read: true, edit: true }  // Partner gets full access
+      : intendedRole === 'bestie'
+      ? { read: false, edit: false }  // Bestie gets no wedding profile access
+      : { read: true, edit: false };  // Default view-only
+
+    // Override with database permissions if present (for migrated schemas)
+    const finalPermissions = invite.wedding_profile_permissions || {
+      can_read: permissions.read,
+      can_edit: permissions.edit
+    };
 
     // ========================================================================
     // STEP 5: Check if invite has expired
@@ -195,7 +219,7 @@ export default async function handler(req, res) {
     // ========================================================================
     // STEP 8: For bestie role - check 1:1 relationship constraint
     // ========================================================================
-    if (invite.role === 'bestie') {
+    if (intendedRole === 'bestie') {
       const { data: existingBestie } = await supabaseAdmin
         .from('wedding_members')
         .select('user_id')
@@ -220,9 +244,9 @@ export default async function handler(req, res) {
       .insert({
         wedding_id: invite.wedding_id,
         user_id: user.id,
-        role: invite.role,
+        role: dbRole,  // Use 'member' for partner, 'bestie' for bestie
         invited_by_user_id: invite.created_by,
-        wedding_profile_permissions: invite.wedding_profile_permissions
+        wedding_profile_permissions: finalPermissions
       })
       .select()
       .single();
@@ -238,7 +262,7 @@ export default async function handler(req, res) {
     // ========================================================================
     // STEP 10: Role-specific setup
     // ========================================================================
-    if (invite.role === 'bestie') {
+    if (intendedRole === 'bestie') {
       // Create bestie_profile for bestie role
       const { error: profileError } = await supabaseAdmin
         .from('bestie_profile')
@@ -267,8 +291,8 @@ export default async function handler(req, res) {
         console.error('Failed to create bestie permissions:', permissionsError);
         // Don't fail the entire request - user is already a member
       }
-    } else if (invite.role === 'partner') {
-      // Partner joins as co-owner, no additional setup needed
+    } else if (intendedRole === 'partner') {
+      // Partner joins as 'member' role with full edit permissions
       // They will share the same wedding_profiles, vendor_tracker, budget_tracker, wedding_tasks
     }
 
@@ -303,28 +327,28 @@ export default async function handler(req, res) {
     // ========================================================================
     const response = {
       success: true,
-      message: getRoleMessage(invite.role),
+      message: getRoleMessage(intendedRole),
       wedding: {
         id: invite.wedding_id,
         name: wedding ? `${wedding.partner1_name} & ${wedding.partner2_name}` : 'Unknown',
         date: wedding?.wedding_date || null
       },
-      your_role: invite.role,
+      your_role: intendedRole,  // Show the intended role (partner/bestie) not DB role (member/bestie)
       permissions: {
-        wedding_profile: invite.wedding_profile_permissions
+        wedding_profile: finalPermissions
       },
       redirect_to: `/dashboard-luxury.html?wedding_id=${invite.wedding_id}`
     };
 
     // Add role-specific info
-    if (invite.role === 'partner') {
+    if (intendedRole === 'partner') {
       response.next_steps = [
         'Welcome to your shared wedding planning space!',
         'You and your partner can both chat with the AI to plan your wedding',
         'All wedding details, vendors, budget, and tasks are shared between you',
         'Start planning together in your Wedding Chat!'
       ];
-    } else if (invite.role === 'bestie') {
+    } else if (intendedRole === 'bestie') {
       response.next_steps = [
         'You now have a private bestie planning space',
         'Use the Bestie Chat to plan bachelorette/bachelor parties and bridal showers',

@@ -143,19 +143,39 @@ export default async function handler(req, res) {
     }
 
     // ========================================================================
-    // STEP 6: Format role display name (with base schema compatibility)
+    // STEP 6: Extract role from token and format display
     // ========================================================================
-    // Base schema doesn't have 'role' column - default to 'partner'
-    const role = invite.role || 'partner';
+    // Base schema doesn't have 'role' column in invite_codes
+    // We encode it in the token: "partner_TOKEN" or "bestie_TOKEN"
+    let intendedRole = 'partner';  // Default
+    if (invite_token.includes('_')) {
+      const parts = invite_token.split('_');
+      if (parts[0] === 'partner' || parts[0] === 'bestie') {
+        intendedRole = parts[0];
+      }
+    }
+
+    // Override with database role if present (for migrated schemas)
+    if (invite.role) {
+      intendedRole = invite.role;
+    }
+
     const roleDisplayNames = {
       partner: 'Partner',
       co_planner: 'Co-planner',
       bestie: 'Bestie (MOH/Best Man)'
     };
-    const roleDisplay = roleDisplayNames[role] || 'Wedding Team Member';
+    const roleDisplay = roleDisplayNames[intendedRole] || 'Wedding Team Member';
 
-    // Base schema doesn't have wedding_profile_permissions - default to full access
-    const permissions = invite.wedding_profile_permissions || { read: true, edit: true };
+    // Set permissions based on intended role
+    const permissions = intendedRole === 'partner'
+      ? { read: true, edit: true }  // Partner gets full access
+      : intendedRole === 'bestie'
+      ? { read: false, edit: false }  // Bestie gets no wedding profile access
+      : { read: true, edit: false };  // Default view-only
+
+    // Override with database permissions if present (for migrated schemas)
+    const finalPermissions = invite.wedding_profile_permissions || permissions;
 
     // ========================================================================
     // STEP 7: Return invite details
@@ -167,15 +187,15 @@ export default async function handler(req, res) {
         wedding_name: `${wedding.partner1_name} & ${wedding.partner2_name}`,
         wedding_date: wedding.wedding_date,
         inviter_name: inviterName,
-        role: role,
+        role: intendedRole,
         role_display: roleDisplay,
-        wedding_profile_permissions: permissions,
+        wedding_profile_permissions: finalPermissions,
         created_at: invite.created_at,
         one_time_use: true
       },
       permissions: {
-        can_read_wedding_profile: permissions.read,
-        can_edit_wedding_profile: permissions.edit
+        can_read_wedding_profile: finalPermissions.read,
+        can_edit_wedding_profile: finalPermissions.edit
       }
     });
 
