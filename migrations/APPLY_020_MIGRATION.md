@@ -1,5 +1,15 @@
 # Applying Migration 020: Fix Invite Functions Schema
 
+## ✅ UPDATED: Migration now self-contained and idempotent
+
+**Latest Version (Commit 5190de7):**
+- Migration now adds `wedding_profile_permissions` column if missing
+- No dependencies on migration 006
+- Safe to run multiple times
+- Fixed view to not join auth.users table
+
+---
+
 ## Problem
 
 The invite creation endpoint was failing with:
@@ -52,6 +62,7 @@ If you're starting fresh or want to ensure everything is correct:
 
 ## What Gets Fixed
 
+✅ Adds `wedding_profile_permissions` column if missing (STEP 0)
 ✅ `is_invite_valid(token)` - Now uses `is_used` column
 ✅ `get_invite_details(token)` - Now uses `is_used` column
 ✅ `active_invites` view - Now uses `is_used` column
