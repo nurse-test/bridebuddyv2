@@ -8,11 +8,13 @@
 import { createClient } from '@supabase/supabase-js';
 import { handleCORS, rateLimitMiddleware, RATE_LIMITS } from './_utils/rate-limiter.js';
 
+// Get env vars directly (works in Vercel serverless functions)
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const supabaseAnonKey = process.env.SUPABASE_ANON_KEY;
+
 // Service role client (bypasses RLS for admin operations)
-const supabaseAdmin = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
-);
+const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 
 export default async function handler(req, res) {
   // Handle CORS preflight
@@ -51,8 +53,8 @@ export default async function handler(req, res) {
     // STEP 2: Authenticate the user
     // ========================================================================
     const supabaseUser = createClient(
-      process.env.SUPABASE_URL,
-      process.env.SUPABASE_ANON_KEY,
+      supabaseUrl,
+      supabaseAnonKey,
       {
         global: {
           headers: {
