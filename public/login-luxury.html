@@ -260,6 +260,9 @@
                 if (!members || members.length === 0) {
                     // If coming from invite, return to accept-invite page
                     if (inviteToken) {
+                        // Set flag to auto-accept the invite
+                        localStorage.setItem('auto_accept_invite', 'true');
+                        localStorage.setItem('pending_invite_token', inviteToken);
                         window.location.href = `accept-invite-luxury.html?token=${inviteToken}`;
                         return;
                     }
@@ -281,6 +284,9 @@
                 // Determine redirect URL based on context
                 if (inviteToken) {
                     // User came from invite - return to accept-invite page
+                    // Set flag to auto-accept the invite
+                    localStorage.setItem('auto_accept_invite', 'true');
+                    localStorage.setItem('pending_invite_token', inviteToken);
                     window.location.href = `accept-invite-luxury.html?token=${inviteToken}`;
                 } else if (returnTo) {
                     // Custom return URL provided

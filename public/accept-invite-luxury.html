@@ -165,14 +165,22 @@
 
         // Initialize
         async function init() {
-            // Get token from URL
+            // Get token from URL - support both 'token' and 'code' parameters for compatibility
             const urlParams = new URLSearchParams(window.location.search);
-            inviteToken = urlParams.get('token');
+            inviteToken = urlParams.get('token') || urlParams.get('code');
+
+            // Also check localStorage for invite token (in case user navigated away)
+            if (!inviteToken) {
+                inviteToken = localStorage.getItem('pending_invite_token');
+            }
 
             if (!inviteToken) {
                 showError('No invite token provided');
                 return;
             }
+
+            // Store in localStorage as backup
+            localStorage.setItem('pending_invite_token', inviteToken);
 
             // Validate invite
             await validateInvite();
@@ -221,11 +229,18 @@
             const roleBadge = document.getElementById('roleBadge');
             roleBadge.textContent = inviteData.role_display;
 
-            // Set expiration
-            const expiresIn = inviteData.days_until_expiration > 0
-                ? `${inviteData.days_until_expiration} day${inviteData.days_until_expiration !== 1 ? 's' : ''}`
-                : `${inviteData.hours_until_expiration} hour${inviteData.hours_until_expiration !== 1 ? 's' : ''}`;
-            document.getElementById('expiresIn').textContent = expiresIn;
+            // Set expiration (or hide if no expiration)
+            const expiresInElement = document.getElementById('expiresIn');
+            if (inviteData.days_until_expiration !== null && inviteData.days_until_expiration > 0) {
+                expiresInElement.textContent = `${inviteData.days_until_expiration} day${inviteData.days_until_expiration !== 1 ? 's' : ''}`;
+            } else if (inviteData.hours_until_expiration !== null && inviteData.hours_until_expiration > 0) {
+                expiresInElement.textContent = `${inviteData.hours_until_expiration} hour${inviteData.hours_until_expiration !== 1 ? 's' : ''}`;
+            } else if (inviteData.expires_at) {
+                expiresInElement.textContent = 'soon';
+            } else {
+                // No expiration set - one-time use only
+                expiresInElement.parentElement.textContent = 'One-time use only';
+            }
 
             // Display permissions
             displayPermissions();
@@ -279,9 +294,18 @@
             const { data: { session } } = await supabase.auth.getSession();
 
             if (session) {
-                // User is logged in - show accept button
-                document.getElementById('acceptPrompt').classList.remove('hidden');
-                document.getElementById('acceptBtn').addEventListener('click', acceptInvite);
+                // User is logged in - check if they just came from signup/login
+                const autoAccept = localStorage.getItem('auto_accept_invite');
+
+                if (autoAccept === 'true') {
+                    // Auto-accept the invite (user just signed up or logged in)
+                    localStorage.removeItem('auto_accept_invite');
+                    await acceptInvite();
+                } else {
+                    // Show accept button
+                    document.getElementById('acceptPrompt').classList.remove('hidden');
+                    document.getElementById('acceptBtn').addEventListener('click', acceptInvite);
+                }
             } else {
                 // User not logged in - show auth prompt with invite token in links
                 const signupLink = document.getElementById('signupLink');
@@ -298,8 +322,9 @@
 
         // Accept Invite
         async function acceptInvite() {
-            // Hide accept prompt, show processing
+            // Hide accept prompt (if visible), show processing
             document.getElementById('acceptPrompt').classList.add('hidden');
+            document.getElementById('authPrompt').classList.add('hidden');
             document.getElementById('processingState').classList.remove('hidden');
 
             try {
@@ -332,6 +357,9 @@
 
                 const result = await response.json();
 
+                // Clear pending invite token from localStorage
+                localStorage.removeItem('pending_invite_token');
+
                 // Show success
                 document.getElementById('processingState').classList.add('hidden');
                 document.getElementById('successState').classList.remove('hidden');
@@ -346,9 +374,20 @@
 
             } catch (error) {
                 console.error('Accept error:', error);
-                showError('Failed to accept invitation');
+                showToast('Failed to accept invitation. Please try again.', 'error');
                 document.getElementById('processingState').classList.add('hidden');
-                document.getElementById('acceptPrompt').classList.remove('hidden');
+
+                // Show accept button again so user can retry
+                const { data: { session } } = await supabase.auth.getSession();
+                if (session) {
+                    document.getElementById('acceptPrompt').classList.remove('hidden');
+                    // Re-attach click handler if needed
+                    const btn = document.getElementById('acceptBtn');
+                    btn.replaceWith(btn.cloneNode(true));
+                    document.getElementById('acceptBtn').addEventListener('click', acceptInvite);
+                } else {
+                    document.getElementById('authPrompt').classList.remove('hidden');
+                }
             }
         }
 
