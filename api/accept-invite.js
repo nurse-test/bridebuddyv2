@@ -340,7 +340,10 @@ export default async function handler(req, res) {
       permissions: {
         wedding_profile: finalPermissions
       },
-      redirect_to: `/dashboard-luxury.html?wedding_id=${invite.wedding_id}`
+      // Besties go to bestie dashboard, owner/partner go to main dashboard
+      redirect_to: intendedRole === 'bestie'
+        ? `/bestie-luxury.html?wedding_id=${invite.wedding_id}`
+        : `/dashboard-luxury.html?wedding_id=${invite.wedding_id}`
     };
 
     // Add role-specific info
@@ -355,7 +358,7 @@ export default async function handler(req, res) {
       response.next_steps = [
         'You now have a private bestie planning space',
         'Use the Bestie Chat to plan bachelorette/bachelor parties and bridal showers',
-        'Your planning space is separate from the main wedding planning',
+        'You can view wedding details for planning',
         'Start planning surprises and events in your bestie dashboard!'
       ];
     }
