@@ -157,6 +157,12 @@
             btn.innerHTML = '<span class="loading-spinner"></span> Generating...';
 
             try {
+                // Validate wedding_id exists
+                if (!weddingId) {
+                    showToast('No wedding ID found. Please access from dashboard.', 'error');
+                    return;
+                }
+
                 // Get user session
                 const { data: { session } } = await supabase.auth.getSession();
 
@@ -170,13 +176,29 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         userToken: session.access_token,
+                        wedding_id: weddingId,
                         role: role
                     })
                 });
 
                 if (!response.ok) {
                     const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
-                    throw new Error(errorData.error || `API error: ${response.status} ${response.statusText}`);
+
+                    // Provide user-friendly error messages
+                    let userMessage = errorData.error || `Server error: ${response.status}`;
+
+                    // Add helpful context for common errors
+                    if (response.status === 400 && errorData.error?.includes('already has')) {
+                        userMessage = errorData.error;  // Already user-friendly
+                    } else if (response.status === 403) {
+                        userMessage = 'You do not have permission to create invites for this wedding.';
+                    } else if (response.status === 404) {
+                        userMessage = 'Wedding not found. Please refresh and try again.';
+                    } else if (response.status === 500) {
+                        userMessage = `Failed to create invite: ${errorData.details || 'Server error'}`;
+                    }
+
+                    throw new Error(userMessage);
                 }
 
                 const data = await response.json();
@@ -196,11 +218,11 @@
                     checkInviteLimits();
                     showToast(data.message, 'success');
                 } else {
-                    throw new Error(data.error);
+                    throw new Error(data.error || 'Failed to create invite link');
                 }
             } catch (error) {
                 console.error('Error creating invite:', error);
-                showToast(error.message || 'Error creating invite link. Please try again.', 'error');
+                showToast(error.message || 'Error creating invite link. Please try again.', 'error', 5000);
             } finally {
                 btn.disabled = false;
                 btn.textContent = role === 'partner' ? 'Invite Partner' : 'Invite Bestie';

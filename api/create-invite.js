@@ -30,20 +30,26 @@ export default async function handler(req, res) {
     return;
   }
 
-  const { userToken, role } = req.body;
+  const { userToken, wedding_id, role } = req.body;
 
   // ========================================================================
   // STEP 1: Validate input
   // ========================================================================
-  if (!role || !['partner', 'bestie'].includes(role)) {
-    return res.status(400).json({
-      error: 'Invalid role. Must be "partner" or "bestie"'
-    });
-  }
-
   if (!userToken) {
     return res.status(400).json({
       error: 'Missing required field: userToken'
+    });
+  }
+
+  if (!wedding_id) {
+    return res.status(400).json({
+      error: 'Missing required field: wedding_id'
+    });
+  }
+
+  if (!role || !['partner', 'bestie'].includes(role)) {
+    return res.status(400).json({
+      error: 'Invalid role. Must be "partner" or "bestie"'
     });
   }
 
@@ -72,30 +78,38 @@ export default async function handler(req, res) {
     }
 
     // ========================================================================
-    // STEP 3: Verify user is the wedding owner
+    // STEP 3: Verify user is a member of the specified wedding
     // ========================================================================
     const { data: membership, error: membershipError } = await supabaseAdmin
       .from('wedding_members')
       .select('wedding_id, role')
       .eq('user_id', user.id)
-      .single();
+      .eq('wedding_id', wedding_id)
+      .maybeSingle();
 
-    if (membershipError || !membership) {
+    if (membershipError) {
       console.error('Wedding membership lookup failed:', {
         user_id: user.id,
+        wedding_id: wedding_id,
         error: membershipError?.message,
         code: membershipError?.code
       });
-      return res.status(404).json({
-        error: 'You are not a member of any wedding',
+      return res.status(500).json({
+        error: 'Failed to verify wedding membership',
         details: membershipError?.message
+      });
+    }
+
+    if (!membership) {
+      return res.status(403).json({
+        error: 'You are not a member of this wedding'
       });
     }
 
     // Both owner and partner can create invites
     if (!['owner', 'partner'].includes(membership.role)) {
       return res.status(403).json({
-        error: 'Only wedding owners can create invite links'
+        error: 'Only wedding owners and partners can create invite links'
       });
     }
 
@@ -105,7 +119,7 @@ export default async function handler(req, res) {
     const { data: existingMembers } = await supabaseAdmin
       .from('wedding_members')
       .select('role')
-      .eq('wedding_id', membership.wedding_id);
+      .eq('wedding_id', wedding_id);
 
     if (role === 'partner') {
       const hasPartner = existingMembers?.some(m => m.role === 'partner');
@@ -131,12 +145,12 @@ export default async function handler(req, res) {
     const { data: wedding, error: weddingError } = await supabaseAdmin
       .from('wedding_profiles')
       .select('partner1_name, partner2_name')
-      .eq('id', membership.wedding_id)
+      .eq('id', wedding_id)
       .single();
 
     if (weddingError || !wedding) {
       console.error('Wedding lookup failed:', {
-        wedding_id: membership.wedding_id,
+        wedding_id: wedding_id,
         error: weddingError?.message,
         code: weddingError?.code
       });
@@ -154,12 +168,15 @@ export default async function handler(req, res) {
     // ========================================================================
     // STEP 6: Insert into database (one-time use, no expiration)
     // ========================================================================
-    // NOTE: Database schema uses 'is_used' not 'used' (base table from database_init.sql)
+    // NOTE: Database has both 'code' (legacy) and 'invite_token' (new) columns
+    // We insert the same value to both for backwards compatibility
+    // Database uses 'is_used' column name (not 'used')
     const { data: invite, error: insertError } = await supabaseAdmin
       .from('invite_codes')
       .insert({
-        wedding_id: membership.wedding_id,
-        invite_token: inviteToken,
+        wedding_id: wedding_id,
+        code: inviteToken,  // Legacy column - still required
+        invite_token: inviteToken,  // New column
         created_by: user.id,
         role: role,
         wedding_profile_permissions: { read: true, edit: role === 'partner' },
@@ -170,7 +187,7 @@ export default async function handler(req, res) {
 
     if (insertError) {
       console.error('Failed to create invite:', {
-        wedding_id: membership.wedding_id,
+        wedding_id: wedding_id,
         role: role,
         error: insertError.message,
         code: insertError.code,
