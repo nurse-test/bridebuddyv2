@@ -204,10 +204,9 @@ export default async function handler(req, res) {
     // ========================================================================
     // STEP 7: Build invite URL
     // ========================================================================
-    const baseUrl = process.env.VERCEL_URL
-      ? `https://${process.env.VERCEL_URL}`
-      : 'https://bridebuddyv2.vercel.app';
-
+    // IMPORTANT: Do NOT use VERCEL_URL as it points to Vercel's internal deployment URLs
+    // which require Vercel authentication. Always use the public production domain.
+    const baseUrl = process.env.PUBLIC_APP_URL || 'https://bridebuddyv2.vercel.app';
     const inviteUrl = `${baseUrl}/accept-invite-luxury.html?token=${inviteToken}`;
 
     // ========================================================================
