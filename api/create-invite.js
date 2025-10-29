@@ -231,14 +231,3 @@ function generateSecureToken() {
     .replace(/=/g, '');
 }
 
-// ============================================================================
-// HELPER: Get role-specific message
-// ============================================================================
-function getRoleMessage(role) {
-  const messages = {
-    partner: 'Partner invite link created successfully',
-    co_planner: 'Co-planner invite link created successfully',
-    bestie: 'Bestie invite link created successfully'
-  };
-  return messages[role] || 'Invite link created successfully';
-}

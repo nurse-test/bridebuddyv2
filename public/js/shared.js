@@ -427,16 +427,13 @@ export async function loadWeddingData(options = {}) {
                 showToast('Please complete your wedding setup', 'info', 3000);
                 setTimeout(() => {
                     window.location.href = 'onboarding-luxury.html';
-                    }, 1000);
-                }
-                throw new Error('No wedding membership found');
+                }, 1000);
             }
-
-            weddingId = membership.wedding_id;
-
-            // Update URL with wedding_id
-            updateUrlWithWeddingId(weddingId);
+            throw new Error('No wedding membership found');
         }
+
+        // Update URL with wedding_id
+        updateUrlWithWeddingId(weddingId);
 
         // Extra safety check before querying
         if (!weddingId || weddingId === 'undefined' || weddingId === 'null') {
