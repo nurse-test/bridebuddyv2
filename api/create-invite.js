@@ -81,8 +81,14 @@ export default async function handler(req, res) {
       .single();
 
     if (membershipError || !membership) {
+      console.error('Wedding membership lookup failed:', {
+        user_id: user.id,
+        error: membershipError?.message,
+        code: membershipError?.code
+      });
       return res.status(404).json({
-        error: 'You are not a member of any wedding'
+        error: 'You are not a member of any wedding',
+        details: membershipError?.message
       });
     }
 
@@ -129,8 +135,14 @@ export default async function handler(req, res) {
       .single();
 
     if (weddingError || !wedding) {
+      console.error('Wedding lookup failed:', {
+        wedding_id: membership.wedding_id,
+        error: weddingError?.message,
+        code: weddingError?.code
+      });
       return res.status(500).json({
-        error: 'Failed to retrieve wedding details'
+        error: 'Failed to retrieve wedding details',
+        details: weddingError?.message
       });
     }
 
@@ -142,6 +154,7 @@ export default async function handler(req, res) {
     // ========================================================================
     // STEP 6: Insert into database (one-time use, no expiration)
     // ========================================================================
+    // NOTE: Database schema uses 'is_used' not 'used' (base table from database_init.sql)
     const { data: invite, error: insertError } = await supabaseAdmin
       .from('invite_codes')
       .insert({
@@ -150,16 +163,24 @@ export default async function handler(req, res) {
         created_by: user.id,
         role: role,
         wedding_profile_permissions: { read: true, edit: role === 'partner' },
-        used: false
+        is_used: false
       })
       .select()
       .single();
 
     if (insertError) {
-      console.error('Failed to create invite:', insertError);
+      console.error('Failed to create invite:', {
+        wedding_id: membership.wedding_id,
+        role: role,
+        error: insertError.message,
+        code: insertError.code,
+        details: insertError.details,
+        hint: insertError.hint
+      });
       return res.status(500).json({
         error: 'Failed to create invite link',
-        details: insertError.message
+        details: insertError.message,
+        hint: insertError.hint
       });
     }
 
