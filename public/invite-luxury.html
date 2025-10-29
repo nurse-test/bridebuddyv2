@@ -237,6 +237,12 @@
         // Check invite limits and update UI
         async function checkInviteLimits() {
             try {
+                // Validate weddingId exists
+                if (!weddingId) {
+                    console.error('No wedding_id provided');
+                    return;
+                }
+
                 const { data: members, error } = await supabase
                     .from('wedding_members')
                     .select('role')
@@ -282,6 +288,14 @@
         // Load Pending Invites
         async function loadPendingInvites() {
             try {
+                // Validate weddingId exists
+                if (!weddingId) {
+                    console.error('No wedding_id provided');
+                    document.getElementById('pendingInvites').innerHTML =
+                        '<p style="text-align: center; color: var(--color-burgundy); opacity: 0.7;">Please provide a valid wedding ID</p>';
+                    return;
+                }
+
                 const { data: invites, error } = await supabase
                     .from('invite_codes')
                     .select('*')
@@ -347,6 +361,14 @@
         // Load Current Members
         async function loadCurrentMembers() {
             try {
+                // Validate weddingId exists
+                if (!weddingId) {
+                    console.error('No wedding_id provided');
+                    document.getElementById('currentMembers').innerHTML =
+                        '<p style="text-align: center; color: var(--color-burgundy); opacity: 0.7;">Please provide a valid wedding ID</p>';
+                    return;
+                }
+
                 const { data: members, error } = await supabase
                     .from('wedding_members')
                     .select('role, wedding_profile_permissions, user_id')
@@ -397,9 +419,34 @@
         }
 
         // Initialize page
-        checkInviteLimits();
-        loadPendingInvites();
-        loadCurrentMembers();
+        async function initializePage() {
+            // Check if weddingId exists
+            if (!weddingId) {
+                showToast('No wedding ID provided. Please access from dashboard.', 'error', 5000);
+                setTimeout(() => {
+                    window.location.href = 'dashboard-luxury.html';
+                }, 2000);
+                return;
+            }
+
+            // Check authentication
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) {
+                showToast('Please log in to manage invites', 'error');
+                setTimeout(() => {
+                    window.location.href = `login-luxury.html?returnTo=invite-luxury.html?wedding_id=${weddingId}`;
+                }, 1500);
+                return;
+            }
+
+            // Load all data
+            await checkInviteLimits();
+            await loadPendingInvites();
+            await loadCurrentMembers();
+        }
+
+        // Initialize when page loads
+        initializePage();
     </script>
 
     <!-- Custom Styles -->
