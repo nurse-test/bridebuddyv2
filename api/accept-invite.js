@@ -108,16 +108,48 @@ export default async function handler(req, res) {
     // ========================================================================
     // STEP 4: Look up the invite by token
     // ========================================================================
-    const { data: invite, error: inviteError } = await supabaseAdmin
+    // Base schema uses 'code' column, migration 006 adds 'invite_token'
+    // Try both for compatibility
+    let invite, inviteError;
+
+    // First try invite_token (migration 006)
+    const tokenResult = await supabaseAdmin
       .from('invite_codes')
       .select('*')
       .eq('invite_token', invite_token)
-      .single();
+      .maybeSingle();
+
+    if (tokenResult.data) {
+      invite = tokenResult.data;
+      inviteError = tokenResult.error;
+    } else {
+      // Fall back to code column (base schema)
+      const codeResult = await supabaseAdmin
+        .from('invite_codes')
+        .select('*')
+        .eq('code', invite_token)
+        .maybeSingle();
+
+      invite = codeResult.data;
+      inviteError = codeResult.error;
+    }
 
     if (inviteError || !invite) {
       return res.status(404).json({
         error: 'Invalid invite link'
       });
+    }
+
+    // ========================================================================
+    // Handle base schema compatibility (missing role and permissions)
+    // ========================================================================
+    // Base schema doesn't have 'role' or 'wedding_profile_permissions' columns
+    // Set defaults for backward compatibility
+    if (!invite.role) {
+      invite.role = 'partner';  // Default role
+    }
+    if (!invite.wedding_profile_permissions) {
+      invite.wedding_profile_permissions = { read: true, edit: true };
     }
 
     // ========================================================================

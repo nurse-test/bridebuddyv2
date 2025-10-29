@@ -335,10 +335,14 @@
 
                 // SECURITY: Escape all content to prevent XSS
                 container.innerHTML = invites.map(invite => {
-                    const roleDisplay = invite.role === 'partner' ? 'Partner' : 'Bestie';
-                    const roleColor = invite.role === 'partner' ? 'var(--color-gold)' : 'var(--color-rust)';
+                    // Base schema compatibility: role may be undefined
+                    const role = invite.role || 'partner';
+                    const roleDisplay = role === 'partner' ? 'Partner' : role === 'bestie' ? 'Bestie' : 'Team Member';
+                    const roleColor = role === 'partner' ? 'var(--color-gold)' : 'var(--color-rust)';
 
-                    const inviteUrl = sanitizeUrl(`${window.location.origin}/accept-invite-luxury.html?token=${escapeHtml(invite.invite_token)}`);
+                    // Base schema uses 'code', migration uses 'invite_token'
+                    const token = invite.invite_token || invite.code;
+                    const inviteUrl = sanitizeUrl(`${window.location.origin}/accept-invite-luxury.html?token=${escapeHtml(token)}`);
 
                     return `
                         <div style="background: rgba(255, 255, 255, 0.3); padding: var(--space-4); border-radius: var(--radius-md); margin-bottom: var(--space-3);">

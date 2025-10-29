@@ -44,19 +44,31 @@ export default async function handler(req, res) {
     // ========================================================================
     // STEP 2: Look up invite by token
     // ========================================================================
-    const { data: invite, error: inviteError } = await supabaseAdmin
+    // Base schema uses 'code' column, migration 006 adds 'invite_token'
+    // Try both for compatibility
+    let invite, inviteError;
+
+    // First try invite_token (migration 006)
+    const tokenResult = await supabaseAdmin
       .from('invite_codes')
-      .select(`
-        id,
-        wedding_id,
-        role,
-        wedding_profile_permissions,
-        created_by,
-        is_used,
-        created_at
-      `)
+      .select('*')
       .eq('invite_token', invite_token)
-      .single();
+      .maybeSingle();
+
+    if (tokenResult.data) {
+      invite = tokenResult.data;
+      inviteError = tokenResult.error;
+    } else {
+      // Fall back to code column (base schema)
+      const codeResult = await supabaseAdmin
+        .from('invite_codes')
+        .select('*')
+        .eq('code', invite_token)
+        .maybeSingle();
+
+      invite = codeResult.data;
+      inviteError = codeResult.error;
+    }
 
     if (inviteError || !invite) {
       return res.status(404).json({
@@ -131,15 +143,19 @@ export default async function handler(req, res) {
     }
 
     // ========================================================================
-    // STEP 6: Format role display name
+    // STEP 6: Format role display name (with base schema compatibility)
     // ========================================================================
+    // Base schema doesn't have 'role' column - default to 'partner'
+    const role = invite.role || 'partner';
     const roleDisplayNames = {
       partner: 'Partner',
       co_planner: 'Co-planner',
       bestie: 'Bestie (MOH/Best Man)'
     };
+    const roleDisplay = roleDisplayNames[role] || 'Wedding Team Member';
 
-    const roleDisplay = roleDisplayNames[invite.role] || invite.role;
+    // Base schema doesn't have wedding_profile_permissions - default to full access
+    const permissions = invite.wedding_profile_permissions || { read: true, edit: true };
 
     // ========================================================================
     // STEP 7: Return invite details
@@ -151,15 +167,15 @@ export default async function handler(req, res) {
         wedding_name: `${wedding.partner1_name} & ${wedding.partner2_name}`,
         wedding_date: wedding.wedding_date,
         inviter_name: inviterName,
-        role: invite.role,
+        role: role,
         role_display: roleDisplay,
-        wedding_profile_permissions: invite.wedding_profile_permissions,
+        wedding_profile_permissions: permissions,
         created_at: invite.created_at,
         one_time_use: true
       },
       permissions: {
-        can_read_wedding_profile: invite.wedding_profile_permissions.read,
-        can_edit_wedding_profile: invite.wedding_profile_permissions.edit
+        can_read_wedding_profile: permissions.read,
+        can_edit_wedding_profile: permissions.edit
       }
     });
 
