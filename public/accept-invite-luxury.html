@@ -75,31 +75,24 @@
                     <div id="permissionsDisplay"></div>
                 </div>
 
-                <!-- Bestie Permissions (only for bestie role) -->
-                <div id="bestiePermissionsSection" class="card card-rust-accent animate-fade-in hidden" style="margin-bottom: var(--space-6); animation-delay: 0.2s;">
+                <!-- Bestie Privacy Notice (only for bestie role) -->
+                <div id="bestiePrivacySection" class="card card-rust-accent animate-fade-in hidden" style="margin-bottom: var(--space-6); animation-delay: 0.2s;">
                     <h3 style="font-family: var(--font-heading); font-size: var(--text-xl); color: var(--color-navy); margin-bottom: var(--space-3);">
-                        Bestie Permissions
+                        🔒 Your Private Planning Space
                     </h3>
-                    <p style="color: var(--color-burgundy); opacity: 0.9; font-size: var(--text-sm); margin-bottom: var(--space-4);">
-                        Control what the inviter can see in your private bestie planning space:
+                    <p style="color: var(--color-burgundy); opacity: 0.9; font-size: var(--text-sm); margin-bottom: var(--space-3);">
+                        You'll have a completely private bestie planning area where you can:
                     </p>
 
-                    <label class="checkbox-item" style="margin-bottom: var(--space-3);">
-                        <input type="checkbox" id="bestieReadPermission">
-                        <span class="checkbox-label">
-                            Allow inviter to <strong>view</strong> my bestie knowledge
-                        </span>
-                    </label>
+                    <ul style="color: var(--color-burgundy); opacity: 0.9; font-size: var(--text-sm); margin-left: var(--space-4); margin-bottom: var(--space-3);">
+                        <li style="margin-bottom: var(--space-2);">📝 Plan surprise events and activities</li>
+                        <li style="margin-bottom: var(--space-2);">💬 Chat with AI about your planning</li>
+                        <li style="margin-bottom: var(--space-2);">👀 View wedding details for context</li>
+                        <li>🤫 Keep everything completely private from the couple</li>
+                    </ul>
 
-                    <label class="checkbox-item">
-                        <input type="checkbox" id="bestieEditPermission">
-                        <span class="checkbox-label">
-                            Allow inviter to <strong>edit</strong> my bestie knowledge
-                        </span>
-                    </label>
-
-                    <p style="font-size: var(--text-xs); color: var(--color-burgundy); opacity: 0.6; margin-top: var(--space-3);">
-                        You can change these permissions anytime from your settings.
+                    <p style="font-size: var(--text-xs); color: var(--color-burgundy); opacity: 0.6; background: rgba(255, 255, 255, 0.3); padding: var(--space-2); border-radius: var(--radius-sm);">
+                        <strong>Privacy Guarantee:</strong> The couple cannot see, edit, or even know your bestie planning exists. Your space is completely private.
                     </p>
                 </div>
 
@@ -237,25 +230,9 @@
             // Display permissions
             displayPermissions();
 
-            // Show bestie permissions section if role is bestie
+            // Show bestie privacy notice if role is bestie
             if (inviteData.role === 'bestie') {
-                document.getElementById('bestiePermissionsSection').classList.remove('hidden');
-
-                // Add listener to enforce edit requires read
-                const readCheckbox = document.getElementById('bestieReadPermission');
-                const editCheckbox = document.getElementById('bestieEditPermission');
-
-                editCheckbox.addEventListener('change', () => {
-                    if (editCheckbox.checked) {
-                        readCheckbox.checked = true;
-                    }
-                });
-
-                readCheckbox.addEventListener('change', () => {
-                    if (!readCheckbox.checked) {
-                        editCheckbox.checked = false;
-                    }
-                });
+                document.getElementById('bestiePrivacySection').classList.remove('hidden');
             }
         }
 
@@ -333,23 +310,15 @@
                     return;
                 }
 
-                // Get bestie permissions if role is bestie
-                let bestiePermissions = { can_read: false, can_edit: false };
-                if (inviteData.role === 'bestie') {
-                    bestiePermissions = {
-                        can_read: document.getElementById('bestieReadPermission').checked,
-                        can_edit: document.getElementById('bestieEditPermission').checked
-                    };
-                }
-
                 // Call accept API
+                // NOTE: No longer sending bestie_knowledge_permissions
+                // Permissions are now FIXED by role (hardcoded in RLS policies)
                 const response = await fetch('/api/accept-invite', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         invite_token: inviteToken,
-                        userToken: session.access_token,
-                        bestie_knowledge_permissions: bestiePermissions
+                        userToken: session.access_token
                     })
                 });
 
