@@ -66,7 +66,21 @@ export default async function handler(req, res) {
     }
 
     // ========================================================================
-    // STEP 3: Check if invite has been used (one-time use only)
+    // STEP 3: Check if invite has expired
+    // ========================================================================
+    const now = new Date();
+    const expiresAt = new Date(invite.expires_at);
+
+    if (expiresAt < now) {
+      return res.status(400).json({
+        error: 'This invite link has expired',
+        is_valid: false,
+        is_expired: true
+      });
+    }
+
+    // ========================================================================
+    // STEP 4: Check if invite has been used (one-time use only)
     // ========================================================================
     if (invite.is_used === true) {
       return res.status(400).json({
@@ -77,7 +91,7 @@ export default async function handler(req, res) {
     }
 
     // ========================================================================
-    // STEP 4: Get wedding details
+    // STEP 5: Get wedding details
     // ========================================================================
     const { data: wedding, error: weddingError } = await supabaseAdmin
       .from('wedding_profiles')
@@ -92,7 +106,7 @@ export default async function handler(req, res) {
     }
 
     // ========================================================================
-    // STEP 5: Get inviter details
+    // STEP 6: Get inviter details
     // ========================================================================
     const { data: inviter, error: inviterError } = await supabaseAdmin
       .from('auth.users')

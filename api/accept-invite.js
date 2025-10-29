@@ -121,7 +121,21 @@ export default async function handler(req, res) {
     }
 
     // ========================================================================
-    // STEP 5: Check if invite has been used (one-time use only)
+    // STEP 5: Check if invite has expired
+    // ========================================================================
+    if (invite.expires_at) {
+      const now = new Date();
+      const expiresAt = new Date(invite.expires_at);
+
+      if (expiresAt < now) {
+        return res.status(400).json({
+          error: 'This invite link has expired. Please request a new invite from the wedding couple.'
+        });
+      }
+    }
+
+    // ========================================================================
+    // STEP 6: Check if invite has been used (one-time use only)
     // ========================================================================
     if (invite.is_used === true) {
       return res.status(400).json({
@@ -130,7 +144,7 @@ export default async function handler(req, res) {
     }
 
     // ========================================================================
-    // STEP 6: Check if user is already a member of this wedding
+    // STEP 7: Check if user is already a member of this wedding
     // ========================================================================
     const { data: existingMember } = await supabaseAdmin
       .from('wedding_members')
@@ -147,7 +161,7 @@ export default async function handler(req, res) {
     }
 
     // ========================================================================
-    // STEP 7: For bestie role - check 1:1 relationship constraint
+    // STEP 8: For bestie role - check 1:1 relationship constraint
     // ========================================================================
     if (invite.role === 'bestie') {
       const { data: existingBestie } = await supabaseAdmin
@@ -167,7 +181,7 @@ export default async function handler(req, res) {
     }
 
     // ========================================================================
-    // STEP 8: Add user to wedding_members
+    // STEP 9: Add user to wedding_members
     // ========================================================================
     const { error: addMemberError } = await supabaseAdmin
       .from('wedding_members')
@@ -190,7 +204,7 @@ export default async function handler(req, res) {
     }
 
     // ========================================================================
-    // STEP 9: Role-specific setup
+    // STEP 10: Role-specific setup
     // ========================================================================
     if (invite.role === 'bestie') {
       // Create bestie_profile for bestie role
@@ -227,7 +241,7 @@ export default async function handler(req, res) {
     }
 
     // ========================================================================
-    // STEP 10: Mark invite as used
+    // STEP 11: Mark invite as used
     // ========================================================================
     const { error: updateInviteError } = await supabaseAdmin
       .from('invite_codes')
@@ -244,7 +258,7 @@ export default async function handler(req, res) {
     }
 
     // ========================================================================
-    // STEP 11: Fetch wedding details for response
+    // STEP 12: Fetch wedding details for response
     // ========================================================================
     const { data: wedding } = await supabaseAdmin
       .from('wedding_profiles')
@@ -253,7 +267,7 @@ export default async function handler(req, res) {
       .single();
 
     // ========================================================================
-    // STEP 12: Build role-specific response
+    // STEP 13: Build role-specific response
     // ========================================================================
     const response = {
       success: true,
