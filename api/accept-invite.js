@@ -374,10 +374,11 @@ export default async function handler(req, res) {
 // ============================================================================
 // HELPER: Get role-specific success message
 // ============================================================================
+// Only 3 valid roles: owner, partner, bestie
 function getRoleMessage(role) {
   const messages = {
+    owner: 'Successfully joined as owner!',
     partner: 'Successfully joined as partner!',
-    co_planner: 'Successfully joined as co-planner!',
     bestie: 'Successfully joined as bestie!'
   };
   return messages[role] || 'Successfully joined wedding!';

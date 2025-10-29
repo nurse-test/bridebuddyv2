@@ -160,9 +160,10 @@ export default async function handler(req, res) {
       intendedRole = invite.role;
     }
 
+    // Only 3 valid roles: owner, partner, bestie
     const roleDisplayNames = {
+      owner: 'Owner',
       partner: 'Partner',
-      co_planner: 'Co-planner',
       bestie: 'Bestie (MOH/Best Man)'
     };
     const roleDisplay = roleDisplayNames[intendedRole] || 'Wedding Team Member';
