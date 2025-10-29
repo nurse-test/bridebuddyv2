@@ -335,7 +335,9 @@
 
                 if (!session) {
                     console.error('❌ [FRONTEND] No session found');
-                    showError('Please log in to accept this invitation');
+                    showToast('Please log in to accept this invitation', 'error');
+                    document.getElementById('processingState').classList.add('hidden');
+                    document.getElementById('authPrompt').classList.remove('hidden');
                     return;
                 }
 
@@ -364,7 +366,11 @@
                         error: errorData.error,
                         details: errorData.details
                     });
-                    showError(errorData.error || `API error: ${response.status} ${response.statusText}`);
+
+                    // Use showToast instead of showError to keep the page intact for retry
+                    const errorMessage = errorData.error || `API error: ${response.status} ${response.statusText}`;
+                    showToast(errorMessage, 'error', 8000);
+
                     document.getElementById('processingState').classList.add('hidden');
                     document.getElementById('acceptPrompt').classList.remove('hidden');
                     return;
