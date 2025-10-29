@@ -166,25 +166,21 @@ export default async function handler(req, res) {
     const inviteToken = generateSecureToken();
 
     // ========================================================================
-    // STEP 6: Insert into database
+    // STEP 6: Insert into database (base schema compatibility)
     // ========================================================================
-    // NOTE: Database has both 'code' (legacy) and 'invite_token' (new) columns
-    // Migration 006 requires expires_at (7 days from now)
-    // Database uses 'is_used' column name (not 'used')
-
-    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+    // Base database schema ONLY has these columns:
+    //   - wedding_id, code, created_by, is_used, used_by, created_at, used_at
+    // Migration 006 adds: invite_token, role, wedding_profile_permissions, expires_at
+    //
+    // For now, we only use base schema columns to ensure compatibility
 
     const { data: invite, error: insertError } = await supabaseAdmin
       .from('invite_codes')
       .insert({
         wedding_id: wedding_id,
-        code: inviteToken,  // Legacy column - still required
-        invite_token: inviteToken,  // New column from migration
+        code: inviteToken,  // Base schema uses 'code' not 'invite_token'
         created_by: user.id,
-        role: role,  // Must be 'partner', 'co_planner', or 'bestie'
-        wedding_profile_permissions: { read: true, edit: role === 'partner' },
-        is_used: false,
-        expires_at: expiresAt  // Required by migration 006
+        is_used: false
       })
       .select()
       .single();
