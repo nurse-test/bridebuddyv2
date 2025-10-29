@@ -31,8 +31,7 @@ export default async function handler(req, res) {
 
   const {
     invite_token,
-    userToken,
-    bestie_knowledge_permissions = { can_read: false, can_edit: false }
+    userToken
   } = req.body;
 
   // ========================================================================
@@ -41,15 +40,6 @@ export default async function handler(req, res) {
   if (!invite_token || !userToken) {
     return res.status(400).json({
       error: 'Missing required fields: invite_token and userToken'
-    });
-  }
-
-  // Validate bestie_knowledge_permissions structure
-  if (typeof bestie_knowledge_permissions !== 'object' ||
-      typeof bestie_knowledge_permissions.can_read !== 'boolean' ||
-      typeof bestie_knowledge_permissions.can_edit !== 'boolean') {
-    return res.status(400).json({
-      error: 'Invalid bestie_knowledge_permissions. Must be { can_read: boolean, can_edit: boolean }'
     });
   }
 
@@ -280,20 +270,10 @@ export default async function handler(req, res) {
         // Don't fail the entire request - user is already a member
       }
 
-      // Create bestie_permissions entry to track what inviter can access
-      const { error: permissionsError } = await supabaseAdmin
-        .from('bestie_permissions')
-        .insert({
-          bestie_user_id: user.id,
-          inviter_user_id: invite.created_by,
-          wedding_id: invite.wedding_id,
-          permissions: bestie_knowledge_permissions
-        });
-
-      if (permissionsError) {
-        console.error('Failed to create bestie permissions:', permissionsError);
-        // Don't fail the entire request - user is already a member
-      }
+      // NOTE: No longer creating bestie_permissions entry
+      // Permissions are now FIXED by role:
+      // - Besties have ZERO access to bestie_knowledge (each bestie only sees their own)
+      // - Besties have VIEW-ONLY access to wedding_profiles (hardcoded in RLS)
     } else if (intendedRole === 'partner') {
       // Partner joins as 'partner' role with full access (same as owner)
       // They will share the same wedding_profiles, vendor_tracker, budget_tracker, wedding_tasks
