@@ -383,6 +383,17 @@
                     redirect_to: result.redirect_to
                 });
 
+                // CRITICAL: Store wedding_id and role in localStorage IMMEDIATELY
+                // This ensures wedding_id is available for all subsequent navigation
+                if (result.wedding?.id) {
+                    localStorage.setItem('wedding_id', result.wedding.id);
+                    console.log('✅ [FRONTEND] Stored wedding_id in localStorage:', result.wedding.id);
+                }
+                if (result.your_role) {
+                    localStorage.setItem('user_role', result.your_role);
+                    console.log('✅ [FRONTEND] Stored user_role in localStorage:', result.your_role);
+                }
+
                 // Clear pending invite token from localStorage
                 localStorage.removeItem('pending_invite_token');
 
