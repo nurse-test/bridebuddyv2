@@ -62,7 +62,7 @@ jobs:
         run: npm ci
 
       - name: Run npm audit
-        run: npm audit --audit-level=moderate
+        run: npm run security:audit
         continue-on-error: false
 
   vercel-build-check:
