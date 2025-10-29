@@ -169,7 +169,7 @@ export default async function handler(req, res) {
     // ========================================================================
     // STEP 8: Add user to wedding_members
     // ========================================================================
-    const { data: newMember, error: addMemberError } = await supabaseAdmin
+    const { error: addMemberError } = await supabaseAdmin
       .from('wedding_members')
       .insert({
         wedding_id: invite.wedding_id,

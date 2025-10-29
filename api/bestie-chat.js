@@ -242,7 +242,7 @@ IMPORTANT:
     const responseMatch = fullResponse.match(/<response>([\s\S]*?)<\/response>/);
     const dataMatch = fullResponse.match(/<extracted_data>([\s\S]*?)<\/extracted_data>/);
 
-    let assistantMessage = responseMatch ? responseMatch[1].trim() : fullResponse;
+    const assistantMessage = responseMatch ? responseMatch[1].trim() : fullResponse;
     let extractedData = { budget_items: [], tasks: [], profile_summary: null };
 
     if (dataMatch) {

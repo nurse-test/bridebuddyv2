@@ -51,7 +51,7 @@ export default async function handler(req, res) {
   // Handle checkout.session.completed
   if (event.type === 'checkout.session.completed') {
     const session = event.data.object;
-    const { userId, weddingId, planType } = session.metadata;
+    const { weddingId, planType } = session.metadata;
 
     try {
       // Update wedding to VIP

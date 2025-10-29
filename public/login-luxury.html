@@ -112,7 +112,7 @@
 
     <!-- Scripts -->
     <script type="module">
-        import { initSupabase, showToast } from '/js/shared.js';
+        import { initSupabase, showToast, storeUserSession } from '/js/shared.js';
 
         // Initialize Supabase
         const supabase = initSupabase();
@@ -274,6 +274,9 @@
 
                 // Use the first wedding (most recent)
                 const weddingId = members[0].wedding_id;
+
+                // Store session in localStorage immediately
+                storeUserSession(data.user.id, weddingId);
 
                 // Determine redirect URL based on context
                 if (inviteToken) {

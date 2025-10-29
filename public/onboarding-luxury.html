@@ -614,6 +614,10 @@
                     console.log('✅ Wedding profile created! User can now access the app.');
                     onboardingData.weddingId = data.wedding_id;
 
+                    // Store user_id and wedding_id in localStorage immediately
+                    localStorage.setItem('user_id', session.user.id);
+                    localStorage.setItem('wedding_id', data.wedding_id);
+
                     // Show success message
                     showToast('Account created! You can now skip to your dashboard or continue to add more details.', 'success', 4000);
                 } else {
@@ -703,6 +707,10 @@
                         }
                     }
                 }
+
+                // Store session in localStorage before redirect
+                localStorage.setItem('user_id', session.user.id);
+                localStorage.setItem('wedding_id', weddingId);
 
                 // Redirect to chat/dashboard
                 console.log('✅ Onboarding complete, redirecting to dashboard...');
