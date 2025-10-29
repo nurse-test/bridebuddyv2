@@ -132,15 +132,14 @@
 
     <!-- Scripts -->
     <script type="module">
-        import { initSupabase, showToast } from '/js/shared.js';
+        import { initSupabase, showToast, getWeddingId } from '/js/shared.js';
         import { escapeHtml, sanitizeUrl } from '/js/security.js';
 
         // Initialize Supabase
         const supabase = initSupabase();
 
-        // Get wedding_id from URL
-        const urlParams = new URLSearchParams(window.location.search);
-        const weddingId = urlParams.get('wedding_id');
+        // Wedding ID will be loaded from localStorage/URL/database
+        let weddingId = null;
         let currentInviteUrl = '';
 
         // Make functions globally available
@@ -420,6 +419,9 @@
 
         // Initialize page
         async function initializePage() {
+            // Load wedding ID from localStorage/URL/database
+            weddingId = await getWeddingId();
+
             // Check if weddingId exists
             if (!weddingId) {
                 showToast('No wedding ID provided. Please access from dashboard.', 'error', 5000);

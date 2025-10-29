@@ -92,7 +92,7 @@
                         </a>
                     </li>
                     <li class="sidebar-item">
-                        <a href="invite-luxury.html" class="sidebar-link">
+                        <a href="invite-luxury.html" class="sidebar-link" id="inviteLink">
                             <span class="sidebar-icon">✉️</span>
                             Invites
                         </a>
@@ -375,7 +375,7 @@
                 document.getElementById('weddingName').textContent = weddingName;
 
                 // Update navigation links with wedding_id
-                const navLinks = ['profileLink', 'settingsLink', 'teamLink', 'settingsSidebarLink', 'teamBottomLink', 'settingsBottomLink'];
+                const navLinks = ['profileLink', 'settingsLink', 'teamLink', 'inviteLink', 'settingsSidebarLink', 'teamBottomLink', 'settingsBottomLink'];
                 navLinks.forEach(linkId => {
                     const link = document.getElementById(linkId);
                     if (link && weddingId) {

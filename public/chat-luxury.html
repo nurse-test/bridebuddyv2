@@ -320,6 +320,12 @@
                 const { wedding, weddingId: loadedWeddingId, member } = await loadWeddingData();
                 weddingId = loadedWeddingId;
 
+                // Update invite link with wedding_id
+                const addUserLink = document.getElementById('menuAddUser');
+                if (addUserLink && weddingId) {
+                    addUserLink.href = `invite-luxury.html?wedding_id=${weddingId}`;
+                }
+
                 // Redirect besties to their dedicated chat interface
                 // Besties should only use bestie-luxury.html, not the main wedding chat
                 if (member && member.role === 'bestie') {
