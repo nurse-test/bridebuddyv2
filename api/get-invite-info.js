@@ -52,7 +52,7 @@ export default async function handler(req, res) {
         role,
         wedding_profile_permissions,
         created_by,
-        used,
+        is_used,
         created_at
       `)
       .eq('invite_token', invite_token)
@@ -68,7 +68,7 @@ export default async function handler(req, res) {
     // ========================================================================
     // STEP 3: Check if invite has been used (one-time use only)
     // ========================================================================
-    if (invite.used === true) {
+    if (invite.is_used === true) {
       return res.status(400).json({
         error: 'This invite has already been used',
         is_valid: false,

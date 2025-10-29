@@ -286,7 +286,7 @@
                     .from('invite_codes')
                     .select('*')
                     .eq('wedding_id', weddingId)
-                    .or('used.is.null,used.eq.false')
+                    .or('is_used.is.null,is_used.eq.false')
                     .order('created_at', { ascending: false });
 
                 if (error) throw error;

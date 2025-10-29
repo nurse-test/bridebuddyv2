@@ -123,7 +123,7 @@ export default async function handler(req, res) {
     // ========================================================================
     // STEP 5: Check if invite has been used (one-time use only)
     // ========================================================================
-    if (invite.used === true) {
+    if (invite.is_used === true) {
       return res.status(400).json({
         error: 'This invite has already been used'
       });
@@ -232,7 +232,7 @@ export default async function handler(req, res) {
     const { error: updateInviteError } = await supabaseAdmin
       .from('invite_codes')
       .update({
-        used: true,
+        is_used: true,
         used_by: user.id,
         used_at: new Date().toISOString()
       })
