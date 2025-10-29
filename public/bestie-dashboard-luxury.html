@@ -77,7 +77,7 @@
                         </a>
                     </li>
                     <li class="sidebar-item">
-                        <a href="bestie-luxury.html" class="sidebar-link">
+                        <a href="bestie-luxury.html" class="sidebar-link" id="bestieChatSidebarLink">
                             <span class="sidebar-icon">💬</span>
                             Bestie Chat
                         </a>
@@ -126,7 +126,7 @@
                         Quick Actions
                     </p>
                     <div style="display: flex; flex-direction: column; gap: var(--space-3);">
-                        <a href="bestie-luxury.html" class="btn btn-primary" style="text-decoration: none; text-align: center; display: block;">
+                        <a href="bestie-luxury.html" class="btn btn-primary" id="bestieChatQuickLink" style="text-decoration: none; text-align: center; display: block;">
                             💬 Chat with Bestie AI
                         </a>
                         <button id="viewWeddingInfoBtn" class="btn btn-secondary" style="width: 100%;">
@@ -215,7 +215,7 @@
                 <span class="bottom-nav-icon">🏠</span>
                 Home
             </a>
-            <a href="bestie-luxury.html" class="bottom-nav-item">
+            <a href="bestie-luxury.html" class="bottom-nav-item" id="bestieChatBottomLink">
                 <span class="bottom-nav-icon">💬</span>
                 Chat
             </a>
@@ -351,7 +351,7 @@
                 document.getElementById('weddingName').textContent = weddingName;
 
                 // Update navigation links with wedding_id
-                const navLinks = ['profileLink', 'teamLink', 'teamBottomLink'];
+                const navLinks = ['profileLink', 'teamLink', 'teamBottomLink', 'bestieChatSidebarLink', 'bestieChatQuickLink', 'bestieChatBottomLink'];
                 navLinks.forEach(linkId => {
                     const link = document.getElementById(linkId);
                     if (link && weddingId) {
