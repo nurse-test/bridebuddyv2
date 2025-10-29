@@ -78,17 +78,19 @@ export default async function handler(req, res) {
     }
 
     // ========================================================================
-    // STEP 3: Check if invite has expired
+    // STEP 3: Check if invite has expired (if expires_at is set)
     // ========================================================================
-    const now = new Date();
-    const expiresAt = new Date(invite.expires_at);
+    if (invite.expires_at) {
+      const now = new Date();
+      const expiresAt = new Date(invite.expires_at);
 
-    if (expiresAt < now) {
-      return res.status(400).json({
-        error: 'This invite link has expired',
-        is_valid: false,
-        is_expired: true
-      });
+      if (expiresAt < now) {
+        return res.status(400).json({
+          error: 'This invite link has expired',
+          is_valid: false,
+          is_expired: true
+        });
+      }
     }
 
     // ========================================================================
@@ -182,7 +184,24 @@ export default async function handler(req, res) {
     const finalPermissions = invite.wedding_profile_permissions || permissions;
 
     // ========================================================================
-    // STEP 7: Return invite details
+    // STEP 7: Calculate time until expiration (if applicable)
+    // ========================================================================
+    let daysUntilExpiration = null;
+    let hoursUntilExpiration = null;
+
+    if (invite.expires_at) {
+      const now = new Date();
+      const expiresAt = new Date(invite.expires_at);
+      const diffMs = expiresAt - now;
+      const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+      const diffDays = Math.floor(diffHours / 24);
+
+      daysUntilExpiration = diffDays;
+      hoursUntilExpiration = diffHours % 24;
+    }
+
+    // ========================================================================
+    // STEP 8: Return invite details
     // ========================================================================
     return res.status(200).json({
       success: true,
@@ -195,7 +214,10 @@ export default async function handler(req, res) {
         role_display: roleDisplay,
         wedding_profile_permissions: finalPermissions,
         created_at: invite.created_at,
-        one_time_use: true
+        one_time_use: true,
+        expires_at: invite.expires_at,
+        days_until_expiration: daysUntilExpiration,
+        hours_until_expiration: hoursUntilExpiration
       },
       permissions: {
         can_read_wedding_profile: finalPermissions.read,

@@ -296,8 +296,11 @@
                 let redirectUrl;
                 if (inviteToken) {
                     // User came from invite - return to accept-invite page
+                    // Set flag to auto-accept the invite
+                    localStorage.setItem('auto_accept_invite', 'true');
+                    localStorage.setItem('pending_invite_token', inviteToken);
                     redirectUrl = `accept-invite-luxury.html?token=${inviteToken}`;
-                    showToast('success', 'Account Created!', 'Returning to invitation...');
+                    showToast('success', 'Account Created!', 'Accepting invitation...');
                 } else if (returnTo) {
                     // Custom return URL provided
                     redirectUrl = returnTo;
