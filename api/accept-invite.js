@@ -137,13 +137,6 @@ export default async function handler(req, res) {
       });
     }
 
-    console.log('✅ [ACCEPT-INVITE] Invite found:', {
-      id: invite.id,
-      wedding_id: invite.wedding_id,
-      is_used: invite.is_used,
-      role: intendedRole
-    });
-
     // ========================================================================
     // Extract role from token (base schema compatibility)
     // ========================================================================
@@ -162,6 +155,13 @@ export default async function handler(req, res) {
     if (invite.role) {
       intendedRole = invite.role;
     }
+
+    console.log('✅ [ACCEPT-INVITE] Invite found:', {
+      id: invite.id,
+      wedding_id: invite.wedding_id,
+      is_used: invite.is_used,
+      role: intendedRole
+    });
 
     // ONLY 3 valid roles: owner, partner, bestie
     // Use the intended role directly
