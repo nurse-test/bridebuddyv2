@@ -287,7 +287,6 @@
                     .select('*')
                     .eq('wedding_id', weddingId)
                     .or('used.is.null,used.eq.false')
-                    .gt('expires_at', new Date().toISOString())
                     .order('created_at', { ascending: false });
 
                 if (error) throw error;
@@ -301,9 +300,6 @@
 
                 // SECURITY: Escape all content to prevent XSS
                 container.innerHTML = invites.map(invite => {
-                    const expiresAt = new Date(invite.expires_at);
-                    const now = new Date();
-                    const hoursLeft = Math.round((expiresAt - now) / (1000 * 60 * 60));
                     const roleDisplay = invite.role === 'partner' ? 'Partner' : 'Bestie';
                     const roleColor = invite.role === 'partner' ? 'var(--color-gold)' : 'var(--color-rust)';
 
@@ -315,7 +311,7 @@
                                 <div>
                                     <p style="font-weight: 600; color: var(--color-navy); margin-bottom: var(--space-1);">${escapeHtml(roleDisplay)}</p>
                                     <p style="font-size: var(--text-sm); color: var(--color-burgundy); opacity: 0.7;">
-                                        Expires in ${escapeHtml(hoursLeft)} hours
+                                        One-time use link
                                     </p>
                                 </div>
                                 <span style="padding: 4px 12px; background: rgba(201, 169, 97, 0.1); color: ${roleColor}; font-size: var(--text-xs); border-radius: 12px; font-weight: 500;">
