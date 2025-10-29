@@ -929,29 +929,6 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 GRANT EXECUTE ON FUNCTION get_invite_details(TEXT) TO anon, authenticated;
 GRANT EXECUTE ON FUNCTION is_invite_valid(TEXT) TO anon, authenticated;
 
--- Update active_invites view
-DROP VIEW IF EXISTS active_invites;
-
-CREATE OR REPLACE VIEW active_invites AS
-SELECT
-  ic.id,
-  ic.wedding_id,
-  ic.invite_token,
-  ic.role,
-  ic.wedding_profile_permissions,
-  ic.created_by,
-  ic.created_at,
-  ic.is_used,
-  ic.used_by,
-  ic.used_at,
-  wp.partner1_name,
-  wp.partner2_name
-FROM invite_codes ic
-JOIN wedding_profiles wp ON ic.wedding_id = wp.id
-WHERE (ic.is_used = false OR ic.is_used IS NULL);
-
-GRANT SELECT ON active_invites TO authenticated;
-
 -- ============================================================================
 -- STEP 10: ADD MISSING WEDDING_PROFILES COLUMNS
 -- ============================================================================
@@ -1126,6 +1103,34 @@ END $$;
 -- Add index on engagement_date for sorting/filtering
 CREATE INDEX IF NOT EXISTS wedding_profiles_engagement_date_idx
 ON wedding_profiles(engagement_date);
+
+-- ============================================================================
+-- STEP 11: CREATE ACTIVE INVITES VIEW
+-- ============================================================================
+-- Must be created AFTER wedding_profiles columns are added (partner1_name, partner2_name)
+-- ============================================================================
+
+DROP VIEW IF EXISTS active_invites;
+
+CREATE OR REPLACE VIEW active_invites AS
+SELECT
+  ic.id,
+  ic.wedding_id,
+  ic.invite_token,
+  ic.role,
+  ic.wedding_profile_permissions,
+  ic.created_by,
+  ic.created_at,
+  ic.is_used,
+  ic.used_by,
+  ic.used_at,
+  wp.partner1_name,
+  wp.partner2_name
+FROM invite_codes ic
+JOIN wedding_profiles wp ON ic.wedding_id = wp.id
+WHERE (ic.is_used = false OR ic.is_used IS NULL);
+
+GRANT SELECT ON active_invites TO authenticated;
 
 -- ============================================================================
 -- DEPLOYMENT COMPLETE
