@@ -171,17 +171,12 @@ export default async function handler(req, res) {
     // - Owner: Full access (read + edit)
     // - Partner: Full access (read + edit)
     // - Bestie: View access (read only, no edit)
-    const permissions = (intendedRole === 'owner' || intendedRole === 'partner')
-      ? { read: true, edit: true }  // Full access for owner and partner
+    // IMPORTANT: Database constraint requires can_read and can_edit keys (not read/edit)
+    const wedding_profile_permissions = (intendedRole === 'owner' || intendedRole === 'partner')
+      ? { can_read: true, can_edit: true }  // Full access for owner and partner
       : intendedRole === 'bestie'
-      ? { read: true, edit: false }  // View only for bestie
-      : { read: false, edit: false };  // Default no access
-
-    // Override with database permissions if present (for migrated schemas)
-    const finalPermissions = invite.wedding_profile_permissions || {
-      can_read: permissions.read,
-      can_edit: permissions.edit
-    };
+      ? { can_read: true, can_edit: false }  // View only for bestie
+      : { can_read: false, can_edit: false };  // Default no access
 
     // ========================================================================
     // STEP 5: Check if invite has expired
@@ -260,7 +255,7 @@ export default async function handler(req, res) {
         user_id: user.id,
         role: dbRole,  // 'owner', 'partner', or 'bestie'
         invited_by_user_id: invite.created_by,
-        wedding_profile_permissions: finalPermissions
+        wedding_profile_permissions: wedding_profile_permissions
       })
       .select()
       .single();
@@ -351,7 +346,7 @@ export default async function handler(req, res) {
       },
       your_role: intendedRole,  // Show the intended role (partner/bestie) not DB role (member/bestie)
       permissions: {
-        wedding_profile: finalPermissions
+        wedding_profile: wedding_profile_permissions
       },
       // Besties go to bestie dashboard, owner/partner go to main dashboard
       redirect_to: intendedRole === 'bestie'
