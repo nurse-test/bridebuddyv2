@@ -322,7 +322,7 @@ export default async function handler(req, res) {
       },
       // Besties go to bestie dashboard, owner/partner go to main dashboard
       redirect_to: intendedRole === 'bestie'
-        ? `/bestie-luxury.html?wedding_id=${invite.wedding_id}`
+        ? `/bestie-dashboard-luxury.html?wedding_id=${invite.wedding_id}`
         : `/dashboard-luxury.html?wedding_id=${invite.wedding_id}`
     };
 
