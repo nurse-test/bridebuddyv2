@@ -339,17 +339,15 @@
                     // Custom return URL provided
                     redirectUrl = returnTo;
                     showToast('success', 'Account Created!', 'Redirecting...');
+                } else if (startedPlanning) {
+                    redirectUrl = 'onboarding-luxury.html';
+                    showToast('success', 'Account Created!', "Let's gather a few wedding details…");
                 } else {
                     const chatDestination = isBestie ? 'bestie-chat-luxury.html' : 'chat-luxury.html';
                     const chatToastMessage = isBestie
                         ? 'Redirecting you to bestie chat…'
                         : 'Redirecting you to chat…';
-                    const searchParams = new URLSearchParams();
-                    if (startedPlanning) {
-                        searchParams.set('started_planning', 'true');
-                    }
-                    const queryString = searchParams.toString();
-                    redirectUrl = queryString ? `${chatDestination}?${queryString}` : chatDestination;
+                    redirectUrl = chatDestination;
                     showToast('success', 'Account Created!', chatToastMessage);
                 }
 
