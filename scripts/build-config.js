@@ -43,6 +43,23 @@ if (fs.existsSync(dotenvPath)) {
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY;
 
+// Optional Stripe configuration
+const STRIPE_PRICE_ID_VIP_MONTHLY = process.env.STRIPE_PRICE_ID_VIP_MONTHLY;
+const STRIPE_PRICE_ID_VIP_ONETIME = process.env.STRIPE_PRICE_ID_VIP_ONETIME;
+const STRIPE_PRICE_ID_VIP_BESTIE_MONTHLY = process.env.STRIPE_PRICE_ID_VIP_BESTIE_MONTHLY;
+const STRIPE_PRICE_ID_VIP_BESTIE_ONETIME = process.env.STRIPE_PRICE_ID_VIP_BESTIE_ONETIME;
+
+const stripePriceIdEntries = Object.entries({
+  vipMonthly: STRIPE_PRICE_ID_VIP_MONTHLY,
+  vipOneTime: STRIPE_PRICE_ID_VIP_ONETIME,
+  vipBestieMonthly: STRIPE_PRICE_ID_VIP_BESTIE_MONTHLY,
+  vipBestieOneTime: STRIPE_PRICE_ID_VIP_BESTIE_ONETIME
+}).filter(([, value]) => Boolean(value));
+
+const stripePriceIdsContent = stripePriceIdEntries
+  .map(([key, value]) => `      ${key}: '${value}'`)
+  .join(',\n');
+
 // Validate required variables
 if (!SUPABASE_URL) {
   console.error('❌ Error: SUPABASE_URL is not set in environment variables');
@@ -78,6 +95,10 @@ export const config = {
   supabase: {
     url: '${SUPABASE_URL}',
     anonKey: '${SUPABASE_ANON_KEY}'
+  },
+  stripe: {
+    priceIds: {
+${stripePriceIdsContent ? stripePriceIdsContent + '\n' : ''}    }
   }
 };
 
