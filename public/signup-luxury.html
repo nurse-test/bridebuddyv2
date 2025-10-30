@@ -120,6 +120,14 @@
                         </label>
                     </div>
 
+                    <div class="form-group">
+                        <label class="form-label">Have you already started planning?</label>
+                        <div>
+                            <label><input type="radio" name="startedPlanning" value="true"> Yes</label>
+                            <label style="margin-left: var(--space-4);"><input type="radio" name="startedPlanning" value="false" checked> Not yet</label>
+                        </div>
+                    </div>
+
                     <!-- Submit Button -->
                     <button type="submit" class="btn btn-primary btn-lg btn-full">
                         <svg style="width: 20px; height: 20px; fill: currentColor;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
@@ -294,6 +302,8 @@
 
                 // Determine redirect URL based on context
                 let redirectUrl;
+                const startedPlanning =
+                    document.querySelector('input[name="startedPlanning"]:checked')?.value === 'true';
                 if (inviteToken) {
                     // User came from invite - return to accept-invite page
                     // Set flag to auto-accept the invite
@@ -305,10 +315,12 @@
                     // Custom return URL provided
                     redirectUrl = returnTo;
                     showToast('success', 'Account Created!', 'Redirecting...');
-                } else {
-                    // New wedding owner - send to onboarding
+                } else if (startedPlanning) {
                     redirectUrl = 'onboarding-luxury.html';
-                    showToast('success', 'Account Created!', 'Redirecting to onboarding...');
+                    showToast('success', 'Account Created!', 'Redirecting you to onboarding...');
+                } else {
+                    redirectUrl = 'dashboard-luxury.html';
+                    showToast('success', 'Account Created!', 'Redirecting you to your dashboard...');
                 }
 
                 // Redirect after a short delay
