@@ -322,6 +322,12 @@
             try {
                 const { data: { session } } = await supabase.auth.getSession();
 
+                if (!session || !session.user) {
+                    console.log('ℹ️ No active session - redirecting to full signup flow');
+                    window.location.href = 'signup-luxury.html';
+                    return;
+                }
+
                 if (session && session.user) {
                     console.log('✅ Existing session found');
 
