@@ -259,6 +259,16 @@
                 </div>
             </div>
 
+            <div class="skip-container" style="text-align:center;margin-top:20px;">
+                <button id="skipOnboarding" class="btn btn-outline" 
+                        style="border-color:var(--color-gold);color:var(--color-gold);">
+                    Skip onboarding for now →
+                </button>
+                <p style="font-size:0.9rem;color:var(--color-muted);margin-top:8px;">
+                    You can finish setup anytime from your Dashboard.
+                </p>
+            </div>
+
             <!-- Toast Container -->
             <div id="toastContainer" class="toast-container"></div>
 
@@ -739,6 +749,36 @@
                 }
             });
         });
+
+        // --- Skip Onboarding Logic ---
+        const skipBtn = document.getElementById('skipOnboarding');
+        if (skipBtn) {
+            skipBtn.addEventListener('click', async () => {
+                try {
+                    const { data: { user } } = await supabase.auth.getUser();
+                    if (!user) {
+                        showToast('You must be logged in first.', 'error');
+                        window.location.href = 'login-luxury.html';
+                        return;
+                    }
+
+                    const userId = localStorage.getItem('user_id') || user.id;
+                    const weddingId = localStorage.getItem('wedding_id');
+                    if (!userId) {
+                        localStorage.setItem('user_id', user.id);
+                    }
+                    if (!weddingId) console.warn('No wedding_id found, continuing to dashboard.');
+
+                    showToast('Onboarding skipped. Redirecting you to your dashboard...', 'info', 4000);
+                    setTimeout(() => {
+                        window.location.href = 'dashboard-luxury.html';
+                    }, 1200);
+                } catch (err) {
+                    console.error('Error skipping onboarding:', err);
+                    showToast('Something went wrong. Try again.', 'error', 4000);
+                }
+            });
+        }
     </script>
 
     <!-- Custom Styles -->
