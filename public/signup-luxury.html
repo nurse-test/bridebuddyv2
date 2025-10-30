@@ -326,6 +326,8 @@
                 let redirectUrl;
                 const startedPlanning =
                     document.querySelector('input[name="startedPlanning"]:checked')?.value === 'true';
+                const storedUserRole = localStorage.getItem('user_role');
+                const isBestie = storedUserRole === 'bestie';
                 if (inviteToken) {
                     // User came from invite - return to accept-invite page
                     // Set flag to auto-accept the invite
@@ -337,12 +339,18 @@
                     // Custom return URL provided
                     redirectUrl = returnTo;
                     showToast('success', 'Account Created!', 'Redirecting...');
-                } else if (startedPlanning) {
-                    redirectUrl = 'onboarding-luxury.html';
-                    showToast('success', 'Account Created!', 'Redirecting you to onboarding...');
                 } else {
-                    redirectUrl = 'dashboard-luxury.html';
-                    showToast('success', 'Account Created!', 'Redirecting you to your dashboard...');
+                    const chatDestination = isBestie ? 'bestie-chat-luxury.html' : 'chat-luxury.html';
+                    const chatToastMessage = isBestie
+                        ? 'Redirecting you to bestie chat…'
+                        : 'Redirecting you to chat…';
+                    const searchParams = new URLSearchParams();
+                    if (startedPlanning) {
+                        searchParams.set('started_planning', 'true');
+                    }
+                    const queryString = searchParams.toString();
+                    redirectUrl = queryString ? `${chatDestination}?${queryString}` : chatDestination;
+                    showToast('success', 'Account Created!', chatToastMessage);
                 }
 
                 // Show trial confirmation overlay before redirecting

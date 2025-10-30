@@ -276,10 +276,22 @@
                 }
 
                 // Use the first wedding (most recent)
-                const weddingId = members[0].wedding_id;
+                const primaryMember = members[0] || {};
+                const weddingId = primaryMember.wedding_id;
 
                 // Store session in localStorage immediately
                 storeUserSession(data.user.id, weddingId);
+
+                // Persist user role when available for downstream flows
+                if (primaryMember.role) {
+                    localStorage.setItem('user_role', primaryMember.role);
+                }
+                const storedUserRole = localStorage.getItem('user_role');
+                const isBestie = (primaryMember.role || storedUserRole) === 'bestie';
+                const chatDestination = isBestie ? 'bestie-chat-luxury.html' : 'chat-luxury.html';
+                const chatToastMessage = isBestie
+                    ? 'Redirecting you to bestie chat…'
+                    : 'Redirecting you to chat…';
 
                 // Determine redirect URL based on context
                 if (inviteToken) {
@@ -292,8 +304,10 @@
                     // Custom return URL provided
                     window.location.href = returnTo;
                 } else {
-                    // Normal login - redirect to dashboard
-                    window.location.href = `dashboard-luxury.html?wedding_id=${weddingId}`;
+                    // Normal login - redirect to appropriate chat experience
+                    showToast(chatToastMessage, 'success');
+                    const chatUrl = weddingId ? `${chatDestination}?wedding_id=${weddingId}` : chatDestination;
+                    window.location.href = chatUrl;
                 }
             } catch (error) {
                 console.error('Login error:', error.message);
