@@ -34,8 +34,8 @@
                 <h2 style="font-family: var(--font-heading); font-size: var(--text-3xl); color: var(--color-heading); margin-bottom: var(--space-2);">
                     Choose Your Plan
                 </h2>
-                <p style="color: var(--color-body); opacity: 0.9; font-size: var(--text-lg);">
-                    Start your 7-day free trial. No credit card required!
+                <p style="color: var(--color-body); opacity: 0.9; font-size: var(--text-lg); max-width: 560px; margin: 0 auto;">
+                    Your 7-day VIP trial has already started. You can upgrade anytime below.
                 </p>
             </div>
 
@@ -90,10 +90,10 @@
                     </ul>
 
                     <button class="btn btn-primary btn-full btn-lg" style="margin-bottom: var(--space-3);" onclick="selectPlan('vip', 'monthly')">
-                        Start Free Trial
+                        Upgrade – Monthly Subscription
                     </button>
                     <button class="btn btn-secondary btn-full" onclick="selectPlan('vip', 'one_time')">
-                        One-Time Payment
+                        Upgrade – One-Time Payment
                     </button>
                 </div>
 
@@ -149,10 +149,10 @@
                     </ul>
 
                     <button class="btn btn-primary btn-full btn-lg" style="margin-bottom: var(--space-3);" onclick="selectPlan('vip_bestie', 'monthly')">
-                        Start Free Trial
+                        Upgrade – Monthly Subscription
                     </button>
                     <button class="btn btn-secondary btn-full" onclick="selectPlan('vip_bestie', 'one_time')">
-                        One-Time Payment
+                        Upgrade – One-Time Payment
                     </button>
                 </div>
 
@@ -200,32 +200,7 @@
         // Make function globally available
         window.selectPlan = async function(tier, billing) {
             try {
-                // If "monthly" (Start Free Trial), enable the plan and go to dashboard
-                if (billing === 'monthly') {
-                    // Enable bestie addon if VIP+Bestie plan selected
-                    if (tier === 'vip_bestie') {
-                        const { data: { session } } = await supabase.auth.getSession();
-                        if (session) {
-                            // Enable bestie addon for trial
-                            const { error } = await supabase
-                                .from('wedding_profiles')
-                                .update({ bestie_addon_enabled: true })
-                                .eq('id', weddingId);
-
-                            if (error) {
-                                console.error('Error enabling bestie addon:', error);
-                                showToast('Trial started, but bestie addon could not be enabled. Please contact support.', 'warning');
-                            } else {
-                                showToast('VIP+Bestie trial started! Bestie features enabled.', 'success');
-                            }
-                        }
-                    }
-
-                    window.location.href = `dashboard-luxury.html?wedding_id=${weddingId}`;
-                    return;
-                }
-
-                // For one-time payment, go through Stripe checkout
+                // All upgrade options go through Stripe checkout
                 // SECURITY: Get session token to pass to server for verification
                 const { data: { session } } = await supabase.auth.getSession();
                 if (!session) {

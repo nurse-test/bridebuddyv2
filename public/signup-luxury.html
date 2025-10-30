@@ -149,11 +149,21 @@
         </div>
     </div>
 
+    <!-- Trial Loading Overlay -->
+    <div id="trialLoadingOverlay" class="trial-loading-overlay" aria-hidden="true">
+        <div class="overlay-content">
+            <div class="overlay-spinner" role="status" aria-live="polite"></div>
+            <p class="overlay-text overlay-text-primary">✨ Starting your 7-day free trial…</p>
+            <p class="overlay-text overlay-text-secondary">Upgrade anytime from your dashboard.</p>
+        </div>
+    </div>
+
     <!-- Scripts -->
     <script type="module">
         import { initSupabase } from '/js/shared.js';
 
         const supabase = initSupabase();
+        const trialLoadingOverlay = document.getElementById('trialLoadingOverlay');
 
         // Check for invite token or return URL in query params
         const urlParams = new URLSearchParams(window.location.search);
@@ -212,6 +222,18 @@
         // Clear Alert
         function clearAlert() {
             document.getElementById('alertContainer').innerHTML = '';
+        }
+
+        function showTrialLoadingOverlay() {
+            if (!trialLoadingOverlay) return;
+            trialLoadingOverlay.classList.add('is-active');
+            trialLoadingOverlay.setAttribute('aria-hidden', 'false');
+        }
+
+        function hideTrialLoadingOverlay() {
+            if (!trialLoadingOverlay) return;
+            trialLoadingOverlay.classList.remove('is-active');
+            trialLoadingOverlay.setAttribute('aria-hidden', 'true');
         }
 
         // Form Validation
@@ -323,16 +345,21 @@
                     showToast('success', 'Account Created!', 'Redirecting you to your dashboard...');
                 }
 
-                // Redirect after a short delay
+                // Show trial confirmation overlay before redirecting
+                showTrialLoadingOverlay();
+
+                const overlayDuration = 2400;
+
                 setTimeout(() => {
                     window.location.href = redirectUrl;
-                }, 1500);
+                }, overlayDuration);
 
             } catch (error) {
                 console.error('Signup error:', error);
                 showAlert('error', 'Signup Failed', error.message || 'An error occurred during signup. Please try again.');
                 btn.classList.remove('btn-loading');
                 btn.disabled = false;
+                hideTrialLoadingOverlay();
             }
         });
 
@@ -387,6 +414,63 @@
         /* Checkbox styling */
         .checkbox-label a:hover {
             color: var(--color-gold);
+        }
+
+        .trial-loading-overlay {
+            position: fixed;
+            inset: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02));
+            background-color: var(--color-navy);
+            backdrop-filter: blur(6px);
+            z-index: 999;
+            padding: var(--space-8);
+        }
+
+        .trial-loading-overlay.is-active {
+            display: flex;
+        }
+
+        .trial-loading-overlay .overlay-content {
+            text-align: center;
+            max-width: 420px;
+        }
+
+        .overlay-spinner {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            border: 4px solid rgba(255, 255, 255, 0.2);
+            border-top-color: var(--color-gold);
+            border-right-color: var(--color-sunset);
+            margin: 0 auto var(--space-6);
+            animation: overlay-spin 0.9s linear infinite;
+        }
+
+        .overlay-text {
+            font-family: var(--font-heading);
+            color: var(--color-gold);
+            margin-bottom: var(--space-2);
+        }
+
+        .overlay-text-primary {
+            font-size: var(--text-xl);
+            color: var(--color-gold);
+        }
+
+        .overlay-text-secondary {
+            font-family: var(--font-body);
+            font-size: var(--text-base);
+            color: var(--color-sunset);
+            margin-bottom: 0;
+        }
+
+        @keyframes overlay-spin {
+            to {
+                transform: rotate(360deg);
+            }
         }
     </style>
 </body>
