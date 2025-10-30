@@ -35,10 +35,10 @@
 
             <!-- Signup Card -->
             <main id="main-content" class="card card-gold-accent animate-fade-in-scale" style="max-width: 480px; width: 100%;">
-                <h2 style="font-family: var(--font-heading); font-size: var(--text-3xl); text-align: center; color: var(--color-navy); margin-bottom: var(--space-2);">
+                <h2 id="signupHeaderTitle" style="font-family: var(--font-heading); font-size: var(--text-3xl); text-align: center; color: var(--color-navy); margin-bottom: var(--space-2);">
                     Start Planning Your Dream Wedding
                 </h2>
-                <p style="text-align: center; color: var(--color-burgundy); font-size: var(--text-sm); margin-bottom: var(--space-8);">
+                <p id="signupSubtitle" style="text-align: center; color: var(--color-burgundy); font-size: var(--text-sm); margin-bottom: var(--space-8);">
                     Create your account and get started in minutes
                 </p>
 
@@ -164,11 +164,65 @@
 
         const supabase = initSupabase();
         const trialLoadingOverlay = document.getElementById('trialLoadingOverlay');
+        const headerTitleEl = document.getElementById('signupHeaderTitle');
+        const subtitleEl = document.getElementById('signupSubtitle');
 
-        // Check for invite token or return URL in query params
         const urlParams = new URLSearchParams(window.location.search);
-        const inviteToken = urlParams.get('invite_token');
+        let inviteToken = urlParams.get('invite_token');
         const returnTo = urlParams.get('return_to');
+
+        const defaultTitleText = headerTitleEl?.textContent?.trim() || '';
+        const defaultSubtitleText = subtitleEl?.textContent?.trim() || '';
+
+        const likelyBestieToken = (token) => typeof token === 'string' && token.startsWith('bestie_');
+
+        function setBestieInviteHeader(inviterName) {
+            if (!headerTitleEl || !subtitleEl) return;
+
+            if (inviterName) {
+                headerTitleEl.textContent = `Accept ${inviterName}’s Invite to Be a Bestie`;
+            } else {
+                headerTitleEl.textContent = 'Accept Your Friend’s Invite to Be a Bestie.';
+            }
+
+            subtitleEl.textContent = 'Create your account to join your friend’s wedding planning space.';
+        }
+
+        async function personalizeForInvite(token) {
+            try {
+                const response = await fetch(`/api/get-invite-info?invite_token=${encodeURIComponent(token)}`);
+
+                if (!response.ok) {
+                    throw new Error(`Failed to load invite info: ${response.status}`);
+                }
+
+                const data = await response.json();
+                const invite = data?.invite;
+
+                if (invite?.role === 'bestie') {
+                    const inviterName = (invite.inviter_name || invite.wedding_owner_name || '').trim();
+                    setBestieInviteHeader(inviterName);
+                } else if (likelyBestieToken(token)) {
+                    setBestieInviteHeader('');
+                }
+            } catch (error) {
+                console.error('Failed to personalize invite header:', error);
+                if (likelyBestieToken(token)) {
+                    setBestieInviteHeader('');
+                }
+            }
+        }
+
+        if (!inviteToken) {
+            inviteToken = localStorage.getItem('pending_invite_token');
+        }
+
+        if (inviteToken) {
+            personalizeForInvite(inviteToken);
+        } else {
+            if (headerTitleEl) headerTitleEl.textContent = defaultTitleText;
+            if (subtitleEl) subtitleEl.textContent = defaultSubtitleText;
+        }
 
         // Password Toggle
         window.togglePassword = function(id) {
