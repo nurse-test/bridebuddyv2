@@ -339,11 +339,11 @@
                         .single();
 
                     if (membership && membership.wedding_id) {
-                        // User already has account AND wedding - redirect to dashboard
-                        console.log('✅ User already has wedding, redirecting to dashboard');
-                        showToast('Redirecting to your dashboard...', 'success');
+                        // User already has account AND wedding - redirect to chat
+                        console.log('✅ User already has wedding, redirecting to chat');
+                        showToast('Redirecting to your chat...', 'success');
                         setTimeout(() => {
-                            window.location.href = `dashboard-luxury.html?wedding_id=${membership.wedding_id}`;
+                            window.location.href = `chat-luxury.html?wedding_id=${membership.wedding_id}`;
                         }, 1000);
                         return;
                     }
@@ -728,9 +728,9 @@
                 localStorage.setItem('user_id', session.user.id);
                 localStorage.setItem('wedding_id', weddingId);
 
-                // Redirect to chat/dashboard
-                console.log('✅ Onboarding complete, redirecting to dashboard...');
-                window.location.href = `dashboard-luxury.html?wedding_id=${weddingId}`;
+                // Redirect to chat
+                console.log('✅ Onboarding complete, redirecting to chat...');
+                window.location.href = `chat-luxury.html?wedding_id=${weddingId}`;
 
             } catch (error) {
                 console.error('❌ Error in onboarding completion:', error);
